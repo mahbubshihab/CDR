@@ -79,22 +79,6 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   const [countrySel, setCountrySel] = useState('All');
   const [operatorSel, setOperatorSel] = useState('All');
 
-  // Applied Filter states
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: '',
-    year: 'All',
-    month: 'All',
-    hour: 'All',
-    location: 'All',
-    bParty: 'All',
-    imei: 'All',
-    imsi: 'All',
-    callType: 'All',
-    bPartyType: 'All',
-    country: 'All',
-    operator: 'All'
-  });
-
   // Check if active file belongs to Pakistan dataset
   const isPakistanCase = useMemo(() => {
     return records.some(r => {
@@ -139,32 +123,14 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       years: Array.from(years).sort(),
       months: monthsMap.filter(m => activeMonths.has(m)),
       hours: Array.from(activeHours).sort((a, b) => Number(a) - Number(b)),
-      locations: Array.from(locations).sort().slice(0, 20),
-      bParties: Array.from(bParties).sort().slice(0, 20),
-      imeis: Array.from(imeis).sort().slice(0, 10),
-      imsis: Array.from(imsis).sort().slice(0, 10),
+      locations: Array.from(locations).sort().slice(0, 30),
+      bParties: Array.from(bParties).sort().slice(0, 30),
+      imeis: Array.from(imeis).sort().slice(0, 15),
+      imsis: Array.from(imsis).sort().slice(0, 15),
       operators: Array.from(operators).sort(),
       countries: Array.from(countries).sort()
     };
   }, [records]);
-
-  // Apply button
-  const handleApplyFilters = () => {
-    setAppliedFilters({
-      search: searchInput,
-      year: yearSel,
-      month: monthSel,
-      hour: hourSel,
-      location: locationSel,
-      bParty: bPartySel,
-      imei: imeiSel,
-      imsi: imsiSel,
-      callType: callTypeSel,
-      bPartyType: bPartyTypeSel,
-      country: countrySel,
-      operator: operatorSel
-    });
-  };
 
   // Clear filters
   const handleClearFilters = () => {
@@ -180,28 +146,13 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     setBPartyTypeSel('All');
     setCountrySel('All');
     setOperatorSel('All');
-
-    setAppliedFilters({
-      search: '',
-      year: 'All',
-      month: 'All',
-      hour: 'All',
-      location: 'All',
-      bParty: 'All',
-      imei: 'All',
-      imsi: 'All',
-      callType: 'All',
-      bPartyType: 'All',
-      country: 'All',
-      operator: 'All'
-    });
   };
 
-  // Filter records in memory dynamically
+  // Filter records instantly whenever any selection state changes
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
-      if (appliedFilters.search) {
-        const q = appliedFilters.search.toLowerCase();
+      if (searchInput) {
+        const q = searchInput.toLowerCase();
         const matches = 
           (r.otherParty && r.otherParty.toLowerCase().includes(q)) ||
           (r.imei && r.imei.toLowerCase().includes(q)) ||
@@ -211,52 +162,52 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       
       const d = parseCDRTimestamp(r.timestamp);
 
-      if (appliedFilters.year !== 'All') {
+      if (yearSel !== 'All') {
         const yr = d.getFullYear().toString();
-        if (yr !== appliedFilters.year) return false;
+        if (yr !== yearSel) return false;
       }
-      if (appliedFilters.month !== 'All') {
+      if (monthSel !== 'All') {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const mIdx = d.getMonth();
-        if (months[mIdx] !== appliedFilters.month) return false;
+        if (months[mIdx] !== monthSel) return false;
       }
-      if (appliedFilters.hour !== 'All') {
+      if (hourSel !== 'All') {
         const hr = d.getHours().toString();
-        if (hr !== appliedFilters.hour) return false;
+        if (hr !== hourSel) return false;
       }
-      if (appliedFilters.location !== 'All') {
-        if (r.address !== appliedFilters.location) return false;
+      if (locationSel !== 'All') {
+        if (r.address !== locationSel) return false;
       }
-      if (appliedFilters.bParty !== 'All') {
-        if (r.otherParty !== appliedFilters.bParty) return false;
+      if (bPartySel !== 'All') {
+        if (r.otherParty !== bPartySel) return false;
       }
-      if (appliedFilters.imei !== 'All') {
-        if (r.imei !== appliedFilters.imei) return false;
+      if (imeiSel !== 'All') {
+        if (r.imei !== imeiSel) return false;
       }
-      if (appliedFilters.imsi !== 'All') {
-        if (r.imsi !== appliedFilters.imsi) return false;
+      if (imsiSel !== 'All') {
+        if (r.imsi !== imsiSel) return false;
       }
-      if (appliedFilters.operator !== 'All') {
-        if (r.provider !== appliedFilters.operator) return false;
+      if (operatorSel !== 'All') {
+        if (r.provider !== operatorSel) return false;
       }
-      if (appliedFilters.country !== 'All') {
+      if (countrySel !== 'All') {
         const country = getCountryFromNumber(r.otherParty || '');
-        if (country !== appliedFilters.country) return false;
+        if (country !== countrySel) return false;
       }
-      if (appliedFilters.bPartyType !== 'All') {
+      if (bPartyTypeSel !== 'All') {
         const type = getBPartyType(r.otherParty || '', isPakistanCase);
-        if (type !== appliedFilters.bPartyType) return false;
+        if (type !== bPartyTypeSel) return false;
       }
-      if (appliedFilters.callType !== 'All') {
+      if (callTypeSel !== 'All') {
         const t = r.usageType.toLowerCase();
-        if (appliedFilters.callType === 'Incoming Call' && t !== 'mtc') return false;
-        if (appliedFilters.callType === 'Outgoing Call' && t !== 'moc') return false;
-        if (appliedFilters.callType === 'SMS - Incoming' && t !== 'sms_mtc') return false;
-        if (appliedFilters.callType === 'SMS - Outgoing' && t !== 'sms_moc') return false;
+        if (callTypeSel === 'Incoming Call' && t !== 'mtc') return false;
+        if (callTypeSel === 'Outgoing Call' && t !== 'moc') return false;
+        if (callTypeSel === 'SMS - Incoming' && t !== 'sms_mtc') return false;
+        if (callTypeSel === 'SMS - Outgoing' && t !== 'sms_moc') return false;
       }
       return true;
     });
-  }, [records, appliedFilters, isPakistanCase]);
+  }, [records, searchInput, yearSel, monthSel, hourSel, locationSel, bPartySel, imeiSel, imsiSel, operatorSel, countrySel, bPartyTypeSel, callTypeSel, isPakistanCase]);
 
   // Aggregate Metrics
   const metrics = useMemo(() => {
@@ -379,7 +330,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         operatorSel={operatorSel}
         setOperatorSel={setOperatorSel}
         filterOptions={filterOptions}
-        onApply={handleApplyFilters}
+        onApply={() => {}} // Dynamic filtration is now immediate on selection changes
         onClear={handleClearFilters}
       />
 
