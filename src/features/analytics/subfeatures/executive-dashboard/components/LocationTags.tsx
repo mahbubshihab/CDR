@@ -10,7 +10,7 @@ export const LocationTags: React.FC<LocationTagsProps> = ({ locations }) => {
       <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono block">
         Location Intelligence
       </span>
-      <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto custom-scrollbar">
+      <div className="flex flex-wrap gap-2">
         {locations.map((loc, idx) => (
           <span 
             key={idx} 
