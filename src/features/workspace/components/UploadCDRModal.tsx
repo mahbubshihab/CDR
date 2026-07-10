@@ -140,13 +140,13 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
           const recordsToInsert = rawRows.map((row: any) => {
             // Find columns dynamically
-            const otherParty = row.BPARTY || row['Other Party'] || row.other_party || 'Unknown';
-            const duration = Number(row.CALL_DURATION || row.duration || 0);
-            const usageType = row.USAGE_TYPE || row['Call Type'] || row.type || 'MOC';
+            const otherParty = row.BPARTY || row.bparty || row['Other Party'] || row.other_party || 'Unknown';
+            const duration = Number(row.CALL_DURATION || row['CALL DURATION'] || row.duration || 0);
+            const usageType = row.USAGE_TYPE || row['USAGE TYPE'] || row['Call Type'] || row.type || 'MOC';
             const imei = row.IMEI || row.imei || '';
-            const imsi = row.IMSI || row.imsi || '';
+            const imsi = row.IMSI || row.IMSIA || row.imsi || row.imsia || '';
             const address = row.ADDRESS || row.address || row.Location || '';
-            const rawTime = row.START_DTTIME || row.time || row.Timestamp || Date.now();
+            const rawTime = row.START_DTTIME || row.START || row.time || row.Timestamp || Date.now();
 
             let timestamp = Date.now();
             if (rawTime) {
@@ -181,13 +181,15 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
             const lac = row.LACSTARTA || row.lac ? Number(row.LACSTARTA || row.lac) : undefined;
             const cellId = row.CISTARTA || row.cellId || row.cid ? Number(row.CISTARTA || row.cellId || row.cid) : undefined;
-            const networkType = row.NETWORK_TYPE || row.network_type || row.networkType || '';
+            const networkType = row.NETWORK_TYPE || row['NETWORK TYPE'] || row.network_type || row.networkType || '';
             const mcc = row.MCCSTARTA || row.mcc ? Number(row.MCCSTARTA || row.mcc) : undefined;
             const mnc = row.MNCSTARTA || row.mnc ? Number(row.MNCSTARTA || row.mnc) : undefined;
             const aparty = row.APARTY || row.aparty || '';
             const uePort = row.UE_PORT || row.ue_port || row.uePort || '';
             const ueLocalIp = row.UE_LOCAL_IP || row.ue_local_ip || row.ueLocalIp || '';
-            const providerName = row.PROVIDER_NAME || row.provider_name || row.provider || operator || 'Unknown';
+            const providerName = row.PROVIDER_NAME || row['PROVIDER NAME'] || row.provider_name || row.provider || operator || 'Unknown';
+            const ueLocalPort = row.UE_LOCAL_PORT || row['UE Local Port'] || row.ue_local_port || '';
+            const countryCode = row.COUNTRY_CODE || row['Country Code'] || row.country_code || '';
 
             return {
               caseId,
@@ -207,7 +209,9 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               mnc,
               aparty: String(aparty),
               uePort: String(uePort),
-              ueLocalIp: String(ueLocalIp)
+              ueLocalIp: String(ueLocalIp),
+              ueLocalPort: String(ueLocalPort),
+              countryCode: String(countryCode)
             };
           });
 

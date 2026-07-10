@@ -37,6 +37,8 @@ export const RawCDRLogs: React.FC<RawCDRLogsProps> = ({ cdrFile, records }) => {
                 <th className="py-2.5 px-4">Cell tower Address</th>
                 <th className="py-2.5 px-4">UE Port</th>
                 <th className="py-2.5 px-4">UE Local IP</th>
+                <th className="py-2.5 px-4">UE Local Port</th>
+                <th className="py-2.5 px-4">Country Code</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#2e2e2e]/50 font-mono text-[11px]">
@@ -66,6 +68,8 @@ export const RawCDRLogs: React.FC<RawCDRLogsProps> = ({ cdrFile, records }) => {
                   <td className="py-2.5 px-4 text-gray-300 truncate max-w-[200px]">{rec.address || '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.uePort || '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.ueLocalIp || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.ueLocalPort || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.countryCode || '—'}</td>
                 </tr>
               ))}
             </tbody>
