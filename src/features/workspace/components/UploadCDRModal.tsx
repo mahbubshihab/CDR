@@ -114,22 +114,6 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
     setLoading(true);
     try {
-      // 1. Insert CDRFile entry
-      const fileId = await db.cdrFiles.add({
-        caseId,
-        phoneNumber: phoneNumber || 'Auto-detected from CDR',
-        operator,
-        fileName: selectedFile.name,
-        uploadDate: Date.now(),
-        status: 'Partial',
-        category,
-        ownerName: ownerName || 'Unknown',
-        description,
-        notes,
-        recordsCount: rowCount
-      });
-
-      // 2. Parse file and insert CDRRecords
       const reader = new FileReader();
       reader.onload = async (evt) => {
         try {
@@ -138,6 +122,37 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
           const worksheet = workbook.Sheets[workbook.SheetNames[0]];
           const rawRows = XLSX.utils.sheet_to_json<any>(worksheet);
 
+          // Auto-detect phone number and provider/operator from sheet if not entered/selected
+          let detectedPhone = '';
+          let detectedOperator = operator;
+
+          if (rawRows.length > 0) {
+            const firstRow = rawRows[0];
+            detectedPhone = String(firstRow.APARTY || firstRow.aparty || '');
+            const providerName = firstRow.PROVIDER_NAME || firstRow['PROVIDER NAME'] || firstRow.provider_name || firstRow.provider || '';
+            if (providerName) {
+              detectedOperator = String(providerName);
+            }
+          }
+
+          const finalPhoneNumber = phoneNumber.trim() || detectedPhone || 'Auto-detected';
+
+          // 1. Insert CDRFile entry
+          const fileId = await db.cdrFiles.add({
+            caseId,
+            phoneNumber: finalPhoneNumber,
+            operator: detectedOperator,
+            fileName: selectedFile.name,
+            uploadDate: Date.now(),
+            status: 'Partial',
+            category,
+            ownerName: ownerName || 'Unknown',
+            description,
+            notes,
+            recordsCount: rowCount
+          });
+
+          // 2. Parse file and insert CDRRecords
           const recordsToInsert = rawRows.map((row: any) => {
             // Find columns dynamically
             const otherParty = row.BPARTY || row.bparty || row['Other Party'] || row.other_party || 'Unknown';
@@ -187,7 +202,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
             const aparty = row.APARTY || row.aparty || '';
             const uePort = row.UE_PORT || row.ue_port || row.uePort || '';
             const ueLocalIp = row.UE_LOCAL_IP || row.ue_local_ip || row.ueLocalIp || '';
-            const providerName = row.PROVIDER_NAME || row['PROVIDER NAME'] || row.provider_name || row.provider || operator || 'Unknown';
+            const providerName = row.PROVIDER_NAME || row['PROVIDER NAME'] || row.provider_name || row.provider || detectedOperator || 'Unknown';
             const ueLocalPort = row.UE_LOCAL_PORT || row['UE Local Port'] || row.ue_local_port || '';
             const countryCode = row.COUNTRY_CODE || row['Country Code'] || row.country_code || '';
 

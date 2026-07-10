@@ -4,6 +4,9 @@ import { Play, Pause, RotateCcw, Shield, Clock, MapPin, FastForward } from 'luci
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import towerLocationsRaw from '../../../../assets/tower_locations.json';
+
+const towerLocations = towerLocationsRaw as Record<string, { lat: number; lng: number }>;
 
 // Fix Leaflet default icon path issues
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -39,8 +42,12 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
   const [speed, setSpeed] = useState(1); // 1x, 2x, 4x
   const timerRef = useRef<any>(null);
 
-  // Deterministic geocoordinates generator around Dhaka center (23.8103, 90.4125)
+  // Look up coordinates from tower_locations.json database, else fallback to deterministic generator around Dhaka center
   const getCoordinates = (lac: number, cellId: number): [number, number] => {
+    const key = `${lac}-${cellId}`;
+    if (towerLocations[key]) {
+      return [towerLocations[key].lat, towerLocations[key].lng];
+    }
     const latBase = 23.8103;
     const lngBase = 90.4125;
     const seedLat = Math.sin(lac * 11 + cellId * 7) * 0.04;
