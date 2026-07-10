@@ -39,6 +39,8 @@ export interface CDRRecord {
   imsi?: string;
   address?: string;
   provider?: string; // Grameenphone, Robi, Banglalink, Teletalk, Airtel
+  lac?: number;
+  cellId?: number;
 }
 
 export class CDRDatabase extends Dexie {
@@ -173,7 +175,9 @@ export async function seedMockDataIfEmpty() {
       imei: `8612345678${Math.floor(10000 + Math.random() * 90000)}`,
       imsi: `4100123456${Math.floor(10000 + Math.random() * 90000)}`,
       address: locations[Math.floor(Math.random() * locations.length)],
-      provider: 'Grameenphone'
+      provider: 'Grameenphone',
+      lac: Math.floor(10000 + Math.random() * 50000),
+      cellId: Math.floor(1000 + Math.random() * 20000)
     });
   }
 
@@ -194,7 +198,9 @@ export async function seedMockDataIfEmpty() {
       imei: `8612345678${Math.floor(10000 + Math.random() * 90000)}`,
       imsi: `4100123456${Math.floor(10000 + Math.random() * 90000)}`,
       address: locations[Math.floor(Math.random() * locations.length)],
-      provider: 'Robi'
+      provider: 'Robi',
+      lac: Math.floor(10000 + Math.random() * 50000),
+      cellId: Math.floor(1000 + Math.random() * 20000)
     });
   }
 
@@ -214,7 +220,9 @@ export async function seedMockDataIfEmpty() {
       imei: `3512345678${Math.floor(10000 + Math.random() * 90000)}`,
       imsi: `4100323456${Math.floor(10000 + Math.random() * 90000)}`,
       address: locations[Math.floor(Math.random() * locations.length)],
-      provider: 'Banglalink'
+      provider: 'Banglalink',
+      lac: Math.floor(10000 + Math.random() * 50000),
+      cellId: Math.floor(1000 + Math.random() * 20000)
     });
   }
 

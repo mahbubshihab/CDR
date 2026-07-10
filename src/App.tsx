@@ -10,6 +10,7 @@ import { AddCaseModal } from './features/add-case/components/AddCaseModal';
 import { CaseList } from './features/view-cases/components/CaseList';
 import { EditCaseModal } from './features/view-cases/components/EditCaseModal';
 import { Workspace } from './features/workspace/components/Workspace';
+import { AnalyticsWorkspace } from './features/analytics/components/AnalyticsWorkspace';
 import { ImeiInfo } from './features/imei-info/ImeiInfo';
 import { NumberLookup } from './features/number-lookup/NumberLookup';
 import { OwnershipFinder } from './features/ownership-finder/OwnershipFinder';
@@ -28,6 +29,7 @@ function App() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [activeCaseForEdit, setActiveCaseForEdit] = useState<Case | null>(null);
   const [activeWorkspaceCase, setActiveWorkspaceCase] = useState<Case | null>(null);
+  const [activeTargetFileId, setActiveTargetFileId] = useState<number | null>(null);
   const [timeString, setTimeString] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -68,6 +70,7 @@ function App() {
           const caseRecord = await db.cases.get(caseId);
           if (caseRecord) {
             setActiveWorkspaceCase(caseRecord);
+            setActiveTargetFileId(null);
             return;
           }
         }
@@ -79,6 +82,7 @@ function App() {
             const caseRecord = await db.cases.get(fileRecord.caseId);
             if (caseRecord) {
               setActiveWorkspaceCase(caseRecord);
+              setActiveTargetFileId(fileId);
               return;
             }
           }
@@ -93,6 +97,7 @@ function App() {
         setActiveMenu('dashboard');
       }
       setActiveWorkspaceCase(null);
+      setActiveTargetFileId(null);
     };
 
     window.addEventListener('hashchange', parseHashRoute);
@@ -127,6 +132,24 @@ function App() {
     setRefreshKey(prev => prev + 1);
   };
 
+  // If target file analytics is active, let it take over the entire view
+  if (activeTargetFileId) {
+    return (
+      <div className="h-screen w-screen bg-transparent text-gray-200 animate-in fade-in duration-200">
+        <AnalyticsWorkspace 
+          targetFileId={activeTargetFileId}
+          onBack={() => {
+            if (activeWorkspaceCase && activeWorkspaceCase.id) {
+              window.location.hash = `#/case/${activeWorkspaceCase.id}`;
+            } else {
+              window.location.hash = '#/view-cases';
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
   // If case workspace is active, let it take over the entire view
   if (activeWorkspaceCase) {
     return (
@@ -140,6 +163,9 @@ function App() {
           onOpenEditModal={(c) => {
             setActiveCaseForEdit(c);
             setIsEditOpen(true);
+          }}
+          onOpenTargetFileId={(fileId) => {
+            window.location.hash = `#/file/${fileId}`;
           }}
         />
 

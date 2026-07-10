@@ -179,6 +179,9 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               }
             }
 
+            const lac = row.LACSTARTA || row.lac ? Number(row.LACSTARTA || row.lac) : undefined;
+            const cellId = row.CISTARTA || row.cellId || row.cid ? Number(row.CISTARTA || row.cellId || row.cid) : undefined;
+
             return {
               caseId,
               fileId,
@@ -189,7 +192,9 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               imei: String(imei),
               imsi: String(imsi),
               address: String(address),
-              provider: operator
+              provider: operator,
+              lac,
+              cellId
             };
           });
 
