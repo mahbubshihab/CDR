@@ -11,6 +11,7 @@ import { CaseOverview } from './CaseOverview';
 import { UploadCDRModal } from './UploadCDRModal';
 import { AdvancedCDRAnalysis } from './AdvancedCDRAnalysis';
 import { ExecutiveDashboard } from './ExecutiveDashboard';
+import { GraphAnalytics } from './GraphAnalytics';
 
 interface WorkspaceProps {
   activeCase: Case;
@@ -291,6 +292,11 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               />
             ) : activeAnalysisTab === 'advanced' ? (
               <AdvancedCDRAnalysis 
+                cdrFile={targetFile}
+                records={targetRecords}
+              />
+            ) : activeAnalysisTab === 'graph' ? (
+              <GraphAnalytics 
                 cdrFile={targetFile}
                 records={targetRecords}
               />
