@@ -272,7 +272,7 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
                 onMouseLeave={() => setHourlyHover(null)}
               >
                 <div 
-                  className={`w-full rounded-t transition-all duration-150 cursor-pointer ${isPeak ? 'bg-red-500' : 'bg-[#3ecf8e]/80 hover:bg-[#3ecf8e]'}`}
+                  className={`w-full rounded-t transition-all duration-150 cursor-pointer ${isPeak ? 'bg-gradient-to-t from-red-600 to-red-400 hover:brightness-110 shadow-lg shadow-red-500/10' : 'bg-gradient-to-t from-[#059669] to-[#3ecf8e] hover:brightness-110 shadow-lg shadow-emerald-500/10'}`}
                   style={{ height: `${Math.max(heightPct, 2)}%` }}
                 />
               </div>

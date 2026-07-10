@@ -122,7 +122,7 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
                 onMouseLeave={() => setHoveredMonth(null)}
               >
                 <div 
-                  className="w-full bg-[#3ecf8e] rounded-t transition-all duration-150 opacity-80 hover:opacity-100"
+                  className="w-full bg-gradient-to-t from-[#059669] to-[#3ecf8e] hover:brightness-110 shadow-lg shadow-emerald-500/10 rounded-t transition-all duration-150"
                   style={{ height: `${Math.max(heightPct, 4)}%` }}
                 />
                 <span className="text-[10px] text-gray-300 mt-2 font-mono text-center truncate max-w-full">

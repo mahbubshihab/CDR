@@ -170,7 +170,13 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
           {durationDistribution.map((item, idx) => {
             const max = Math.max(...durationDistribution.map(d => d.count)) || 1;
             const heightPct = (item.count / max) * 100;
-            const colors = ['bg-[#3ecf8e]', 'bg-[#8b5cf6]', 'bg-[#f59e0b]', 'bg-blue-500', 'bg-pink-500'];
+            const gradients = [
+              'bg-gradient-to-t from-[#2563eb] to-[#3b82f6] hover:brightness-110 shadow-lg shadow-blue-500/10',
+              'bg-gradient-to-t from-[#7c3aed] to-[#8b5cf6] hover:brightness-110 shadow-lg shadow-purple-500/10',
+              'bg-gradient-to-t from-[#d97706] to-[#f59e0b] hover:brightness-110 shadow-lg shadow-amber-500/10',
+              'bg-gradient-to-t from-[#059669] to-[#10b981] hover:brightness-110 shadow-lg shadow-emerald-500/10',
+              'bg-gradient-to-t from-[#db2777] to-[#ec4899] hover:brightness-110 shadow-lg shadow-pink-500/10'
+            ];
             return (
               <div 
                 key={idx} 
@@ -179,7 +185,7 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
                 onMouseLeave={() => setHoveredBar(null)}
               >
                 <div 
-                  className={`w-full ${colors[idx % colors.length]}/20 hover:${colors[idx % colors.length]}/45 border border-${colors[idx % colors.length]}/30 rounded-t transition-all duration-150`}
+                  className={`w-full ${gradients[idx % gradients.length]} rounded-t transition-all duration-150`}
                   style={{ height: `${Math.max(heightPct, 4)}%` }}
                 />
                 <span className="text-[10px] text-gray-300 mt-2 font-mono truncate max-w-full text-center">
