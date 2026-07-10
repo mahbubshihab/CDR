@@ -10,7 +10,7 @@ interface QuickSummaryGridProps {
   totalLocations: number;
   totalActiveDays: number;
   internationalContacts: number;
-  ownershipFound: number;
+  ownershipFound: string | number;
 }
 
 export const QuickSummaryGrid: React.FC<QuickSummaryGridProps> = ({

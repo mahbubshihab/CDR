@@ -76,31 +76,34 @@ export const OwnershipIntelligence: React.FC<OwnershipIntelligenceProps> = ({ cd
     );
   }, [contacts, searchQuery]);
 
-  // Generate deterministic mock owner profile based on phone number hash
+  // Retrieve dynamic attributes derived purely from records
   const ownerProfile = useMemo(() => {
     if (!selectedNumber) return null;
 
-    const hash = selectedNumber.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const firstNames = ['Muhammad', 'Ahmed', 'Sajid', 'Tariq', 'Yasir', 'Imran', 'Kamran', 'Zubair', 'Bilal', 'Asif'];
-    const lastNames = ['Khan', 'Ali', 'Iqbal', 'Mehmood', 'Raza', 'Shah', 'Hassan', 'Bhatt', 'Sheikh', 'Malik'];
-    const cities = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Rangpur', 'Comilla', 'Mymensingh'];
-    const addresses = ['Sector 4, Uttara', 'Road 11, Banani', 'Mirpur-10, Dhaka', 'Halishahar, Chittagong', 'Zindabazar, Sylhet', 'Upashahar, Rajshahi', 'Mujgunni, Khulna'];
+    const contactRecords = records.filter(r => r.otherParty === selectedNumber);
+    const times = contactRecords.map(r => Number(r.timestamp)).filter(t => !isNaN(t));
+    
+    let firstTime = '—';
+    let lastTime = '—';
+    if (times.length > 0) {
+      firstTime = new Date(Math.min(...times)).toLocaleDateString();
+      lastTime = new Date(Math.max(...times)).toLocaleDateString();
+    }
 
-    const name = `${firstNames[hash % firstNames.length]} ${lastNames[(hash + 3) % lastNames.length]}`;
-    const cnic = `35201-${(hash * 13) % 10000000}-${hash % 10}`;
-    const address = `${addresses[hash % addresses.length]}, ${cities[(hash + 2) % cities.length]}`;
-    const activationDate = `${((hash % 28) + 1).toString().padStart(2, '0')}/${((hash % 12) + 1).toString().padStart(2, '0')}/202${hash % 6}`;
+    const uniqueImeis = Array.from(new Set(contactRecords.map(r => r.imei).filter(Boolean)));
+    const uniqueImsis = Array.from(new Set(contactRecords.map(r => r.imsi).filter(Boolean)));
+    const uniqueLocations = Array.from(new Set(contactRecords.map(r => r.address).filter(Boolean)));
 
     return {
       number: selectedNumber,
-      name,
-      cnic,
-      address,
-      activationDate,
-      status: hash % 7 === 0 ? 'Suspended' : 'Biometrically Verified',
-      simSerial: `89921000${hash * 17921}F`
+      firstTime,
+      lastTime,
+      totalInteractions: contactRecords.length,
+      imei: uniqueImeis.join(', ') || '—',
+      imsi: uniqueImsis.join(', ') || '—',
+      locations: uniqueLocations.join(', ') || '—'
     };
-  }, [selectedNumber]);
+  }, [selectedNumber, records]);
 
   return (
     <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#121212] animate-in fade-in duration-300">
@@ -109,7 +112,7 @@ export const OwnershipIntelligence: React.FC<OwnershipIntelligenceProps> = ({ cd
       <div className="border-b border-[#2e2e2e] pb-4">
         <h2 className="text-sm font-semibold text-gray-200">Ownership Intelligence Finder</h2>
         <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-wider">
-          Simulated subscriber biometrics and CNIC verification database for contact numbers
+          Carrier and contact profile analytics extracted directly from uploaded CDR files
         </p>
       </div>
 
@@ -162,55 +165,57 @@ export const OwnershipIntelligence: React.FC<OwnershipIntelligenceProps> = ({ cd
           </div>
         </div>
 
-        {/* Right Side: Biometric Owner Details Card (Col 7) */}
+        {/* Right Side: Identity Details Card (Col 7) */}
         <div className="lg:col-span-7 flex">
           {ownerProfile ? (
             <div className="w-full bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-6 flex flex-col justify-between text-left">
               <div>
                 <div className="flex justify-between items-start border-b border-[#2e2e2e] pb-4 mb-5">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-200">{ownerProfile.name}</h3>
+                    <h3 className="text-sm font-semibold text-gray-200">Contact Number Profile</h3>
                     <span className="text-xs text-gray-500 font-mono block mt-0.5">{ownerProfile.number}</span>
                   </div>
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
-                    ownerProfile.status.includes('Verified') 
-                      ? 'bg-[#3ecf8e]/10 text-[#3ecf8e] border-[#3ecf8e]/20' 
-                      : 'bg-red-950/20 text-red-400 border-red-800/20'
-                  }`}>
-                    {ownerProfile.status}
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-red-950/20 text-red-400 border-red-800/20">
+                    Biometric Lookup Unavailable
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs font-mono">
+                <div className="grid grid-cols-1 gap-5 text-xs font-mono">
                   <div className="space-y-1.5">
-                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">CNIC / NID Number</span>
+                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">Total Interactions</span>
                     <div className="flex items-center gap-2 text-gray-300">
-                      <Landmark className="h-4 w-4 text-gray-500 shrink-0" />
-                      <strong>{ownerProfile.cnic}</strong>
+                      <strong>{ownerProfile.totalInteractions} logs found in dataset</strong>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">SIM Card Serial</span>
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <Smartphone className="h-4 w-4 text-gray-500 shrink-0" />
-                      <strong>{ownerProfile.simSerial}</strong>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-2">
-                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">Registered Billing Address</span>
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <MapPin className="h-4 w-4 text-gray-500 shrink-0" />
-                      <strong className="font-sans font-medium text-gray-200">{ownerProfile.address}</strong>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">SIM Registration Date</span>
+                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">First / Last Call Activity</span>
                     <div className="flex items-center gap-2 text-gray-300">
                       <Calendar className="h-4 w-4 text-gray-500 shrink-0" />
-                      <strong>{ownerProfile.activationDate}</strong>
+                      <strong>{ownerProfile.firstTime} — {ownerProfile.lastTime}</strong>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">Associated IMEI Handsets</span>
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Smartphone className="h-4 w-4 text-gray-500 shrink-0" />
+                      <strong className="break-all">{ownerProfile.imei}</strong>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">Associated IMSI SIMs</span>
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <strong>{ownerProfile.imsi}</strong>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-gray-500 text-[10px] uppercase tracking-wider block font-semibold">Resolved Locations / Towers</span>
+                    <div className="flex items-center gap-2 text-gray-350 font-sans font-medium">
+                      <MapPin className="h-4 w-4 text-gray-500 shrink-0" />
+                      <strong>{ownerProfile.locations}</strong>
                     </div>
                   </div>
                 </div>
@@ -220,8 +225,8 @@ export const OwnershipIntelligence: React.FC<OwnershipIntelligenceProps> = ({ cd
               <div className="mt-6 p-3 bg-amber-950/10 border border-amber-900/20 text-amber-500 rounded-lg flex gap-3 text-xs">
                 <ShieldAlert className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
                 <div className="leading-relaxed">
-                  <strong className="font-semibold block mb-0.5">National Security Registry Note:</strong>
-                  This information corresponds to simulated subscriber records from biometric CNIC registers. Any unauthorized duplication or export of subscriber profiles is strictly regulated.
+                  <strong className="font-semibold block mb-0.5">Biometric Database Missing:</strong>
+                  CNIC registration registry records (Subscriber Name, CNIC, and Billing Address) are not stored in standard CDR Excel spreadsheets. To view biometric records, upload the corresponding carrier register files.
                 </div>
               </div>
             </div>
@@ -229,7 +234,7 @@ export const OwnershipIntelligence: React.FC<OwnershipIntelligenceProps> = ({ cd
             <div className="w-full bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl flex items-center justify-center text-center p-8">
               <div className="space-y-2 text-xs text-gray-500 font-mono">
                 <UserCheck className="h-8 w-8 text-gray-600 mx-auto" />
-                <p>Select a contact number from the directory to search registered biometric identity.</p>
+                <p>Select a contact number from the directory to inspect its activity profile.</p>
               </div>
             </div>
           )}

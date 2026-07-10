@@ -86,12 +86,8 @@ export const AdvancedCDRAnalysis: React.FC<AdvancedCDRAnalysisProps> = ({
       }
     }).length;
 
-    // Ownership stats
-    let ownershipFound = 0;
-    uniqueBParties.forEach(bp => {
-      const hash = bp.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-      if (hash % 4 === 0) ownershipFound++;
-    });
+    // Ownership stats (Not present in raw CDR file)
+    const ownershipFound = 'N/A';
 
     // Top contacted target (B-party)
     const partyFreq: Record<string, number> = {};

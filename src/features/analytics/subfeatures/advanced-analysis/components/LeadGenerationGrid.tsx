@@ -47,11 +47,6 @@ export const LeadGenerationGrid: React.FC<LeadGenerationGridProps> = ({ records,
         imeiSwitches++;
       }
     }
-    // Safeguard/simulate if raw records don't have consecutive IMEI logs
-    if (imeiSwitches === 0) {
-      const uniqueImeis = new Set(records.map(r => r.imei).filter(Boolean)).size;
-      imeiSwitches = Math.max(0, uniqueImeis * 8 - 3);
-    }
 
     // 2. Cell Transitions
     let cellTransitions = 0;
@@ -60,12 +55,9 @@ export const LeadGenerationGrid: React.FC<LeadGenerationGridProps> = ({ records,
         cellTransitions++;
       }
     }
-    if (cellTransitions === 0) {
-      cellTransitions = Math.floor(records.length * 0.05) + 5;
-    }
 
     // 3. Location Routes
-    const locationRoutes = Math.floor(cellTransitions * 1.3) + 2;
+    const locationRoutes = cellTransitions;
 
     // 4. Party frequencies
     const partyCounts: Record<string, number> = {};

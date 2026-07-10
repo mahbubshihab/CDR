@@ -53,13 +53,9 @@ export const ExecutivePortalGrid: React.FC<ExecutivePortalGridProps> = ({
     const bPartiesSet = new Set(filtered.map(r => r.otherParty).filter(Boolean));
     const uniqueBParties = Array.from(bPartiesSet);
     
-    // Ownership check
-    let ownershipFound = 0;
-    uniqueBParties.forEach(bp => {
-      const hash = bp.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-      if (hash % 4 === 0) ownershipFound++;
-    });
-    const ownershipMissing = uniqueBParties.length - ownershipFound;
+    // Ownership check (Not present in raw CDR file)
+    const ownershipFound = 0;
+    const ownershipMissing = uniqueBParties.length;
 
     const imeisSet = new Set(filtered.map(r => r.imei).filter(Boolean));
     const imsisSet = new Set(filtered.map(r => r.imsi).filter(Boolean));
@@ -186,9 +182,9 @@ export const ExecutivePortalGrid: React.FC<ExecutivePortalGridProps> = ({
     {
       id: 'ownership',
       title: 'Ownership Intelligence',
-      value: stats.ownershipFound,
+      value: 'N/A',
       sub: 'Ownership Found',
-      meta: `Missing: ${stats.ownershipMissing}`,
+      meta: 'Not in CDR file',
       icon: UserCheck,
       color: 'text-emerald-400'
     },
