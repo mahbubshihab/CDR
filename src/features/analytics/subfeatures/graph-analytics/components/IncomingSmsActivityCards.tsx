@@ -1,29 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { Download, Camera, Printer, Maximize2, Users, MessageSquare } from 'lucide-react';
+import { ChartCardWrapper } from './ChartCardWrapper';
+import { Users, MessageSquare } from 'lucide-react';
 
 interface IncomingSmsActivityCardsProps {
   records: CDRRecord[];
 }
 
-const CardActions = () => (
-  <div className="flex items-center gap-1.5 shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Download data">
-      <Download className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Screenshot">
-      <Camera className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Print">
-      <Printer className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Maximize">
-      <Maximize2 className="h-3 w-3" />
-    </button>
-  </div>
-);
-
 export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> = ({ records }) => {
+  const [hoveredInOut, setHoveredInOut] = useState<{ number: string; incoming: number; outgoing: number; total: number } | null>(null);
+  const [hoveredSms, setHoveredSms] = useState<{ number: string; count: number; pct: string } | null>(null);
+
   // 13. Incoming vs Outgoing for Top Contacts
   const incomingOutgoingContacts = useMemo(() => {
     const map: { [num: string]: { incoming: number; outgoing: number; total: number } } = {};
@@ -69,24 +56,27 @@ export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> =
   return (
     <>
       {/* 13. Incoming vs Outgoing for Top Contacts */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Incoming vs Outgoing</h3>
-          <CardActions />
-        </div>
-
-        <div className="space-y-4 mt-4 text-xs font-mono">
+      <ChartCardWrapper
+        title="Incoming vs Outgoing"
+        exportData={incomingOutgoingContacts}
+      >
+        <div className="space-y-4 mt-4 text-xs font-mono relative">
           {incomingOutgoingContacts.map((contact, idx) => {
             const inPct = ((contact.incoming / (contact.total || 1)) * 100).toFixed(0);
             const outPct = ((contact.outgoing / (contact.total || 1)) * 100).toFixed(0);
             return (
-              <div key={idx} className="space-y-1">
+              <div 
+                key={idx} 
+                className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+                onMouseEnter={() => setHoveredInOut(contact)}
+                onMouseLeave={() => setHoveredInOut(null)}
+              >
                 <div className="flex justify-between text-gray-300">
-                  <span className="flex items-center gap-1.5 text-gray-400">
-                    <Users className="h-3.5 w-3.5 text-gray-500" />
+                  <span className="flex items-center gap-1.5 text-gray-205">
+                    <Users className="h-3.5 w-3.5 text-gray-400" />
                     <span>{contact.number}</span>
                   </span>
-                  <span className="font-semibold text-gray-200">
+                  <span className="font-semibold text-white">
                     In: {contact.incoming} ({inPct}%) | Out: {contact.outgoing} ({outPct}%)
                   </span>
                 </div>
@@ -97,26 +87,40 @@ export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> =
               </div>
             );
           })}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredInOut && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171717] border border-gray-600 rounded-lg p-2.5 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none">
+              <span className="block text-gray-400 font-bold">Direction Split</span>
+              <span className="block text-gray-200 mt-0.5">Number: {hoveredInOut.number}</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Incoming: {hoveredInOut.incoming}</span>
+              <span className="block text-[#8b5cf6] font-semibold mt-0.5">Outgoing: {hoveredInOut.outgoing}</span>
+              <span className="block text-white font-semibold mt-0.5">Total Hits: {hoveredInOut.total}</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
 
       {/* 14. SMS Activity */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">SMS Activity</h3>
-          <CardActions />
-        </div>
-
-        <div className="space-y-3.5 mt-4 text-xs font-mono">
+      <ChartCardWrapper
+        title="SMS Activity"
+        exportData={smsActivity}
+      >
+        <div className="space-y-3.5 mt-4 text-xs font-mono relative">
           {smsActivity.length > 0 ? (
             smsActivity.map((item, idx) => (
-              <div key={idx} className="space-y-1">
+              <div 
+                key={idx} 
+                className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+                onMouseEnter={() => setHoveredSms(item)}
+                onMouseLeave={() => setHoveredSms(null)}
+              >
                 <div className="flex justify-between items-center text-gray-300">
-                  <span className="flex items-center gap-1.5 text-gray-400">
-                    <MessageSquare className="h-3.5 w-3.5 text-gray-500" />
+                  <span className="flex items-center gap-1.5 text-gray-200">
+                    <MessageSquare className="h-3.5 w-3.5 text-gray-400" />
                     <span>{item.number}</span>
                   </span>
-                  <span className="font-semibold text-gray-200">{item.count} ({item.pct}%)</span>
+                  <span className="font-semibold text-white">{item.count} ({item.pct}%)</span>
                 </div>
                 <div className="w-full h-1.5 bg-[#121212] border border-[#2e2e2e] rounded-full overflow-hidden">
                   <div className="bg-[#f59e0b] h-full" style={{ width: `${item.pct}%` }} />
@@ -128,8 +132,17 @@ export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> =
               No SMS activity logs.
             </div>
           )}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredSms && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171717] border border-gray-600 rounded-lg p-2.5 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none">
+              <span className="block text-gray-400 font-bold">SMS Contact Details</span>
+              <span className="block text-gray-200 mt-0.5">Number: {hoveredSms.number}</span>
+              <span className="block text-[#f59e0b] font-semibold mt-0.5">SMS Count: {hoveredSms.count} ({hoveredSms.pct}%)</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
     </>
   );
 };

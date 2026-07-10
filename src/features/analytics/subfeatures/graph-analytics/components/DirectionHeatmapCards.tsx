@@ -1,29 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { Download, Camera, Printer, Maximize2 } from 'lucide-react';
+import { ChartCardWrapper } from './ChartCardWrapper';
+import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
 interface DirectionHeatmapCardsProps {
   records: CDRRecord[];
 }
 
-const CardActions = () => (
-  <div className="flex items-center gap-1.5 shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Download data">
-      <Download className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Screenshot">
-      <Camera className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Print">
-      <Printer className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Maximize">
-      <Maximize2 className="h-3 w-3" />
-    </button>
-  </div>
-);
-
 export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ records }) => {
+  const [hoveredDir, setHoveredDir] = useState<{ label: string; count: number; pct: string } | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<{ day: string; hour: number; count: number } | null>(null);
+
   // 7. Call Direction Analysis
   const callDirection = useMemo(() => {
     let outgoingCalls = 0;
@@ -64,7 +51,7 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
           dayIdx = new Date(y, m, d).getDay();
         } else {
           try {
-            const d = new Date(r.timestamp);
+            const d = parseCDRTimestamp(r.timestamp);
             if (!isNaN(d.getTime())) {
               hr = d.getHours();
               dayIdx = d.getDay();
@@ -94,54 +81,67 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
   return (
     <>
       {/* 7. Call Direction Analysis */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Call Direction Analysis</h3>
-          <CardActions />
-        </div>
-
-        <div className="space-y-4 my-2 text-xs font-mono">
-          <div className="space-y-1">
-            <div className="flex justify-between text-gray-400">
-              <span>Outgoing Voice Calls</span>
-              <strong className="text-gray-200">{callDirection.calls} ({callDirection.callsPct}%)</strong>
+      <ChartCardWrapper
+        title="Call Direction Analysis"
+        exportData={callDirection}
+      >
+        <div className="space-y-4 my-2 text-xs font-mono relative">
+          <div 
+            className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+            onMouseEnter={() => setHoveredDir({ label: 'Outgoing Voice Calls', count: callDirection.calls, pct: callDirection.callsPct })}
+            onMouseLeave={() => setHoveredDir(null)}
+          >
+            <div className="flex justify-between text-gray-300">
+              <span className="text-gray-200">Outgoing Voice Calls</span>
+              <strong className="text-white">{callDirection.calls} ({callDirection.callsPct}%)</strong>
             </div>
             <div className="w-full h-2 bg-[#121212] border border-[#2e2e2e] rounded-full overflow-hidden">
               <div className="bg-[#3ecf8e] h-full" style={{ width: `${callDirection.callsPct}%` }} />
             </div>
           </div>
-          <div className="space-y-1">
-            <div className="flex justify-between text-gray-400">
-              <span>Outgoing SMS Activities</span>
-              <strong className="text-gray-200">{callDirection.sms} ({callDirection.smsPct}%)</strong>
+
+          <div 
+            className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+            onMouseEnter={() => setHoveredDir({ label: 'Outgoing SMS Activities', count: callDirection.sms, pct: callDirection.smsPct })}
+            onMouseLeave={() => setHoveredDir(null)}
+          >
+            <div className="flex justify-between text-gray-300">
+              <span className="text-gray-200">Outgoing SMS Activities</span>
+              <strong className="text-white">{callDirection.sms} ({callDirection.smsPct}%)</strong>
             </div>
             <div className="w-full h-2 bg-[#121212] border border-[#2e2e2e] rounded-full overflow-hidden">
               <div className="bg-[#8b5cf6] h-full" style={{ width: `${callDirection.smsPct}%` }} />
             </div>
           </div>
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredDir && (
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-[#171717] border border-gray-600 rounded-lg p-2 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none">
+              <span className="block text-gray-400 font-bold">{hoveredDir.label}</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Events: {hoveredDir.count} ({hoveredDir.pct}%)</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
 
       {/* 8. Call Activity Heatmap */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Call Activity Heatmap</h3>
-            <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-gray-500 font-mono">
-              <span className="h-2 w-2 rounded bg-[#1e1e1e] border border-[#2e2e2e]" /><span>Idle</span>
-              <span className="h-2 w-2 rounded bg-[#3ecf8e]/30" /><span>Low</span>
-              <span className="h-2 w-2 rounded bg-[#3ecf8e]/70" /><span>Medium</span>
-              <span className="h-2 w-2 rounded bg-[#3ecf8e]" /><span>Peak</span>
-            </div>
+      <ChartCardWrapper
+        title="Call Activity Heatmap"
+        exportData={heatmapData.grid}
+        subdetails={
+          <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-gray-400 font-mono">
+            <span className="h-2 w-2 rounded bg-[#1e1e1e] border border-[#2e2e2e]" /><span>Idle</span>
+            <span className="h-2 w-2 rounded bg-[#3ecf8e]/30" /><span>Low</span>
+            <span className="h-2 w-2 rounded bg-[#3ecf8e]/70" /><span>Medium</span>
+            <span className="h-2 w-2 rounded bg-[#3ecf8e]" /><span>Peak</span>
           </div>
-          <CardActions />
-        </div>
-
+        }
+      >
         {/* Heatmap Grid Wrapper */}
-        <div className="overflow-x-auto custom-scrollbar pt-4 pb-2">
+        <div className="overflow-x-auto custom-scrollbar pt-4 pb-2 relative">
           <div className="min-w-[480px] space-y-1 text-[10px] font-mono">
             {/* Hour Labels Header */}
-            <div className="flex pl-8 text-gray-500">
+            <div className="flex pl-8 text-gray-400">
               {Array(24).fill(0).map((_, idx) => (
                 <span key={idx} className="flex-1 text-center font-bold">{idx}</span>
               ))}
@@ -150,7 +150,7 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
             {/* Grid Rows */}
             {daysList.map((day, dIdx) => (
               <div key={dIdx} className="flex items-center">
-                <span className="w-8 text-gray-400 text-left font-bold">{day}</span>
+                <span className="w-8 text-gray-300 text-left font-bold">{day}</span>
                 <div className="flex-1 flex gap-0.5">
                   {Array(24).fill(0).map((_, hIdx) => {
                     const val = heatmapData.grid[dIdx][hIdx] || 0;
@@ -164,9 +164,10 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
                     return (
                       <div
                         key={hIdx}
-                        className={`flex-1 h-5 rounded-sm border flex items-center justify-center transition-colors hover:border-[#3ecf8e] cursor-pointer ${color}`}
+                        className={`flex-1 h-5 rounded-sm border flex items-center justify-center transition-colors hover:border-white cursor-pointer ${color}`}
                         style={{ backgroundColor: val > 0 ? undefined : '#121212' }}
-                        title={`${day} ${hIdx.toString().padStart(2,'0')}:00 - ${val} events`}
+                        onMouseEnter={() => setHoveredCell({ day, hour: hIdx, count: val })}
+                        onMouseLeave={() => setHoveredCell(null)}
                       >
                         {val > 0 ? val : ''}
                       </div>
@@ -176,8 +177,23 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
               </div>
             ))}
           </div>
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredCell && (
+            <div 
+              className="absolute bg-[#171717] border border-gray-600 rounded-lg p-2 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none"
+              style={{
+                left: '50%',
+                top: '5%',
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <span className="block text-gray-400 font-bold">{hoveredCell.day} {hoveredCell.hour.toString().padStart(2, '0')}:00</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Events: {hoveredCell.count}</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
     </>
   );
 };

@@ -1,29 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { Download, Camera, Printer, Maximize2, Smartphone } from 'lucide-react';
+import { ChartCardWrapper } from './ChartCardWrapper';
+import { Smartphone } from 'lucide-react';
+import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
 interface DayOfWeekImeiCardsProps {
   records: CDRRecord[];
 }
 
-const CardActions = () => (
-  <div className="flex items-center gap-1.5 shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Download data">
-      <Download className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Screenshot">
-      <Camera className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Print">
-      <Printer className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Maximize">
-      <Maximize2 className="h-3 w-3" />
-    </button>
-  </div>
-);
-
 export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records }) => {
+  const [hoveredDay, setHoveredDay] = useState<{ name: string; count: number; pct: string; color: string } | null>(null);
+  const [hoveredImei, setHoveredImei] = useState<{ imei: string; count: number; pct: string } | null>(null);
+
   // 5. Day of Week Analysis
   const dayOfWeekData = useMemo(() => {
     const days = Array(7).fill(0); // 0 = Sun, 1 = Mon ...
@@ -38,7 +26,7 @@ export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records 
           dayIdx = new Date(y, m, d).getDay();
         } else {
           try {
-            const d = new Date(r.timestamp);
+            const d = parseCDRTimestamp(r.timestamp);
             if (!isNaN(d.getTime())) {
               dayIdx = d.getDay();
             }
@@ -93,57 +81,75 @@ export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records 
   return (
     <>
       {/* 5. Day of Week Analysis */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Day of Week Analysis</h3>
-          <CardActions />
-        </div>
-
-        <div className="h-32 flex items-end gap-3.5 mt-4">
+      <ChartCardWrapper
+        title="Day of Week Analysis"
+        exportData={dayOfWeekData}
+      >
+        <div className="h-32 flex items-end gap-3.5 mt-4 relative">
           {dayOfWeekData.map((item, idx) => {
             const max = Math.max(...dayOfWeekData.map(d => d.count)) || 1;
             const heightPct = (item.count / max) * 100;
             return (
-              <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
-                <span className="text-[9px] text-gray-500 font-mono mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.pct}%
-                </span>
+              <div 
+                key={idx} 
+                className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer"
+                onMouseEnter={() => setHoveredDay(item)}
+                onMouseLeave={() => setHoveredDay(null)}
+              >
                 <div 
-                  className="w-full rounded-t transition-all duration-155"
+                  className="w-full rounded-t transition-all duration-150 opacity-80 hover:opacity-100"
                   style={{ 
                     height: `${Math.max(heightPct, 4)}%`,
                     backgroundColor: item.color
                   }}
                 />
-                <span className="text-[10px] text-gray-405 mt-2 font-mono text-center">
+                <span className="text-[10px] text-gray-300 mt-2 font-mono text-center">
                   {item.name}
                 </span>
               </div>
             );
           })}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredDay && (
+            <div 
+              className="absolute bg-[#171717] border border-gray-600 rounded-lg p-2 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none"
+              style={{
+                left: '50%',
+                top: '5%',
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <span className="block font-bold" style={{ color: hoveredDay.color }}>{hoveredDay.name} Analysis</span>
+              <span className="block text-gray-200 mt-0.5">Events: {hoveredDay.count} ({hoveredDay.pct}%)</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
 
       {/* 6. IMEI Usage Pattern */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">IMEI Usage Pattern</h3>
-          <CardActions />
-        </div>
-
-        <div className="space-y-3.5 mt-4 text-xs font-mono">
+      <ChartCardWrapper
+        title="IMEI Usage Pattern"
+        exportData={imeiUsage}
+      >
+        <div className="space-y-3.5 mt-4 text-xs font-mono relative">
           {imeiUsage.length > 0 ? (
             imeiUsage.map((item, idx) => (
-              <div key={idx} className="space-y-1">
+              <div 
+                key={idx} 
+                className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+                onMouseEnter={() => setHoveredImei(item)}
+                onMouseLeave={() => setHoveredImei(null)}
+              >
                 <div className="flex justify-between items-center text-gray-300">
-                  <span className="flex items-center gap-1.5 text-gray-400">
-                    <Smartphone className="h-3.5 w-3.5 text-gray-500" />
+                  <span className="flex items-center gap-1.5 text-gray-200">
+                    <Smartphone className="h-3.5 w-3.5 text-gray-400" />
                     <span>{item.imei}</span>
                   </span>
-                  <span className="font-semibold text-gray-200">{item.count} ({item.pct}%)</span>
+                  <span className="font-semibold text-white">{item.count} ({item.pct}%)</span>
                 </div>
                 <div className="w-full h-1.5 bg-[#121212] border border-[#2e2e2e] rounded-full overflow-hidden">
-                  <div className="bg-[#3ecf8e] h-full" style={{ width: `${item.pct}%` }} />
+                  <div className="bg-[#3ecf8e] h-full transition-all duration-300" style={{ width: `${item.pct}%` }} />
                 </div>
               </div>
             ))
@@ -152,8 +158,17 @@ export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records 
               No IMEI records logged.
             </div>
           )}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredImei && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171717] border border-gray-600 rounded-lg p-2.5 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none">
+              <span className="block text-gray-400 font-bold">Handset Details</span>
+              <span className="block text-gray-200 mt-0.5">IMEI: {hoveredImei.imei}</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Total Hits: {hoveredImei.count} ({hoveredImei.pct}%)</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
     </>
   );
 };

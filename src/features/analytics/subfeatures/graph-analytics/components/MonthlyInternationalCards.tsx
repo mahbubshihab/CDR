@@ -1,29 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { Download, Camera, Printer, Maximize2, Globe } from 'lucide-react';
+import { ChartCardWrapper } from './ChartCardWrapper';
+import { Globe } from 'lucide-react';
+import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
 interface MonthlyInternationalCardsProps {
   records: CDRRecord[];
 }
 
-const CardActions = () => (
-  <div className="flex items-center gap-1.5 shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Download data">
-      <Download className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Screenshot">
-      <Camera className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Print">
-      <Printer className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Maximize">
-      <Maximize2 className="h-3 w-3" />
-    </button>
-  </div>
-);
-
 export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps> = ({ records }) => {
+  const [hoveredMonth, setHoveredMonth] = useState<{ month: string; count: number; pct: string } | null>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<{ country: string; count: number; pct: string } | null>(null);
+
   // 15. Monthly Activity Graph
   const monthlyData = useMemo(() => {
     const monthsMap: { [month: string]: number } = {};
@@ -39,7 +27,7 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
           yr = timeStr.substring(2, 4);
         } else {
           try {
-            const d = new Date(r.timestamp);
+            const d = parseCDRTimestamp(r.timestamp);
             if (!isNaN(d.getTime())) {
               mIdx = d.getMonth();
               yr = d.getFullYear().toString().substring(2);
@@ -113,37 +101,51 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
   return (
     <>
       {/* 15. Monthly Activity Graph */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div>
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Monthly Activity Graph</h3>
-              <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-500 font-mono">
-                <span>PEAK MONTH: <strong className="text-[#3ecf8e] font-semibold">{monthlyData.peakMonth} ({monthlyData.peakCount})</strong></span>
+      <ChartCardWrapper
+        title="Monthly Activity Graph"
+        exportData={monthlyData.list}
+        subdetails={
+          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400 font-mono">
+            <span>PEAK MONTH: <strong className="text-[#3ecf8e] font-semibold">{monthlyData.peakMonth} ({monthlyData.peakCount})</strong></span>
+          </div>
+        }
+      >
+        <div className="h-40 w-full relative flex items-end gap-3.5 border-b border-[#2e2e2e]/55 mt-4 pb-1">
+          {monthlyData.list.map((item, idx) => {
+            const max = Math.max(...monthlyData.list.map(d => d.count)) || 1;
+            const heightPct = (item.count / max) * 100;
+            return (
+              <div 
+                key={idx} 
+                className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer"
+                onMouseEnter={() => setHoveredMonth(item)}
+                onMouseLeave={() => setHoveredMonth(null)}
+              >
+                <div 
+                  className="w-full bg-[#3ecf8e] rounded-t transition-all duration-150 opacity-80 hover:opacity-100"
+                  style={{ height: `${Math.max(heightPct, 4)}%` }}
+                />
+                <span className="text-[10px] text-gray-300 mt-2 font-mono text-center truncate max-w-full">
+                  {item.month}
+                </span>
               </div>
-            </div>
-            <CardActions />
-          </div>
+            );
+          })}
 
-          {/* Histogram */}
-          <div className="h-40 w-full relative flex items-end gap-3.5 border-b border-[#2e2e2e]/55 mt-4 pb-1">
-            {monthlyData.list.map((item, idx) => {
-              const max = Math.max(...monthlyData.list.map(d => d.count)) || 1;
-              const heightPct = (item.count / max) * 100;
-              return (
-                <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
-                  <div 
-                    className="w-full bg-[#3ecf8e] rounded-t transition-all duration-150"
-                    style={{ height: `${Math.max(heightPct, 4)}%` }}
-                    title={`${item.month} - ${item.count} events`}
-                  />
-                  <span className="text-[10px] text-gray-405 mt-2 font-mono text-center truncate max-w-full">
-                    {item.month}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          {/* Interactive Floating Tooltip */}
+          {hoveredMonth && (
+            <div 
+              className="absolute bg-[#171717] border border-gray-600 rounded-lg p-2 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none"
+              style={{
+                left: '50%',
+                top: '5%',
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <span className="block text-gray-400 font-bold">{hoveredMonth.month} Events</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Total: {hoveredMonth.count} ({hoveredMonth.pct}%)</span>
+            </div>
+          )}
         </div>
 
         {/* Mini Table */}
@@ -151,7 +153,7 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
           <div className="overflow-hidden border border-[#2e2e2e]/60 rounded-lg">
             <table className="w-full text-left border-collapse text-[11px] font-mono">
               <thead>
-                <tr className="bg-[#171717] border-b border-[#2e2e2e] text-gray-400">
+                <tr className="bg-[#171717] border-b border-[#2e2e2e] text-gray-300">
                   <th className="py-1.5 px-3">Month</th>
                   <th className="py-1.5 px-3 text-right">Events</th>
                   <th className="py-1.5 px-3 text-right">%</th>
@@ -160,34 +162,37 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
               <tbody className="divide-y divide-[#2e2e2e]/40 text-gray-300">
                 {monthlyData.list.slice(0, 3).map((item, idx) => (
                   <tr key={idx} className="hover:bg-[#171717]/40">
-                    <td className="py-1.5 px-3">{item.month}</td>
-                    <td className="py-1.5 px-3 text-right font-semibold text-gray-200">{item.count}</td>
-                    <td className="py-1.5 px-3 text-right text-gray-500">{item.pct}%</td>
+                    <td className="py-1.5 px-3 text-gray-200 font-medium">{item.month}</td>
+                    <td className="py-1.5 px-3 text-right font-semibold text-white">{item.count}</td>
+                    <td className="py-1.5 px-3 text-right text-gray-400">{item.pct}%</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
-      </div>
+      </ChartCardWrapper>
 
       {/* 16. International Activity Graph */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">International Activity</h3>
-          <CardActions />
-        </div>
-
-        <div className="space-y-3.5 mt-4 text-xs font-mono">
+      <ChartCardWrapper
+        title="International Activity"
+        exportData={internationalData}
+      >
+        <div className="space-y-3.5 mt-4 text-xs font-mono relative">
           {internationalData.length > 0 ? (
             internationalData.map((item, idx) => (
-              <div key={idx} className="space-y-1">
+              <div 
+                key={idx} 
+                className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+                onMouseEnter={() => setHoveredCountry(item)}
+                onMouseLeave={() => setHoveredCountry(null)}
+              >
                 <div className="flex justify-between items-center text-gray-300">
-                  <span className="flex items-center gap-1.5 text-gray-400">
-                    <Globe className="h-3.5 w-3.5 text-gray-500" />
+                  <span className="flex items-center gap-1.5 text-gray-200">
+                    <Globe className="h-3.5 w-3.5 text-gray-400" />
                     <span>{item.country}</span>
                   </span>
-                  <span className="font-semibold text-gray-200">{item.count} ({item.pct}%)</span>
+                  <span className="font-semibold text-white">{item.count} ({item.pct}%)</span>
                 </div>
                 <div className="w-full h-1.5 bg-[#121212] border border-[#2e2e2e] rounded-full overflow-hidden">
                   <div className="bg-[#3ecf8e] h-full" style={{ width: `${item.pct}%` }} />
@@ -199,8 +204,17 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
               No international activity logged.
             </div>
           )}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredCountry && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171717] border border-gray-600 rounded-lg p-2.5 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none">
+              <span className="block text-gray-400 font-bold">Country Activity</span>
+              <span className="block text-gray-200 mt-0.5">{hoveredCountry.country}</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Calls Count: {hoveredCountry.count} ({hoveredCountry.pct}%)</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
     </>
   );
 };

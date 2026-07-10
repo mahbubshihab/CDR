@@ -1,29 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { Download, Camera, Printer, Maximize2 } from 'lucide-react';
+import { ChartCardWrapper } from './ChartCardWrapper';
 
 interface TypeDurationCardsProps {
   records: CDRRecord[];
 }
 
-const CardActions = () => (
-  <div className="flex items-center gap-1.5 shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Download data">
-      <Download className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Screenshot">
-      <Camera className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Print">
-      <Printer className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Maximize">
-      <Maximize2 className="h-3 w-3" />
-    </button>
-  </div>
-);
-
 export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records }) => {
+  const [hoveredSlice, setHoveredSlice] = useState<{ label: string; count: number; pct: string } | null>(null);
+  const [hoveredBar, setHoveredBar] = useState<{ name: string; count: number; pct: string } | null>(null);
+
   // 3. Call Type Distribution (MOC vs MTC vs SMS)
   const callTypeDistribution = useMemo(() => {
     let incoming = 0;
@@ -79,12 +65,10 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
   return (
     <>
       {/* 3. Call Type Distribution */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xs font-semibold text-gray-250 uppercase tracking-wider">Call Type Distribution</h3>
-          <CardActions />
-        </div>
-
+      <ChartCardWrapper
+        title="Call Type Distribution"
+        exportData={callTypeDistribution}
+      >
         <div className="flex flex-col sm:flex-row items-center gap-6 py-2">
           {/* Donut Chart SVG */}
           <div className="relative h-32 w-32 shrink-0">
@@ -100,88 +84,130 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
 
                 return (
                   <>
-                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#3ecf8e" strokeWidth="3"
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#3ecf8e" strokeWidth="3.5"
                       strokeDasharray={`${inStroke} ${100 - inStroke}`}
                       strokeDashoffset="0"
+                      className="cursor-pointer hover:stroke-white transition-all duration-150"
+                      onMouseEnter={() => setHoveredSlice({ label: 'Incoming', count: t.incoming, pct: t.incomingPct })}
+                      onMouseLeave={() => setHoveredSlice(null)}
                     />
-                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#8b5cf6" strokeWidth="3"
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#8b5cf6" strokeWidth="3.5"
                       strokeDasharray={`${outStroke} ${100 - outStroke}`}
                       strokeDashoffset={`-${inStroke}`}
+                      className="cursor-pointer hover:stroke-white transition-all duration-150"
+                      onMouseEnter={() => setHoveredSlice({ label: 'Outgoing', count: t.outgoing, pct: t.outgoingPct })}
+                      onMouseLeave={() => setHoveredSlice(null)}
                     />
-                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f59e0b" strokeWidth="3"
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f59e0b" strokeWidth="3.5"
                       strokeDasharray={`${smsStroke} ${100 - smsStroke}`}
                       strokeDashoffset={`-${inStroke + outStroke}`}
+                      className="cursor-pointer hover:stroke-white transition-all duration-150"
+                      onMouseEnter={() => setHoveredSlice({ label: 'SMS', count: t.sms, pct: t.smsPct })}
+                      onMouseLeave={() => setHoveredSlice(null)}
                     />
                   </>
                 );
               })()}
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-lg font-bold text-gray-100 font-mono leading-none">
-                {callTypeDistribution.total}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+              <span className="text-base font-bold text-white font-mono leading-none">
+                {hoveredSlice ? hoveredSlice.count : callTypeDistribution.total}
               </span>
-              <span className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5 font-semibold">Logs</span>
+              <span className="text-[9px] text-[#3ecf8e] uppercase tracking-wider mt-1 font-semibold">
+                {hoveredSlice ? hoveredSlice.label : "Logs"}
+              </span>
+              {hoveredSlice && (
+                <span className="text-[9px] text-gray-400 font-mono mt-0.5">{hoveredSlice.pct}%</span>
+              )}
             </div>
           </div>
 
           {/* Legends */}
           <div className="flex-1 space-y-2.5 w-full text-xs font-mono">
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/50"
+              onMouseEnter={() => setHoveredSlice({ label: 'Incoming', count: callTypeDistribution.incoming, pct: callTypeDistribution.incomingPct })}
+              onMouseLeave={() => setHoveredSlice(null)}
+            >
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#3ecf8e]" />
                 <span className="text-gray-300">Incoming Calls</span>
               </div>
-              <span className="text-gray-400 font-semibold">{callTypeDistribution.incoming} ({callTypeDistribution.incomingPct}%)</span>
+              <span className="text-white font-semibold">{callTypeDistribution.incoming} ({callTypeDistribution.incomingPct}%)</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/50"
+              onMouseEnter={() => setHoveredSlice({ label: 'Outgoing', count: callTypeDistribution.outgoing, pct: callTypeDistribution.outgoingPct })}
+              onMouseLeave={() => setHoveredSlice(null)}
+            >
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#8b5cf6]" />
                 <span className="text-gray-300">Outgoing Calls</span>
               </div>
-              <span className="text-gray-400 font-semibold">{callTypeDistribution.outgoing} ({callTypeDistribution.outgoingPct}%)</span>
+              <span className="text-white font-semibold">{callTypeDistribution.outgoing} ({callTypeDistribution.outgoingPct}%)</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/50"
+              onMouseEnter={() => setHoveredSlice({ label: 'SMS', count: callTypeDistribution.sms, pct: callTypeDistribution.smsPct })}
+              onMouseLeave={() => setHoveredSlice(null)}
+            >
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" />
                 <span className="text-gray-300">SMS Activity</span>
               </div>
-              <span className="text-gray-400 font-semibold">{callTypeDistribution.sms} ({callTypeDistribution.smsPct}%)</span>
+              <span className="text-white font-semibold">{callTypeDistribution.sms} ({callTypeDistribution.smsPct}%)</span>
             </div>
           </div>
         </div>
-      </div>
+      </ChartCardWrapper>
 
       {/* 4. Call Duration Distribution */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xs font-semibold text-gray-250 uppercase tracking-wider">Call Duration Distribution</h3>
-          <CardActions />
-        </div>
-
-        <div className="h-32 flex items-end gap-3 mt-4">
+      <ChartCardWrapper
+        title="Call Duration Distribution"
+        exportData={durationDistribution}
+      >
+        <div className="h-32 flex items-end gap-3 mt-4 relative">
           {durationDistribution.map((item, idx) => {
             const max = Math.max(...durationDistribution.map(d => d.count)) || 1;
             const heightPct = (item.count / max) * 100;
+            const colors = ['bg-[#3ecf8e]', 'bg-[#8b5cf6]', 'bg-[#f59e0b]', 'bg-blue-500', 'bg-pink-500'];
             return (
-              <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
-                <span className="text-[10px] text-gray-500 font-mono mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.count}
-                </span>
+              <div 
+                key={idx} 
+                className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer"
+                onMouseEnter={() => setHoveredBar(item)}
+                onMouseLeave={() => setHoveredBar(null)}
+              >
                 <div 
-                  className="w-full bg-[#3ecf8e]/20 hover:bg-[#3ecf8e]/40 border border-[#3ecf8e]/30 rounded-t transition-all duration-150"
+                  className={`w-full ${colors[idx % colors.length]}/20 hover:${colors[idx % colors.length]}/45 border border-${colors[idx % colors.length]}/30 rounded-t transition-all duration-150`}
                   style={{ height: `${Math.max(heightPct, 4)}%` }}
                 />
-                <span className="text-[10px] text-gray-405 mt-2 font-mono truncate max-w-full text-center">
+                <span className="text-[10px] text-gray-300 mt-2 font-mono truncate max-w-full text-center">
                   {item.name}
                 </span>
               </div>
             );
           })}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredBar && (
+            <div 
+              className="absolute bg-[#171717] border border-gray-600 rounded-lg p-2 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none"
+              style={{
+                left: '50%',
+                top: '5%',
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <span className="block text-gray-400 font-bold">{hoveredBar.name} Duration</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Calls: {hoveredBar.count} ({hoveredBar.pct}%)</span>
+            </div>
+          )}
         </div>
-        <div className="text-[10px] text-gray-500 font-mono text-center mt-3">
+        <div className="text-[10px] text-gray-400 font-mono text-center mt-3">
           Note: SMS events excluded from duration aggregates.
         </div>
-      </div>
+      </ChartCardWrapper>
     </>
   );
 };

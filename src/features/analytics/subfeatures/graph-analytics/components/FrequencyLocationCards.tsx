@@ -1,29 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { Download, Camera, Printer, Maximize2, PhoneCall, MapPin } from 'lucide-react';
+import { ChartCardWrapper } from './ChartCardWrapper';
+import { PhoneCall, MapPin } from 'lucide-react';
 
 interface FrequencyLocationCardsProps {
   records: CDRRecord[];
 }
 
-const CardActions = () => (
-  <div className="flex items-center gap-1.5 shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Download data">
-      <Download className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Screenshot">
-      <Camera className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Print">
-      <Printer className="h-3 w-3" />
-    </button>
-    <button className="p-1 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-250 rounded transition-colors cursor-pointer" title="Maximize">
-      <Maximize2 className="h-3 w-3" />
-    </button>
-  </div>
-);
-
 export const FrequencyLocationCards: React.FC<FrequencyLocationCardsProps> = ({ records }) => {
+  const [hoveredContact, setHoveredContact] = useState<{ number: string; count: number; pct: string } | null>(null);
+  const [hoveredLocation, setHoveredLocation] = useState<{ address: string; count: number; pct: string } | null>(null);
+
   // 9. Contact Frequency
   const contactFrequency = useMemo(() => {
     const map: { [num: string]: number } = {};
@@ -65,47 +52,62 @@ export const FrequencyLocationCards: React.FC<FrequencyLocationCardsProps> = ({ 
   return (
     <>
       {/* 9. Contact Frequency */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Contact Frequency</h3>
-          <CardActions />
-        </div>
-
-        <div className="space-y-3.5 mt-4 text-xs font-mono">
+      <ChartCardWrapper
+        title="Contact Frequency"
+        exportData={contactFrequency}
+      >
+        <div className="space-y-3.5 mt-4 text-xs font-mono relative">
           {contactFrequency.map((item, idx) => (
-            <div key={idx} className="space-y-1">
+            <div 
+              key={idx} 
+              className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+              onMouseEnter={() => setHoveredContact(item)}
+              onMouseLeave={() => setHoveredContact(null)}
+            >
               <div className="flex justify-between items-center text-gray-300">
-                <span className="flex items-center gap-1.5 text-gray-400">
-                  <PhoneCall className="h-3.5 w-3.5 text-gray-500" />
+                <span className="flex items-center gap-1.5 text-gray-200">
+                  <PhoneCall className="h-3.5 w-3.5 text-gray-400" />
                   <span>{item.number}</span>
                 </span>
-                <span className="font-semibold text-gray-255">{item.count} ({item.pct}%)</span>
+                <span className="font-semibold text-white">{item.count} ({item.pct}%)</span>
               </div>
               <div className="w-full h-1.5 bg-[#121212] border border-[#2e2e2e] rounded-full overflow-hidden">
                 <div className="bg-[#3ecf8e] h-full" style={{ width: `${item.pct}%` }} />
               </div>
             </div>
           ))}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredContact && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171717] border border-gray-600 rounded-lg p-2.5 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none">
+              <span className="block text-gray-400 font-bold">Contact Frequency Details</span>
+              <span className="block text-gray-200 mt-0.5">B-Party Number: {hoveredContact.number}</span>
+              <span className="block text-[#3ecf8e] font-semibold mt-0.5">Interactions: {hoveredContact.count} ({hoveredContact.pct}%)</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
 
       {/* 10. Top Location Activity */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Top Location Activity</h3>
-          <CardActions />
-        </div>
-
-        <div className="space-y-3.5 mt-4 text-xs font-mono">
+      <ChartCardWrapper
+        title="Top Location Activity"
+        exportData={locationActivity}
+      >
+        <div className="space-y-3.5 mt-4 text-xs font-mono relative">
           {locationActivity.length > 0 ? (
             locationActivity.map((item, idx) => (
-              <div key={idx} className="space-y-1">
+              <div 
+                key={idx} 
+                className="space-y-1 cursor-pointer p-1 rounded hover:bg-[#2e2e2e]/30 transition-colors"
+                onMouseEnter={() => setHoveredLocation(item)}
+                onMouseLeave={() => setHoveredLocation(null)}
+              >
                 <div className="flex justify-between items-center text-gray-300">
-                  <span className="flex items-center gap-1.5 text-gray-400 truncate max-w-[200px]" title={item.address}>
-                    <MapPin className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+                  <span className="flex items-center gap-1.5 text-gray-255 truncate max-w-[200px]" title={item.address}>
+                    <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                     <span className="truncate">{item.address}</span>
                   </span>
-                  <span className="font-semibold text-gray-255 shrink-0">{item.count} ({item.pct}%)</span>
+                  <span className="font-semibold text-white shrink-0">{item.count} ({item.pct}%)</span>
                 </div>
                 <div className="w-full h-1.5 bg-[#121212] border border-[#2e2e2e] rounded-full overflow-hidden">
                   <div className="bg-[#8b5cf6] h-full" style={{ width: `${item.pct}%` }} />
@@ -117,8 +119,17 @@ export const FrequencyLocationCards: React.FC<FrequencyLocationCardsProps> = ({ 
               No cell tower address logs.
             </div>
           )}
+
+          {/* Interactive Floating Tooltip */}
+          {hoveredLocation && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171717] border border-gray-600 rounded-lg p-2.5 text-[10px] font-mono text-white shadow-xl z-20 pointer-events-none">
+              <span className="block text-gray-400 font-bold">Location Frequency Details</span>
+              <span className="block text-gray-200 mt-0.5 truncate max-w-xs">{hoveredLocation.address}</span>
+              <span className="block text-[#8b5cf6] font-semibold mt-0.5">Hits Count: {hoveredLocation.count} ({hoveredLocation.pct}%)</span>
+            </div>
+          )}
         </div>
-      </div>
+      </ChartCardWrapper>
     </>
   );
 };
