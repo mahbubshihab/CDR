@@ -420,6 +420,10 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             .text-white, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400 {
               color: #000000 !important;
             }
+            .max-h-36, .overflow-y-auto, .custom-scrollbar {
+              max-height: none !important;
+              overflow: visible !important;
+            }
           </style>
         </head>
         <body>

@@ -103,8 +103,13 @@ body {
   aside {
     display: none !important;
   }
-  button, .no-print-actions, nav, .flex-wrap, .shrink-0 {
+  button, .no-print-actions, nav {
     display: none !important;
+  }
+  /* Disable table scrolling and max-height constraints during printing */
+  .max-h-36, .overflow-y-auto, .custom-scrollbar {
+    max-height: none !important;
+    overflow: visible !important;
   }
   .grid {
     display: block !important;
