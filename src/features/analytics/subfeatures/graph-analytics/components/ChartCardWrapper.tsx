@@ -391,10 +391,24 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
       .map(el => el.outerHTML)
       .join('\n');
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    // Create a temporary hidden iframe to print, bypassing browser popup blockers
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
 
-    printWindow.document.write(`
+    const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (!iframeDoc) {
+      document.body.removeChild(iframe);
+      return;
+    }
+
+    iframeDoc.open();
+    iframeDoc.write(`
       <html>
         <head>
           <title>${title} - Print View</title>
@@ -429,17 +443,17 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         <body>
           <h2 class="text-lg font-bold border-b border-gray-350 pb-3 mb-6">${title}</h2>
           ${cardHtml}
-          <script>
-            // Wait for stylesheets to finish loading before printing
-            setTimeout(() => {
-              window.print();
-              window.close();
-            }, 800);
-          </script>
         </body>
       </html>
     `);
-    printWindow.document.close();
+    iframeDoc.close();
+
+    // Trigger iframe printing and clean up
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      document.body.removeChild(iframe);
+    }, 800);
   };
 
   const CardContent = (
