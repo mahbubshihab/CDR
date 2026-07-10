@@ -470,8 +470,8 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
 
       {/* Expand / Maximize Modal overlay */}
       {isExpanded && (
-        <div className="fixed inset-0 z-50 bg-[#121212]/90 backdrop-blur-md flex items-center justify-center p-6 sm:p-12 animate-in fade-in duration-200">
-          <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl w-full max-w-4xl p-6 sm:p-8 flex flex-col justify-between relative shadow-2xl min-h-[500px]">
+        <div className="fixed inset-0 z-50 bg-[#121212]/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] p-6 sm:p-8 flex flex-col justify-between relative shadow-2xl overflow-y-auto custom-scrollbar">
             {/* Close modal action button */}
             <button 
               onClick={() => setIsExpanded(false)}

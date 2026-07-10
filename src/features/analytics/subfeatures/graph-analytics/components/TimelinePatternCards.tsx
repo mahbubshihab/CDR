@@ -62,7 +62,10 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
       }
     });
 
-    return { list, peakDate, peakCount, totalDays: list.length };
+    const startDate = sortedDates[0] || '—';
+    const endDate = sortedDates[sortedDates.length - 1] || '—';
+
+    return { list, peakDate, peakCount, startDate, endDate };
   }, [records]);
 
   // 2. Hourly Call Pattern
@@ -137,7 +140,7 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
         subdetails={
           <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400 font-mono">
             <span>Total: <strong className="text-white font-semibold">{timelineData.list.reduce((a,b)=>a+b.count,0)}</strong></span>
-            <span>Days: <strong className="text-white font-semibold">{timelineData.totalDays}</strong></span>
+            <span>Span: <strong className="text-white font-semibold">{timelineData.startDate} to {timelineData.endDate}</strong></span>
             <span>Peak: <strong className="text-[#3ecf8e] font-semibold">{timelineData.peakDate} ({timelineData.peakCount})</strong></span>
           </div>
         }
