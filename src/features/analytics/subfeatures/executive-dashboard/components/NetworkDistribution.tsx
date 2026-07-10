@@ -5,6 +5,41 @@ interface NetworkDistributionProps {
   onOpenNetwork: () => void;
 }
 
+// Prefix to Operator dynamic mapping for B-parties
+function getOperatorFromNumber(numberStr: string, isPakistani: boolean): string {
+  if (!numberStr) return 'Unknown';
+  
+  // Clean all non-numeric characters
+  const clean = numberStr.replace(/\D/g, '');
+
+  if (isPakistani) {
+    // Pakistani prefixes: normalize to 3xx (starts with 923 or 03)
+    let norm = clean;
+    if (norm.startsWith('92')) norm = norm.substring(2);
+    if (norm.startsWith('0')) norm = norm.substring(1);
+    
+    if (norm.startsWith('30') || norm.startsWith('32')) return 'Jazz';
+    if (norm.startsWith('31')) return 'Zong';
+    if (norm.startsWith('33')) return 'Ufone';
+    if (norm.startsWith('34')) return 'Telenor';
+    if (norm.startsWith('35')) return 'SCO';
+    if (norm.startsWith('36')) return 'Onic';
+    return 'Unknown';
+  } else {
+    // Bangladeshi prefixes: normalize to 1xx (starts with 8801 or 01)
+    let norm = clean;
+    if (norm.startsWith('88')) norm = norm.substring(2);
+    if (norm.startsWith('0')) norm = norm.substring(1);
+    
+    if (norm.startsWith('17') || norm.startsWith('13')) return 'Grameenphone';
+    if (norm.startsWith('18')) return 'Robi';
+    if (norm.startsWith('19') || norm.startsWith('14')) return 'Banglalink';
+    if (norm.startsWith('15')) return 'Teletalk';
+    if (norm.startsWith('16')) return 'Airtel';
+    return 'Unknown';
+  }
+}
+
 export const NetworkDistribution: React.FC<NetworkDistributionProps> = ({ records, onOpenNetwork }) => {
   // Detect whether Pakistani or Bangladeshi operators are inside dataset
   const opSet = new Set(records.map(r => r.provider).filter(Boolean));
@@ -31,26 +66,14 @@ export const NetworkDistribution: React.FC<NetworkDistributionProps> = ({ record
     'Unknown': '#888888'
   };
 
-  // Map each unique otherParty to its provider to count B-Parties instead of raw records
-  const bPartyProviders: Record<string, string> = {};
-  records.forEach(r => {
-    if (r.otherParty && r.provider) {
-      bPartyProviders[r.otherParty] = r.provider;
-    }
-  });
-
+  // Get unique B-parties
   const uniqueBParties = Array.from(new Set(records.map(r => r.otherParty).filter(Boolean)));
   
+  // Count unique B-parties per parsed operator provider prefix
   const opCounts: Record<string, number> = {};
-  Object.values(bPartyProviders).forEach(provider => {
-    opCounts[provider] = (opCounts[provider] || 0) + 1;
-  });
-
-  // Count remaining B-parties as Unknown if they don't have a mapped provider
   uniqueBParties.forEach(bp => {
-    if (!bPartyProviders[bp]) {
-      opCounts['Unknown'] = (opCounts['Unknown'] || 0) + 1;
-    }
+    const provider = getOperatorFromNumber(bp, isPakistani);
+    opCounts[provider] = (opCounts[provider] || 0) + 1;
   });
 
   const uniqueNumbersCount = uniqueBParties.length;
