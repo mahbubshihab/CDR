@@ -31,14 +31,30 @@ export const NetworkDistribution: React.FC<NetworkDistributionProps> = ({ record
     'Unknown': '#888888'
   };
 
-  const opCounts: Record<string, number> = {};
+  // Map each unique otherParty to its provider to count B-Parties instead of raw records
+  const bPartyProviders: Record<string, string> = {};
   records.forEach(r => {
-    const op = r.provider || 'Unknown';
-    opCounts[op] = (opCounts[op] || 0) + 1;
+    if (r.otherParty && r.provider) {
+      bPartyProviders[r.otherParty] = r.provider;
+    }
   });
 
-  const uniqueNumbersCount = new Set(records.map(r => r.otherParty).filter(Boolean)).size;
-  const total = records.length || 1;
+  const uniqueBParties = Array.from(new Set(records.map(r => r.otherParty).filter(Boolean)));
+  
+  const opCounts: Record<string, number> = {};
+  Object.values(bPartyProviders).forEach(provider => {
+    opCounts[provider] = (opCounts[provider] || 0) + 1;
+  });
+
+  // Count remaining B-parties as Unknown if they don't have a mapped provider
+  uniqueBParties.forEach(bp => {
+    if (!bPartyProviders[bp]) {
+      opCounts['Unknown'] = (opCounts['Unknown'] || 0) + 1;
+    }
+  });
+
+  const uniqueNumbersCount = uniqueBParties.length;
+  const total = uniqueNumbersCount || 1;
 
   return (
     <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 space-y-5 text-left font-mono">

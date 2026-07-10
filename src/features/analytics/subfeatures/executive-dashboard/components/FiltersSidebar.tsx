@@ -28,6 +28,8 @@ interface FiltersSidebarProps {
   setOperatorSel: (v: string) => void;
   filterOptions: {
     years: string[];
+    months: string[];
+    hours: string[];
     locations: string[];
     bParties: string[];
     imeis: string[];
@@ -55,8 +57,6 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   filterOptions,
   onApply, onClear
 }) => {
-  const hours = ['All', ...Array.from({ length: 24 }, (_, i) => String(i))];
-
   return (
     <aside className="w-full lg:w-60 shrink-0 bg-[#171717] border-r border-[#2e2e2e] p-4 flex flex-col gap-4.5 h-full overflow-y-auto custom-scrollbar overscroll-contain text-left">
       {/* Apply / Clear Actions */}
@@ -86,7 +86,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder="Search number or IMEI..."
-            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-250 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e] font-mono"
+            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-255 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e] font-mono"
           />
           <Search className="h-3.5 w-3.5 text-gray-500 absolute left-2.5 top-2.5" />
         </div>
@@ -117,7 +117,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
         <div className="space-y-1.5">
           <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">MONTH</span>
           <div className="space-y-0.5 max-h-36 overflow-y-auto custom-scrollbar">
-            {['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
+            {['All', ...filterOptions.months].map(m => (
               <button
                 key={m}
                 onClick={() => setMonthSel(m)}
@@ -135,7 +135,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
         <div className="space-y-1.5">
           <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">HOUR</span>
           <div className="space-y-0.5 max-h-36 overflow-y-auto custom-scrollbar">
-            {hours.map(hr => (
+            {['All', ...filterOptions.hours].map(hr => (
               <button
                 key={hr}
                 onClick={() => setHourSel(hr)}

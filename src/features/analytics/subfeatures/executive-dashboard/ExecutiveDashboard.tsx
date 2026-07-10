@@ -14,6 +14,54 @@ interface ExecutiveDashboardProps {
   onNavigateToTab: (tabId: string) => void;
 }
 
+// Safely parse 14-digit strings/numbers or epoch timestamps
+export function parseCDRTimestamp(ts: number | string | any): Date {
+  const tsStr = String(ts || '');
+  if (tsStr.length === 14) {
+    const y = parseInt(tsStr.substring(0, 4), 10);
+    const m = parseInt(tsStr.substring(4, 6), 10) - 1; // 0-indexed
+    const d = parseInt(tsStr.substring(6, 8), 10);
+    const hr = parseInt(tsStr.substring(8, 10), 10);
+    const min = parseInt(tsStr.substring(10, 12), 10);
+    const sec = parseInt(tsStr.substring(12, 14), 10);
+    const date = new Date(y, m, d, hr, min, sec);
+    if (!isNaN(date.getTime())) return date;
+  }
+  const date = new Date(Number(ts));
+  if (!isNaN(date.getTime())) return date;
+  return new Date();
+}
+
+// Extract country names from country codes
+function getCountryFromNumber(numberStr: string): string {
+  if (!numberStr) return 'Unknown';
+  const num = numberStr.replace('+', '');
+  if (num.startsWith('92')) return 'Pakistan';
+  if (num.startsWith('91')) return 'India';
+  if (num.startsWith('44')) return 'United Kingdom';
+  if (num.startsWith('1')) return 'USA/Canada';
+  if (num.startsWith('880') || num.startsWith('17') || num.startsWith('18') || num.startsWith('19') || num.startsWith('15')) return 'Bangladesh';
+  return 'Other Countries';
+}
+
+// Helper to classify B-Party Type (Domestic, International, Short Code, Brand Masking)
+function getBPartyType(otherParty: string, isPakistan: boolean): string {
+  if (!otherParty) return 'Domestic';
+  const cleaned = otherParty.replace('+', '');
+  // Brand masking contains alphabets
+  if (/[a-zA-Z]/.test(cleaned)) return 'Brand Masking';
+  // Short code
+  if (cleaned.length <= 6) return 'Short Code';
+  // International vs Domestic
+  if (isPakistan) {
+    if (cleaned.startsWith('92') || cleaned.startsWith('0')) return 'Domestic';
+    return 'International';
+  } else {
+    if (cleaned.startsWith('880') || cleaned.startsWith('0')) return 'Domestic';
+    return 'International';
+  }
+}
+
 export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ 
   cdrFile, records, onNavigateToTab 
 }) => {
@@ -47,7 +95,16 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     operator: 'All'
   });
 
-  // Extract unique options from raw records for filter panel
+  // Check if active file belongs to Pakistan dataset
+  const isPakistanCase = useMemo(() => {
+    return records.some(r => {
+      if (r.provider && ['Jazz', 'Zong', 'Ufone', 'Telenor', 'Onic', 'SCO'].includes(r.provider)) return true;
+      if (r.otherParty && r.otherParty.replace('+', '').startsWith('92')) return true;
+      return false;
+    });
+  }, [records]);
+
+  // Extract unique options from raw records dynamically for filter panel
   const filterOptions = useMemo(() => {
     const years = new Set<string>();
     const locations = new Set<string>();
@@ -56,21 +113,22 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     const imsis = new Set<string>();
     const operators = new Set<string>();
     const countries = new Set<string>();
+    const activeMonths = new Set<string>();
+    const activeHours = new Set<string>();
+
+    const monthsMap = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     records.forEach(r => {
       if (r.timestamp) {
-        years.add(new Date(r.timestamp).getFullYear().toString());
+        const d = parseCDRTimestamp(r.timestamp);
+        years.add(d.getFullYear().toString());
+        activeMonths.add(monthsMap[d.getMonth()]);
+        activeHours.add(d.getHours().toString());
       }
       if (r.address) locations.add(r.address);
       if (r.otherParty) {
         bParties.add(r.otherParty);
-        // Classify country
-        const num = r.otherParty.replace('+', '');
-        if (num.startsWith('92')) countries.add('Pakistan');
-        else if (num.startsWith('91')) countries.add('India');
-        else if (num.startsWith('44')) countries.add('United Kingdom');
-        else if (num.startsWith('1')) countries.add('USA/Canada');
-        else countries.add('Bangladesh');
+        countries.add(getCountryFromNumber(r.otherParty));
       }
       if (r.imei) imeis.add(r.imei);
       if (r.imsi) imsis.add(r.imsi);
@@ -79,8 +137,10 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
     return {
       years: Array.from(years).sort(),
-      locations: Array.from(locations).sort().slice(0, 15),
-      bParties: Array.from(bParties).sort().slice(0, 15),
+      months: monthsMap.filter(m => activeMonths.has(m)),
+      hours: Array.from(activeHours).sort((a, b) => Number(a) - Number(b)),
+      locations: Array.from(locations).sort().slice(0, 20),
+      bParties: Array.from(bParties).sort().slice(0, 20),
       imeis: Array.from(imeis).sort().slice(0, 10),
       imsis: Array.from(imsis).sort().slice(0, 10),
       operators: Array.from(operators).sort(),
@@ -137,7 +197,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     });
   };
 
-  // Filter records in memory
+  // Filter records in memory dynamically
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
       if (appliedFilters.search) {
@@ -148,17 +208,20 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           (r.address && r.address.toLowerCase().includes(q));
         if (!matches) return false;
       }
+      
+      const d = parseCDRTimestamp(r.timestamp);
+
       if (appliedFilters.year !== 'All') {
-        const yr = new Date(r.timestamp).getFullYear().toString();
+        const yr = d.getFullYear().toString();
         if (yr !== appliedFilters.year) return false;
       }
       if (appliedFilters.month !== 'All') {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const mIdx = new Date(r.timestamp).getMonth();
+        const mIdx = d.getMonth();
         if (months[mIdx] !== appliedFilters.month) return false;
       }
       if (appliedFilters.hour !== 'All') {
-        const hr = new Date(r.timestamp).getHours().toString();
+        const hr = d.getHours().toString();
         if (hr !== appliedFilters.hour) return false;
       }
       if (appliedFilters.location !== 'All') {
@@ -176,6 +239,14 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       if (appliedFilters.operator !== 'All') {
         if (r.provider !== appliedFilters.operator) return false;
       }
+      if (appliedFilters.country !== 'All') {
+        const country = getCountryFromNumber(r.otherParty || '');
+        if (country !== appliedFilters.country) return false;
+      }
+      if (appliedFilters.bPartyType !== 'All') {
+        const type = getBPartyType(r.otherParty || '', isPakistanCase);
+        if (type !== appliedFilters.bPartyType) return false;
+      }
       if (appliedFilters.callType !== 'All') {
         const t = r.usageType.toLowerCase();
         if (appliedFilters.callType === 'Incoming Call' && t !== 'mtc') return false;
@@ -185,7 +256,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       }
       return true;
     });
-  }, [records, appliedFilters]);
+  }, [records, appliedFilters, isPakistanCase]);
 
   // Aggregate Metrics
   const metrics = useMemo(() => {
@@ -212,19 +283,22 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
     const locationBadges = sortedLocations.slice(0, 12);
 
-    // Timeline charts series by month
-    const monthsList = ['Jan', 'Feb', 'Mar', 'Apr'];
-    const monthColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
-    const dailyActivityByMonth = monthsList.map((m, mIdx) => {
+    // Timeline charts series by month dynamically derived
+    const monthsList = filterOptions.months.slice(0, 4);
+    const monthColors = ['#3ecf8e', '#3b82f6', '#f59e0b', '#8b5cf6'];
+    const monthsMap = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const dailyActivityByMonth = monthsList.map((m, idx) => {
       const dailyPoints = Array(30).fill(0);
+      const mIdx = monthsMap.indexOf(m);
       filteredRecords.forEach(r => {
-        const d = new Date(r.timestamp);
+        const d = parseCDRTimestamp(r.timestamp);
         if (d.getMonth() === mIdx) {
           const day = d.getDate() - 1;
           if (day >= 0 && day < 30) dailyPoints[day]++;
         }
       });
-      return { month: m, points: dailyPoints, color: monthColors[mIdx] };
+      return { month: m, points: dailyPoints, color: monthColors[idx % monthColors.length] };
     });
 
     return {
@@ -239,7 +313,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       locationBadges,
       dailyActivityByMonth
     };
-  }, [filteredRecords]);
+  }, [filteredRecords, filterOptions.months]);
 
   // Chart breakdowns
   const callTypeBreakdown = useMemo(() => {
@@ -255,18 +329,25 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     ];
   }, [filteredRecords, metrics]);
 
+  // Country Breakdown using resolved country codes
   const countryBreakdown = useMemo(() => {
     const total = metrics.total || 1;
-    const bdCount = Math.floor(total * 0.994);
-    const ukCount = Math.max(0, Math.floor(total * 0.004));
-    const otherCount = Math.max(0, total - bdCount - ukCount);
+    const counts: Record<string, number> = {};
+    filteredRecords.forEach(r => {
+      const c = getCountryFromNumber(r.otherParty || '');
+      counts[c] = (counts[c] || 0) + 1;
+    });
 
-    return [
-      { name: 'Bangladesh', count: bdCount, pct: ((bdCount / total) * 100).toFixed(1), color: '#3ecf8e' },
-      { name: 'United Kingdom', count: ukCount, pct: ((ukCount / total) * 100).toFixed(1), color: '#ef4444' },
-      { name: 'Other Countries', count: otherCount, pct: ((otherCount / total) * 100).toFixed(1), color: '#3b82f6' }
-    ];
-  }, [metrics.total]);
+    const colors = ['#3ecf8e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6'];
+    return Object.entries(counts)
+      .map(([name, count], idx) => ({
+        name,
+        count,
+        pct: ((count / total) * 100).toFixed(1),
+        color: colors[idx % colors.length]
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [filteredRecords, metrics.total]);
 
   return (
     <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden text-left bg-[#121212] animate-in fade-in duration-300">
@@ -297,7 +378,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         setCountrySel={setCountrySel}
         operatorSel={operatorSel}
         setOperatorSel={setOperatorSel}
-        filterOptions={{ ...filterOptions, countries: ['Bangladesh', 'Pakistan', 'United Kingdom', 'USA/Canada'] }}
+        filterOptions={filterOptions}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
       />
