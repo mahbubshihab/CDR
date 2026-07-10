@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDR Forensic Analyzer - সম্পূর্ণ বাংলা প্ল্যান ও আর্কিটেকচার</title>
+    <!-- Tailwind CDN for style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Hind Siliguri', 'Outfit', sans-serif;
+            background-color: #060814;
+            color: #f1f5f9;
+        }
+        code, pre {
+            font-family: 'Fira Code', monospace;
+        }
+        .glass {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .active-tab {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 100%);
+            border-left: 4px solid #3b82f6;
+            color: #60a5fa;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar overflow-x-hidden">
+    <!-- Header -->
+    <header class="h-16 border-b border-gray-800 bg-[#090d1a]/80 backdrop-blur flex items-center justify-between px-6 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">C</div>
+            <div>
+                <h1 class="text-lg font-bold tracking-wide bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">CDR FORENSIC ANALYZER</h1>
+                <p class="text-xs text-gray-500 font-medium">সম্পূর্ণ টেকনিক্যাল ইমপ্লিমেন্টেশন ও অফলাইন প্ল্যান (বাংলায়)</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs font-mono px-3 py-1 bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 rounded-full flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> অফলাইন-ফার্স্ট (No Backend)
+            </span>
+            <span class="text-xs text-gray-500 font-mono">v1.0.0 Plan</span>
+        </div>
+    </header>
+
+    <div class="flex flex-1 relative">
+        <!-- Sidebar Navigation -->
+        <aside class="w-80 border-r border-gray-800 bg-[#090d1a]/50 flex flex-col justify-between sticky top-16 h-[calc(100vh-4rem)] p-4 overflow-y-auto custom-scrollbar">
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest px-3 mb-3">প্ল্যান ক্যাটাগরি</h3>
+                    <nav class="space-y-1" id="nav-container">
+                        <!-- Navigation Items will be loaded dynamically -->
+                    </nav>
+                </div>
+            </div>
+            
+            <div class="pt-4 border-t border-gray-800/60 text-xs text-gray-500">
+                <p>নিরাপদ ও নির্ভরযোগ্য লোকাল ফরেনসিক সিস্টেম</p>
+                <p class="mt-1 font-mono text-[10px]">IndexedDB Sandbox Architecture</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 bg-[#05070e] p-8 overflow-y-auto h-[calc(100vh-4rem)] custom-scrollbar" id="content-container">
+            <!-- Reports Content will load dynamically -->
+        </main>
+    </div>
+
+    <!-- Data Injection -->
+    <script>
+        const sectionsData = {
+            "১. মূল আর্কিটেকচার (Core Stack)": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">অফলাইন-ফার্স্ট প্রযুক্তির রূপরেখা</h2>
+                    <p class="text-gray-300">আমরা এই ওয়েবসাইটটি সম্পূর্ণভাবে ক্লায়েন্ট-সাইড মেমরিতে রান করব। অর্থাৎ এর কোনো সার্ভার ব্যাকএন্ড বা ডেটাবেস সার্ভার থাকবে না। এটি সম্পূর্ণ ব্রাউজারে কাজ করবে এবং ডাটা সিকিউরিটি নিশ্চিত করবে।</p>
+                    
+                    <div class="bg-blue-950/30 border border-blue-900/50 p-4 rounded-lg space-y-2">
+                        <h3 class="text-lg font-semibold text-blue-300">কেন এই ডিজাইন গুরুত্বপূর্ণ?</h3>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-300">
+                            <li><strong>সম্পূর্ণ ডাটা প্রাইভেসি:</strong> সন্দেহভাজন ব্যক্তির অত্যন্ত সংবেদনশীল ডাটা (যেমন ফোন কল রেকর্ড, আইএমইআই, লোকেশন) ইন্টারনেটে পাচার হওয়া সম্পূর্ণ অসম্ভব।</li>
+                            <li><strong>অফলাইন ফাংশনালিটি:</strong> কোনোরকম ইন্টারনেট ছাড়াই অ্যাপটি লোকাল কম্পিউটারে রান করবে।</li>
+                            <li><strong>IndexedDB ফাইল স্টোরেজ:</strong> আপলোড করা এক্সেল ডাটা ব্রাউজারের লোকাল ডাটাবেসে সেভ হয়ে থাকবে, যাতে ইউজার ব্রাউজার রিলোড দিলেও আগের মতোই কাজ করতে পারেন।</li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-emerald-400">প্রযুক্তিগত উপাদানসমূহ (Technology Stack):</h3>
+                        <table class="min-w-full divide-y divide-gray-800 text-sm bg-[#0d1527] rounded-lg">
+                            <thead>
+                                <tr class="bg-[#111e3b]">
+                                    <th class="px-4 py-2 text-left font-medium text-gray-300">উপাদান</th>
+                                    <th class="px-4 py-2 text-left font-medium text-gray-300">ব্যবহৃত লাইব্রেরি</th>
+                                    <th class="px-4 py-2 text-left font-medium text-gray-300">কার্যকারিতা</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800">
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-blue-300">Frontend Framework</td>
+                                    <td class="px-4 py-2">Next.js (React / TypeScript)</td>
+                                    <td class="px-4 py-2">মডার্ন ও দ্রুত রেসপন্সিভ সিঙ্গেল পেজ আর্কিটেকচার।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-blue-300">Excel Parser</td>
+                                    <td class="px-4 py-2">SheetJS (xlsx)</td>
+                                    <td class="px-4 py-2">ব্রাউজারে সরাসরি .xlsx / .csv রিড ও রাইট করা।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-blue-300">Offline Database</td>
+                                    <td class="px-4 py-2">Dexie.js (IndexedDB wrapper)</td>
+                                    <td class="px-4 py-2">কেস ও ডাটা ব্রাউজার লোকাল স্টোরেজে সংরক্ষণ করা।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-blue-300">Mapping Engine</td>
+                                    <td class="px-4 py-2">Leaflet & React-Leaflet</td>
+                                    <td class="px-4 py-2">টাওয়ার লোকেশন ও ট্র্যাকিং ম্যাপ রেন্ডার করা।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-blue-300">Network Graph</td>
+                                    <td class="px-4 py-2">Vis.js (vis-network)</td>
+                                    <td class="px-4 py-2">কলের কানেকশন ও লিংক নেটওয়ার্ক তৈরি করা।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-blue-300">Interactive Charts</td>
+                                    <td class="px-4 py-2">Recharts / Chart.js</td>
+                                    <td class="px-4 py-2">অ্যানালিটিক্যাল গ্রাফ ও দিন-রাত্রির চার্ট তৈরি করা।</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `,
+            "২. ডাটা পার্সিং ও স্কিমা": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">CDR ফাইল ইম্পোর্ট ও ডাটা প্রসেসিং</h2>
+                    <p class="text-gray-300">ইউজার যখন গ্রামীণফোনের দেওয়া এক্সেল ফাইল আপলোড করবেন, তখন ব্রাউজারের জাভাস্ক্রিপ্ট ইঞ্জিন ডাটা রিড ও প্রসেস করবে।</p>
+                    
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-semibold text-emerald-400">প্রধান প্রসেসিং চ্যালেঞ্জ ও সমাধান:</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                                <h4 class="font-bold text-amber-400">IMEI বৈজ্ঞানিক ফরম্যাট ফিক্স</h4>
+                                <p class="text-sm text-gray-400 mt-1">অনেক সময় এক্সেলে IMEI নাম্বার সায়েন্টিফিক নোটেশনে পরিবর্তিত হয়ে যায় (যেমন: <code>8.698851e+14</code>)। আমাদের পার্সার এটিকে অটোমেটিক্যালি স্ট্যান্ডার্ড ১৫-ডিজিটের টেক্সট আইডিতে কনভার্ট করবে।</p>
+                            </div>
+                            <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                                <h4 class="font-bold text-amber-400">হেক্স-এনকোডেড ব্র্যান্ড নেম ডিকোড</h4>
+                                <p class="text-sm text-gray-400 mt-1">কন্টাক্ট নাম যদি হেক্স বা বাইনারি ফরম্যাটে থাকে (যেমন: <code>52464242657374627579</code>), পার্সার এটিকে ডিকোড করে সরাসরি তার আসল টেক্সটে রূপান্তর করবে (যেমন: <code>"RFBBestbuy"</code>)।</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-blue-300">TypeScript CDR ডাটা মডেল:</h3>
+                        <pre class="bg-black/50 p-4 rounded-lg overflow-x-auto text-sm border border-gray-800 text-gray-200"><code class="font-mono">interface CDRRecord {
+  id: string; // ইউনিক আইডি
+  timestamp: Date; // START_DTTIME থেকে রূপান্তরিত
+  provider: string; // অপারেটর নাম (যেমন: GRAMEENPHONE)
+  targetNumber: string; // APARTY (মূল সন্দেহভাজন)
+  otherParty: string; // BPARTY (কার সাথে কথা বলেছে)
+  duration: number; // সেকেন্ডে কথা বলার সময়
+  usageType: 'MOC' | 'MTC' | 'SMSMO' | 'SMSMT'; // কল/এসএমএস এর দিক
+  networkType?: string; // 2G, 3G, 4G, 5G
+  lac?: number; // Location Area Code
+  cellId?: number; // Cell ID
+  imei?: string; // ডিভাইস আইডি
+  imsi?: string; // সিম আইডি
+  address?: string; // সেল টাওয়ারের ঠিকানা
+}</code></pre>
+                    </div>
+                </div>
+            `,
+            "৩. UI থিম ও লেআউট": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">প্রিমিয়াম ডার্ক থিম ইন্টারফেস</h2>
+                    <p class="text-gray-300">আমরা যে ডিজাইনটি তৈরি করব সেটি হবে সম্পূর্ণ পেশাদার এবং ডাটা-সমৃদ্ধ। এটি পাকিস্তানি ডেমো সাইটের মতোই আকর্ষণীয় লুক অ্যান্ড ফিল প্রদান করবে।</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-[#0f1d40] p-4 rounded border border-blue-900/40">
+                            <span class="text-xs font-mono text-blue-400 uppercase font-semibold">১. প্রাইমারি কালার</span>
+                            <div class="h-10 w-full bg-[#081025] rounded mt-2 border border-gray-800 flex items-center justify-center font-mono text-xs">#081025 (Deep Canvas)</div>
+                        </div>
+                        <div class="bg-[#0f1d40] p-4 rounded border border-blue-900/40">
+                            <span class="text-xs font-mono text-blue-400 uppercase font-semibold">২. সাইডবার কালার</span>
+                            <div class="h-10 w-full bg-[#0c152d] rounded mt-2 border border-gray-800 flex items-center justify-center font-mono text-xs">#0c152d (Sidebar)</div>
+                        </div>
+                        <div class="bg-[#0f1d40] p-4 rounded border border-blue-900/40">
+                            <span class="text-xs font-mono text-blue-400 uppercase font-semibold">৩. উইজেট কালার</span>
+                            <div class="h-10 w-full bg-[#0f1d40] rounded mt-2 border border-gray-800 flex items-center justify-center font-mono text-xs">#0f1d40 (Widget Panel)</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-emerald-400">নেভিগেশন ও স্ক্রিন লেআউট:</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-300">
+                            <li><strong>কন্ট্রোল ফিল্টার (Left-Side Floating Filter):</strong> প্রতিটি পেজের বামে একটি ফ্লোটিং সাইডবার থাকবে যা দিয়ে মাস (Month), ঘণ্টা (Hour), নির্দিষ্ট বি-পার্টি কন্টাক্ট এবং আইএমইআই (IMEI) ফিল্টার করা যাবে।</li>
+                            <li><strong>KPI ড্যাশবোর্ড কার্ডস:</strong> মোট কলের সংখ্যা, টোটাল কন্টাক্ট সংখ্যা, মোট কতগুলো ভিন্ন টাওয়ারে সংযোগ হয়েছে তার সংখ্যা এবং কলের মোট সময় (মিনিটে)।</li>
+                            <li><strong>দিন ও রাত্রিকালীন অ্যাক্টিভিটি কার্ভ:</strong> সন্দেহভাজন ব্যক্তি কোন কোন সময়ে বেশি কল করছে তা সুন্দর নিয়ন লাইন চার্টের মাধ্যমে রেন্ডার করা হবে।</li>
+                        </ul>
+                    </div>
+                </div>
+            `,
+            "৪. অফলাইন ম্যাপ ও ট্র্যাকিং": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">লোকাল সেল টাওয়ার ও রুট ম্যাপিং</h2>
+                    <p class="text-gray-300">গ্রামীণফোনের ফাইলটিতে যে টাওয়ার এড্রেস আছে সেগুলোকে আমরা অফলাইনে মানচিত্রে রেন্ডার করব।</p>
+                    
+                    <div class="bg-emerald-950/20 border border-emerald-900/50 p-4 rounded-lg space-y-2 text-emerald-200">
+                        <h3 class="text-lg font-semibold">ঢাকার টাওয়ার কোঅর্ডিনেট ডাটাবেস (Dhaka Tower Registry)</h3>
+                        <p class="text-sm">আমরা ইতোমধ্যে এক্সেল ফাইলে থাকা ১০৪টি সেল আইডি বিশ্লেষণ করে <strong>[tower_locations.json](file:///Users/mahbubshihab/Development/CDR/All_doc/tower_locations.json)</strong> ফাইলে ল্যাটিটিউড এবং লঙ্গিটিউড জেনারেট করেছি। ডাটা আপলোডের সময় এটি জিপিএস পিনপয়েন্ট ম্যাপ তৈরি করতে ব্যবহৃত হবে।</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-blue-300">ইমপ্লিমেন্টেশন ফিচারসমূহ:</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-300">
+                            <li><strong>ক্লাস্টার মার্কার (Marker Clustering):</strong> যদি একই এলাকায় অনেকগুলো মার্কার থাকে, তবে ম্যাপ জুম-আউট করার সময় তারা গ্রুপ আকারে থাকবে যাতে ব্রাউজার স্লো না হয়।</li>
+                            <li><strong>অ্যাক্টিভিটি হিটম্যাপ (Heatmap layer):</strong> সন্দেহভাজন ব্যক্তি কোন এলাকায় বেশি অবস্থান করেছে তা লাল-হলুদ হিটম্যাপের সাহায্যে বোঝা যাবে।</li>
+                            <li><strong>জুম লেভেল ইন্টিগ্রেশন:</strong> ঢাকায় মার্কারগুলোর উপরে মাউস নিলে সংশ্লিষ্ট টাওয়ারের বাস্তব ঠিকানা ও ল্যাক/সেল আইডি দেখাবে।</li>
+                        </ul>
+                    </div>
+                </div>
+            `,
+            "৫. ক্রোনোলজিক্যাল টাইমলাইন প্লেয়ার": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">সন্দেহভাজনের চলাচলের গতিশীল প্লেব্যাক</h2>
+                    <p class="text-gray-300">তদন্তকারীরা ম্যাপে দেখতে পারবেন কিভাবে সন্দেহভাজন ব্যক্তি সময়ে সময়ে এক টাওয়ার থেকে অন্য টাওয়ারে যাতায়াত করেছেন।</p>
+
+                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-800 space-y-4">
+                        <h3 class="text-lg font-semibold text-blue-300">প্লেয়ার কন্ট্রোল প্যানেল (Timeline Scrubber)</h3>
+                        <div class="flex items-center gap-4 bg-[#081025] p-3 rounded border border-gray-800">
+                            <button class="px-3 py-1 bg-blue-600 rounded text-xs text-white">Play ▶</button>
+                            <button class="px-3 py-1 bg-gray-700 rounded text-xs text-white">Pause ⏸</button>
+                            <div class="flex-1 h-1 bg-gray-800 rounded relative">
+                                <div class="absolute left-1/3 top-0 bottom-0 w-3 h-3 bg-blue-500 rounded-full -translate-y-1/3"></div>
+                            </div>
+                            <span class="text-xs font-mono text-gray-400">10/610 Events</span>
+                            <select class="bg-gray-800 text-xs px-2 py-1 rounded text-gray-300">
+                                <option>1x Speed</option>
+                                <option>2x Speed</option>
+                                <option>5x Speed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-emerald-400">কার্যপ্রণালী (Algorithm):</h3>
+                        <ol class="list-decimal pl-5 space-y-2 text-gray-300">
+                            <li>সবগুলো রেকর্ডকে তাদের ঘটনার সময় (START_DTTIME) অনুযায়ী আরোহী ক্রমানুসারে সাজানো হবে।</li>
+                            <li>প্লে বাটনে ক্লিক করলে একটি কাস্টম টাইমার লুপ শুরু হবে যা একের পর এক ঘটনার সংযোগকারী লাইন ম্যাপে ড্র করবে।</li>
+                            <li>ম্যাপের ক্যামেরাটি অটোমেটিক্যালি মুভিং মার্কারকে লক করে ট্র্যাকিং বজায় রাখবে (Auto-centering)।</li>
+                        </ol>
+                    </div>
+                </div>
+            `,
+            "৬. লিংক অ্যানালাইসিস নেটওয়ার্ক গ্রাফ": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">কানেকশন ও রিলেশনশিপ লিংক গ্রাফ</h2>
+                    <p class="text-gray-300">টার্গেট মোবাইল নাম্বারের সাথে অন্য সমস্ত বি-পার্টি নাম্বারের ইন্টারকানেকশন ডাইনামিক গ্রাফের মাধ্যমে চিহ্নিত করা হবে।</p>
+                    
+                    <div class="bg-[#0f1d40] p-4 rounded-lg border border-blue-900/30 space-y-3">
+                        <h3 class="text-md font-semibold text-emerald-300">ডিজাইন নীতিসমূহ:</h3>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-300">
+                            <li><strong>সেন্ট্রাল নোড (Target Node):</strong> সন্দেহভাজন ব্যক্তির নাম্বারটি সবার মাঝে বড় নিয়ন-ব্লু নোড আকারে থাকবে।</li>
+                            <li><strong>কন্টাক্ট নোডস (B-Parties):</strong> কল ফ্রিকোয়েন্সি (কতবার কথা বলেছে) অনুযায়ী অন্যান্য কন্টাক্টের সাইজ লিনিয়ার বা লগারিদমিক আকারে ছোট-বড় হবে।</li>
+                            <li><strong>লিংক থিকনেস (Link Thickness):</strong> যার সাথে মোট কল মিনিট বা কলের ফ্রিকোয়েন্সি বেশি, তার সাথে সন্দেহভাজনের সংযোগকারী লাইনটি মোটা হবে।</li>
+                            <li><strong>দিক নির্দেশক লাইন (Directional Curves):</strong> সমান্তরাল বক্ররেখার মাধ্যমে ইনকামিং ও আউটগোয়িং কলগুলোকে পৃথকভাবে তীর চিহ্নের সাহায্যে উপস্থাপন করা হবে।</li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-semibold text-blue-300">লাইব্রেরি ব্যবহার:</h3>
+                        <p class="text-gray-300">আমরা <code>vis-network</code> লাইব্রেরি ব্যবহার করব, যা ব্রাউজারে ড্র্যাগ-অ্যান্ড-ড্রপ সুবিধা, জুম ইন/আউট এবং নোডগুলো সরিয়ে চেক করার দারুণ ইন্টারেক্টিভ সুবিধা প্রদান করে।</p>
+                    </div>
+                </div>
+            `,
+            "৭. ডিভাইস ও সিম ট্র্যাকিং": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">IMEI ও IMSI মোবাইল হ্যান্ডসেট সোয়াপিং বিশ্লেষণ</h2>
+                    <p class="text-gray-300">অপরাধীরা সাধারণত সনাক্তকরণ এড়াতে সিম কার্ড বা মোবাইল হ্যান্ডসেট ঘন ঘন পরিবর্তন করে থাকে। এই মডিউলের কাজ হলো এই পরিবর্তনগুলো ধরে ফেলা।</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                            <h3 class="font-semibold text-amber-400">IMEI-IMSI রিলেশন ম্যাট্রিক্স</h3>
+                            <p class="text-sm text-gray-300 mt-1">আমরা একটি দ্বিমুখী চার্ট তৈরি করব, যা দেখাবে মূল সিমটি (IMSI) কোন কোন হ্যান্ডসেটে (IMEI) ব্যবহার করা হয়েছে এবং ওই হ্যান্ডসেটে অন্য কোনো সিম ব্যবহার করা হয়েছে কি না।</p>
+                        </div>
+
+                        <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                            <h3 class="font-semibold text-blue-300">সোয়াপিং টাইমলাইন (Swimlane Gantt Chart)</h3>
+                            <p class="text-sm text-gray-300 mt-1">ক্যালেন্ডার ভিউ বা টাইমলাইন ভিউ থাকবে যেখানে স্পেসিফিকভাবে দেখা যাবে যে কত তারিখ থেকে কত তারিখ পর্যন্ত কোন IMEI সচল ছিল।</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            "৮. লোকেশন প্রোফাইল বিশ্লেষণ": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">বাসস্থান ও কর্মস্থল সনাক্তকরণ অ্যালগরিদম</h2>
+                    <p class="text-gray-300">সেল টাওয়ার ব্যবহারের সময় বিশ্লেষণ করে কোনো ডেডিকেটেড জিপিএস ট্র্যাকার ছাড়াই সন্দেহভাজন ব্যক্তির সম্ভাব্য বাসা ও কর্মস্থলের ঠিকানা নির্ণয় করা হবে।</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-blue-950/20 border border-blue-900/40 p-4 rounded-lg">
+                            <h3 class="text-md font-semibold text-blue-300">Night-Watch (বাসস্থান নির্ণয়)</h3>
+                            <p class="text-sm text-gray-300 mt-2"><strong>নিয়ম:</strong> রাত ১০.০০ টা থেকে সকাল ০৬.০০ টা পর্যন্ত ঘটে যাওয়া সমস্ত কল বা এসএমএস এর ডাটা আলাদা করা হবে। এই সময়ের মধ্যে সন্দেহভাজন ব্যক্তি সবচেয়ে বেশি সময় ধরে যে টাওয়ার জোনে অবস্থান করেছেন, সেটি তার বাসস্থান নির্দেশ করে।</p>
+                        </div>
+                        <div class="bg-emerald-950/20 border border-emerald-900/40 p-4 rounded-lg">
+                            <h3 class="text-md font-semibold text-emerald-300">Office-Watch (কর্মস্থল নির্ণয়)</h3>
+                            <p class="text-sm text-gray-300 mt-2"><strong>নিয়ম:</strong> কর্মদিবসগুলোতে (রবিবার থেকে বৃহস্পতিবার) সকাল ০৯.০০ টা থেকে বিকেল ০৫.০০ টা পর্যন্ত সচল থাকা টাওয়ার ডাটা আলাদা করা হবে এবং সবচেয়ে ফ্রিকোয়েন্ট টাওয়ারটি কর্মস্থল হিসেবে চিহ্নিত করা হবে।</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            "৯. টাওয়ার ও গতি অ্যানালাইসিস": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">セル (Cell) হ্যান্ডওভার ও অস্বাভাবিক গতি সনাক্তকরণ</h2>
+                    <p class="text-gray-300">সন্দেহভাজন ব্যক্তির যাতায়াতের সময় একটি টাওয়ার থেকে অন্য টাওয়ারে সংযোগ স্থানান্তর এবং চলাচলের গতি বিশ্লেষণ করা হবে।</p>
+                    
+                    <div class="bg-gray-900/80 p-4 rounded-lg border border-gray-800 space-y-3">
+                        <h3 class="text-lg font-semibold text-emerald-300">অ্যালগরিদমের প্রধান অংশসমূহ:</h3>
+                        <ul class="list-disc pl-5 space-y-2 text-gray-300">
+                            <li><strong>হাভারসাইন ফর্মুলা (Haversine Distance):</strong> পৃথিবীর বক্রতা বজায় রেখে দুটি টাওয়ারের কোঅর্ডিনেট থেকে বাস্তব দূরত্ব হিসাব করা।</li>
+                            <li><strong>ভেলোসিটি টেস্ট (Speed Violation Alerts):</strong> পরপর দুটি কল যদি খুব কম সময়ের ব্যবধানে অনেক দূরের দুটি টাওয়ার থেকে করা হয় এবং গতিবেগ ১৫০ কি.মি./ঘণ্টার বেশি হয়, তবে সেটিকে কাস্টম ফিজিক্যাল অ্যালার্ট হিসেবে ফ্ল্যাগ করা হবে।</li>
+                            <li><strong>পিং-পং ফিল্টার (Ping-Pong Filter):</strong> অনেক সময় একই স্থানে স্থির থাকা সত্ত্বেও মোবাইলের সিগন্যাল দুটি পাশাপাশি টাওয়ারের মধ্যে অনবরত পরিবর্তন হয়। এটি ভুল ট্রাভেল রুট দেখায়। এই ২ মিনিটের দ্রুত রাউন্ড-ট্রিপ অসিলেশনগুলোকে ফিল্টারিং লজিকের মাধ্যমে ম্যাপ থেকে বাদ দেওয়া হবে।</li>
+                        </ul>
+                    </div>
+                </div>
+            `,
+            "১০. অফলাইন ডেটাবেস স্কিমা": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">লোকাল ব্রাউজার ডাটাবেস (Dexie.js / IndexedDB)</h2>
+                    <p class="text-gray-300">অ্যাপটি ইন্টারনেট ছাড়া সম্পূর্ণ অফলাইনে ইউজার ডাটা ধরে রাখার জন্য IndexedDB ব্যবহার করবে। এর ফলে ব্রাউজার উইন্ডো কেটে দিলেও পরের বার ঠিক একই অবস্থায় পাওয়া যাবে।</p>
+                    
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-blue-300">ডাটাবেসের প্রধান স্টোরসমূহ:</h3>
+                        <table class="min-w-full divide-y divide-gray-800 text-sm bg-[#0d1527] rounded-lg">
+                            <thead>
+                                <tr class="bg-[#111e3b]">
+                                    <th class="px-4 py-2 text-left font-medium text-gray-300">স্টোরের নাম</th>
+                                    <th class="px-4 py-2 text-left font-medium text-gray-300">ইন্ডেক্স সমূহ (Indexes)</th>
+                                    <th class="px-4 py-2 text-left font-medium text-gray-300">বর্ণনা</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800">
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-emerald-400">cases</td>
+                                    <td class="px-4 py-2"><code>++id, caseName, createdDate, investigator</code></td>
+                                    <td class="px-4 py-2">তদন্তের মূল কেস ফাইল সংরক্ষণ।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-emerald-400">cdrRecords</td>
+                                    <td class="px-4 py-2"><code>++id, caseId, timestamp, [caseId+timestamp], targetNumber, otherParty</code></td>
+                                    <td class="px-4 py-2">কেস আইডি ও ঘটনার সময় অনুযায়ী সাজানো পার্সড রেকর্ড।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-emerald-400">btsDirectories</td>
+                                    <td class="px-4 py-2"><code>++id, [lac+cellId], address, lat, lng</code></td>
+                                    <td class="px-4 py-2">سل টাওয়ারের লোকেশন ম্যাপিং ডাটা।</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono text-emerald-400">settings</td>
+                                    <td class="px-4 py-2"><code>key, value</code></td>
+                                    <td class="px-4 py-2">ইউজার ইন্টারফেস সেটিংস (যেমন ডার্ক থিম মুড, কাস্টম ম্যাপ জুম)।</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `,
+            "১১. ফরেনসিক রিপোর্ট জেনারেটর": `
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-blue-400">অফলাইন পিডিএফ ও এক্সেল রিপোর্ট এক্সপোর্ট</h2>
+                    <p class="text-gray-300">আইনশৃঙ্খলা বাহিনী বা তদন্তকারী অফিসারদের আদালতে প্রমাণের স্বার্থে এবং লিখিত ফাইল ফাইলিং এর জন্য প্রিন্ট-রেডি ফরেনসিক রিপোর্টের প্রয়োজন হয়।</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-900/60 p-4 rounded border border-gray-800 space-y-2">
+                            <h3 class="font-bold text-emerald-400">PDF ফরেনসিক ফাইল</h3>
+                            <p class="text-sm text-gray-300"><code>jsPDF</code> ও <code>jspdf-autotable</code> ব্যবহার করে সরাসরি ব্রাউজারে একটি সুবিন্যস্ত পিডিএফ রিপোর্ট জেনারেট করা হবে। এতে থাকবে:</p>
+                            <ul class="list-disc pl-5 text-xs text-gray-400 space-y-1">
+                                <li>লোগো ও মামলার কভার পেজ।</li>
+                                <li>কলের প্রধান প্রধান KPI পরিসংখ্যান।</li>
+                                <li>শীর্ষ ১০টি কন্টাক্ট এবং তাদের সাথে কলের তালিকা।</li>
+                                <li>সন্দেহভাজনের যাতায়াতের রুটম্যাপ স্ক্রিনশট এবং বাসস্থানের ঠিকানা।</li>
+                                <li>ফাইলটির ডাটা ইন্টিগ্রিটি প্রমাণের জন্য SHA-256 হ্যাশ কোড।</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-gray-900/60 p-4 rounded border border-gray-800 space-y-2">
+                            <h3 class="font-bold text-emerald-400">Excel ফাইল ডাটা ক্লিনআপ</h3>
+                            <p class="text-sm text-gray-300">তদন্তকারীরা চাইলে মূল ডাটার প্রসেসড কন্টেন্ট এক্সেল আকারে এক্সপোর্ট করতে পারবেন। এতে থাকবে ৪টি ভিন্ন শিট:</p>
+                            <ul class="list-disc pl-5 text-xs text-gray-400 space-y-1">
+                                <li><code>Case_Summary</code>: কেসের প্রাথমিক তথ্য।</li>
+                                <li><code>Contacts_Analysis</code>: কন্টাক্ট নম্বর এবং কলের পরিসংখ্যান।</li>
+                                <li><code>Tower_Locations</code>: ব্যবহৃত টাওয়ার ও জিপিএস কোঅর্ডিনেট।</li>
+                                <li><code>Unified_CDR</code>: সম্পূর্ণ পরিশোধিত এবং সাজানো মূল ডাটাবেস।</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        const navContainer = document.getElementById('nav-container');
+        const contentContainer = document.getElementById('content-container');
+
+        // Render Sidebar Navigation
+        Object.keys(sectionsData).forEach((title, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `w-full text-left px-3 py-2.5 rounded text-sm font-medium transition-all duration-150 flex items-center justify-between text-gray-400 hover:bg-gray-800/30 hover:text-gray-200`;
+            btn.innerHTML = `
+                <span>${title}</span>
+                <span class="text-[10px] font-mono text-gray-600">0${idx+1}</span>
+            `;
+            btn.onclick = () => selectSection(title, btn);
+            btn.setAttribute('id', `nav-tab-${idx}`);
+            navContainer.appendChild(btn);
+        });
+
+        function selectSection(title, btnElement) {
+            // Update Active Buttons
+            const buttons = navContainer.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('active-tab', 'text-blue-400');
+                b.classList.add('text-gray-400');
+            });
+            btnElement.classList.add('active-tab', 'text-blue-400');
+            btnElement.classList.remove('text-gray-400');
+
+            // Set Content
+            contentContainer.innerHTML = `
+                <div class="max-w-4xl mx-auto glass p-8 rounded-xl shadow-2xl border border-gray-800/50">
+                    <div class="mb-2 text-xs font-mono text-blue-500 font-semibold tracking-widest uppercase">প্ল্যান সেকশন - ${title}</div>
+                    <div class="prose prose-invert max-w-none">
+                        ${sectionsData[title]}
+                    </div>
+                </div>
+            `;
+            // Scroll Content to Top
+            contentContainer.scrollTop = 0;
+        }
+
+        // Auto select first tab on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const firstTitle = Object.keys(sectionsData)[0];
+            const firstBtn = navContainer.querySelector('button');
+            if (firstBtn) selectSection(firstTitle, firstBtn);
+        });
+    </script>
+</body>
+</html>

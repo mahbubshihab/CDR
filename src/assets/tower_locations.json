@@ -1,0 +1,730 @@
+{
+  "56401-25861131": {
+    "lat": 23.709218,
+    "lng": 90.413575,
+    "address": "35, PATLA KHAN LANE, LAXMIBAZAR, DHAKA",
+    "lac": 56401,
+    "ci": 25861131
+  },
+  "56401-26900513": {
+    "lat": 23.708125,
+    "lng": 90.41417,
+    "address": "MUNICIPAL ROAD, ADJUCENT DHAKA CENTRAL GIRLS HIGH SCOOL, LAXMIBAZAR,DHAKA.",
+    "lac": 56401,
+    "ci": 26900513
+  },
+  "56401-25724192": {
+    "lat": 23.704909,
+    "lng": 90.41893,
+    "address": "53/1, JHONSON ROAD, SUTRAPUR, DHAKA.",
+    "lac": 56401,
+    "ci": 25724192
+  },
+  "56371-25691936": {
+    "lat": 23.710377,
+    "lng": 90.398261,
+    "address": "MONWARA MANSION, 34 MITFORD ROAD, DHAKA 1100",
+    "lac": 56371,
+    "ci": 25691936
+  },
+  "56371-26587148": {
+    "lat": 23.708966,
+    "lng": 90.398089,
+    "address": "SIR SALIMULLAH MEDICAL COLLEGE HOSPITAL, MITFORD, DHAKA",
+    "lac": 56371,
+    "ci": 26587148
+  },
+  "21044-10467": {
+    "lat": 23.708356,
+    "lng": 90.399516,
+    "address": "SIR SALIMULLAH MEDICAL COLLEGE HOSPITAL, MITFORD, DHAKA",
+    "lac": 21044,
+    "ci": 10467
+  },
+  "56402-25872396": {
+    "lat": 23.70278,
+    "lng": 90.417497,
+    "address": "H# 6/3, CHANDRAMOHON BASHAK STREET, SUTRAPUR, DHAKA",
+    "lac": 56402,
+    "ci": 25872396
+  },
+  "56402-25872416": {
+    "lat": 23.70465,
+    "lng": 90.418535,
+    "address": "H# 6/3, CHANDRAMOHON BASHAK STREET, SUTRAPUR, DHAKA",
+    "lac": 56402,
+    "ci": 25872416
+  },
+  "56283-25762335": {
+    "lat": 23.747461,
+    "lng": 90.381168,
+    "address": "113/A, LAKE CARCUS, KALABAGAN,DHANMONDI,DHANMONDI,DHAKA",
+    "lac": 56283,
+    "ci": 25762335
+  },
+  "21037-30019": {
+    "lat": 23.752028,
+    "lng": 90.389119,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 21037,
+    "ci": 30019
+  },
+  "56303-26144543": {
+    "lat": 23.752017,
+    "lng": 90.391194,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 56303,
+    "ci": 26144543
+  },
+  "56303-26144779": {
+    "lat": 23.750621,
+    "lng": 90.389566,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 56303,
+    "ci": 26144779
+  },
+  "56303-25756989": {
+    "lat": 23.752472,
+    "lng": 90.39011,
+    "address": "13/A, PANTHAPATH, TEJGAON, DHAKA.",
+    "lac": 56303,
+    "ci": 25756989
+  },
+  "56392-25713440": {
+    "lat": 23.721278,
+    "lng": 90.39299,
+    "address": "ANEXCO BUILDING, NIMTOLI,BAKSHI BAZAR,DHAKA",
+    "lac": 56392,
+    "ci": 25713440
+  },
+  "56401-25724172": {
+    "lat": 23.705242,
+    "lng": 90.418711,
+    "address": "53/1, JHONSON ROAD, SUTRAPUR, DHAKA.",
+    "lac": 56401,
+    "ci": 25724172
+  },
+  "21048-17515": {
+    "lat": 23.709721,
+    "lng": 90.415689,
+    "address": "35, PATLA KHAN LANE, LAXMIBAZAR, DHAKA",
+    "lac": 21048,
+    "ci": 17515
+  },
+  "21048-17444": {
+    "lat": 23.704309,
+    "lng": 90.419819,
+    "address": "53/1, JHONSON ROAD, SUTRAPUR, DHAKA.",
+    "lac": 21048,
+    "ci": 17444
+  },
+  "56392-25882893": {
+    "lat": 23.717236,
+    "lng": 90.407356,
+    "address": "177, BANGSAL ROAD, DHAKA",
+    "lac": 56392,
+    "ci": 25882893
+  },
+  "21047-10216": {
+    "lat": 23.718588,
+    "lng": 90.407556,
+    "address": "177, BANGSAL ROAD, DHAKA",
+    "lac": 21047,
+    "ci": 10216
+  },
+  "21047-30797": {
+    "lat": 23.718685,
+    "lng": 90.407432,
+    "address": "142/R/2, BANGSHAL ROAD, MUKIM BAZAR, DHAKA.",
+    "lac": 21047,
+    "ci": 30797
+  },
+  "21047-41112": {
+    "lat": 23.711014,
+    "lng": 90.406037,
+    "address": "74, KD GOSH SREET, BANGHAL, DHAKA",
+    "lac": 21047,
+    "ci": 41112
+  },
+  "56273-25792289": {
+    "lat": 23.709584,
+    "lng": 90.406768,
+    "address": "HOUSE # 13/9, SIR SYED ROAD, MOHAMMADPUR, DHAKA",
+    "lac": 56273,
+    "ci": 25792289
+  },
+  "56401-25724182": {
+    "lat": 23.702939,
+    "lng": 90.417598,
+    "address": "53/1, JHONSON ROAD, SUTRAPUR, DHAKA.",
+    "lac": 56401,
+    "ci": 25724182
+  },
+  "56401-25724171": {
+    "lat": 23.703003,
+    "lng": 90.417734,
+    "address": "53/1, JHONSON ROAD, SUTRAPUR, DHAKA.",
+    "lac": 56401,
+    "ci": 25724171
+  },
+  "56402-27207967": {
+    "lat": 23.716507,
+    "lng": 90.418094,
+    "address": "WARI",
+    "lac": 56402,
+    "ci": 27207967
+  },
+  "56402-27207947": {
+    "lat": 23.715711,
+    "lng": 90.417629,
+    "address": "WARI",
+    "lac": 56402,
+    "ci": 27207947
+  },
+  "56381-25768225": {
+    "lat": 23.709701,
+    "lng": 90.40871,
+    "address": "11/1/A, KABI JASIMUDDIN ROAD, NORTH KAMALAPUR, DHAKA-1217",
+    "lac": 56381,
+    "ci": 25768225
+  },
+  "56303-26144801": {
+    "lat": 23.751544,
+    "lng": 90.390927,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 56303,
+    "ci": 26144801
+  },
+  "56303-26144780": {
+    "lat": 23.750113,
+    "lng": 90.391287,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 56303,
+    "ci": 26144780
+  },
+  "56353-25819681": {
+    "lat": 23.70939,
+    "lng": 90.407038,
+    "address": "SARDER MANSION, 3/1-19, MIRPUR ROAD, GAOSIA MARKET, DHAKA-1205",
+    "lac": 56353,
+    "ci": 25819681
+  },
+  "56401-25861151": {
+    "lat": 23.710269,
+    "lng": 90.41542,
+    "address": "35, PATLA KHAN LANE, LAXMIBAZAR, DHAKA",
+    "lac": 56401,
+    "ci": 25861151
+  },
+  "56371-25802528": {
+    "lat": 23.714071,
+    "lng": 90.402854,
+    "address": "NOBI MARKET 47/B, BAGHA DASHA LAIN, NAYA BAZAR, DHAKA",
+    "lac": 56371,
+    "ci": 25802528
+  },
+  "56371-25691425": {
+    "lat": 23.711429,
+    "lng": 90.408228,
+    "address": "7, GOPINATH DATTA KABIRAZ STREET, BABUBAZAR (ARMANITOLA), DHAKA-1100",
+    "lac": 56371,
+    "ci": 25691425
+  },
+  "56972-26133791": {
+    "lat": 23.709587,
+    "lng": 90.405996,
+    "address": "BANDHO DAKPARA PO: KERANIGANJ, DIST: DHAKA",
+    "lac": 56972,
+    "ci": 26133791
+  },
+  "56971-26392845": {
+    "lat": 23.709846,
+    "lng": 90.406703,
+    "address": "HOUSE NO: 2, WARD NO: 3, SIDE NO: B, KADAMTOLI MOAR, P.S: KERANIGANJ, DHAKA",
+    "lac": 56971,
+    "ci": 26392845
+  },
+  "56401-25714975": {
+    "lat": 23.709533,
+    "lng": 90.408729,
+    "address": "3/7/2, JOHNSON ROAD, DHAKA-1100",
+    "lac": 56401,
+    "ci": 25714975
+  },
+  "56371-25802016": {
+    "lat": 23.709229,
+    "lng": 90.400544,
+    "address": "04, AWLAD HOSSAIN LANE, ISLAMPUR, DHAKA.",
+    "lac": 56371,
+    "ci": 25802016
+  },
+  "56371-25801996": {
+    "lat": 23.708566,
+    "lng": 90.400787,
+    "address": "04, AWLAD HOSSAIN LANE, ISLAMPUR, DHAKA.",
+    "lac": 56371,
+    "ci": 25801996
+  },
+  "56371-25747490": {
+    "lat": 23.709344,
+    "lng": 90.400977,
+    "address": "KAISER HOSSAIN MARKET, 30, KUMARTULI, ISLAMPUR, DHAKA",
+    "lac": 56371,
+    "ci": 25747490
+  },
+  "56303-26145313": {
+    "lat": 23.750395,
+    "lng": 90.38984,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 56303,
+    "ci": 26145313
+  },
+  "56303-26144524": {
+    "lat": 23.751284,
+    "lng": 90.389888,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 56303,
+    "ci": 26144524
+  },
+  "56193-25682208": {
+    "lat": 23.710654,
+    "lng": 90.408593,
+    "address": "ROMAN TOWER-1, HOUSE # 622, ROAD # 04, BAITUL AMAN HOUSING SOCIETY, ADABOR, MOHAMMADPUR, DHAKA",
+    "lac": 56193,
+    "ci": 25682208
+  },
+  "56282-25723167": {
+    "lat": 23.745798,
+    "lng": 90.373358,
+    "address": "GREEN TAJ CENTRE, HOUSE # 81, ROAD # 8/A, DHANMONDI 15 BUS STAND, DHANMONDI DHAKA",
+    "lac": 56282,
+    "ci": 25723167
+  },
+  "56282-25723147": {
+    "lat": 23.747593,
+    "lng": 90.374229,
+    "address": "GREEN TAJ CENTRE, HOUSE # 81, ROAD # 8/A, DHANMONDI 15 BUS STAND, DHANMONDI DHAKA",
+    "lac": 56282,
+    "ci": 25723147
+  },
+  "56401-25714955": {
+    "lat": 23.709173,
+    "lng": 90.406041,
+    "address": "3/7/2, JOHNSON ROAD, DHAKA-1100",
+    "lac": 56401,
+    "ci": 25714955
+  },
+  "56371-25801759": {
+    "lat": 23.709229,
+    "lng": 90.407782,
+    "address": "2/1, ANANDAMOHAN BOSE LANE, P.O.-BABUBAZAR, DHAKA",
+    "lac": 56371,
+    "ci": 25801759
+  },
+  "56371-25801809": {
+    "lat": 23.711276,
+    "lng": 90.407166,
+    "address": "2/1, ANANDAMOHAN BOSE LANE, P.O.-BABUBAZAR, DHAKA",
+    "lac": 56371,
+    "ci": 25801809
+  },
+  "56402-25873441": {
+    "lat": 23.714791,
+    "lng": 90.418145,
+    "address": "PADMA APARTMENT FLAT MALIK SOMITY, 3/5, H, CHANDI CHORON BOSH ROAD, WARI, DHAKA",
+    "lac": 56402,
+    "ci": 25873441
+  },
+  "21047-10959": {
+    "lat": 23.717588,
+    "lng": 90.418587,
+    "address": "54/1, BCC ROAD, WARI, DHAKA-1203",
+    "lac": 21047,
+    "ci": 10959
+  },
+  "56402-25873431": {
+    "lat": 23.717513,
+    "lng": 90.419582,
+    "address": "PADMA APARTMENT FLAT MALIK SOMITY, 3/5, H, CHANDI CHORON BOSH ROAD, WARI, DHAKA",
+    "lac": 56402,
+    "ci": 25873431
+  },
+  "56391-25914912": {
+    "lat": 23.714634,
+    "lng": 90.419162,
+    "address": "54/1, BCC ROAD, WARI, DHAKA-1203",
+    "lac": 56391,
+    "ci": 25914912
+  },
+  "56371-25691403": {
+    "lat": 23.710945,
+    "lng": 90.407511,
+    "address": "7, GOPINATH DATTA KABIRAZ STREET, BABUBAZAR (ARMANITOLA), DHAKA-1100",
+    "lac": 56371,
+    "ci": 25691403
+  },
+  "56371-25691423": {
+    "lat": 23.7097,
+    "lng": 90.407823,
+    "address": "7, GOPINATH DATTA KABIRAZ STREET, BABUBAZAR (ARMANITOLA), DHAKA-1100",
+    "lac": 56371,
+    "ci": 25691423
+  },
+  "56401-25724191": {
+    "lat": 23.703035,
+    "lng": 90.418204,
+    "address": "53/1, JHONSON ROAD, SUTRAPUR, DHAKA.",
+    "lac": 56401,
+    "ci": 25724191
+  },
+  "58751-26142499": {
+    "lat": 23.710261,
+    "lng": 90.408761,
+    "address": "JAMUNA FUTURE PARK, KA-224, PROGATI SORONEY, KURIL, BARIDHARA, DHAKA-1229",
+    "lac": 58751,
+    "ci": 26142499
+  },
+  "58751-26142752": {
+    "lat": 23.711528,
+    "lng": 90.40669,
+    "address": "JAMUNA FUTURE PARK, KA-224, PROGATI SORONEY, KURIL, BARIDHARA, DHAKA-1229",
+    "lac": 58751,
+    "ci": 26142752
+  },
+  "56401-25746719": {
+    "lat": 23.710402,
+    "lng": 90.406436,
+    "address": "78/6 LOYAL STREET, PATUATULI, SADARGHAT, DHAKA 1100",
+    "lac": 56401,
+    "ci": 25746719
+  },
+  "56401-25802252": {
+    "lat": 23.711638,
+    "lng": 90.408512,
+    "address": "CITY CORPORATION HOLDING NO.17, SHAKHARI BAZAR, DHAKA.",
+    "lac": 56401,
+    "ci": 25802252
+  },
+  "56371-25747467": {
+    "lat": 23.707495,
+    "lng": 90.401517,
+    "address": "KAISER HOSSAIN MARKET, 30, KUMARTULI, ISLAMPUR, DHAKA",
+    "lac": 56371,
+    "ci": 25747467
+  },
+  "56371-25747487": {
+    "lat": 23.708427,
+    "lng": 90.400059,
+    "address": "KAISER HOSSAIN MARKET, 30, KUMARTULI, ISLAMPUR, DHAKA",
+    "lac": 56371,
+    "ci": 25747487
+  },
+  "21041-45941": {
+    "lat": 23.711188,
+    "lng": 90.407518,
+    "address": "SAJIDA HOSPITAL, CHATGAON, ZINJIRA, P.S: KERANIGONJ, DHAKA.",
+    "lac": 21041,
+    "ci": 45941
+  },
+  "56322-25754657": {
+    "lat": 23.711236,
+    "lng": 90.407491,
+    "address": "PROPERTY MANSION, 1 NAURATAN COLONY, NEW BAILY ROAD, DHAKA.",
+    "lac": 56322,
+    "ci": 25754657
+  },
+  "56193-25682207": {
+    "lat": 23.708902,
+    "lng": 90.406872,
+    "address": "ROMAN TOWER-1, HOUSE # 622, ROAD # 04, BAITUL AMAN HOUSING SOCIETY, ADABOR, MOHAMMADPUR, DHAKA",
+    "lac": 56193,
+    "ci": 25682207
+  },
+  "56263-25761311": {
+    "lat": 23.746858,
+    "lng": 90.382187,
+    "address": "HOLDING NO: 63/B, LAKE CIRCUS, KALABAGAN, P.S: DHANMONDI, DHAKA",
+    "lac": 56263,
+    "ci": 25761311
+  },
+  "56283-25733151": {
+    "lat": 23.711536,
+    "lng": 90.408395,
+    "address": "KHAN PLAZA, D.C.C HOLDING NO. 32/A, MIRPUR ROAD, DHAKA.",
+    "lac": 56283,
+    "ci": 25733151
+  },
+  "56402-27218699": {
+    "lat": 23.715523,
+    "lng": 90.417174,
+    "address": "AARONG, A K FAMOUS TOWER, 41 RANKIN STEET,WARI,DHAKA",
+    "lac": 56402,
+    "ci": 27218699
+  },
+  "56402-25916192": {
+    "lat": 23.711534,
+    "lng": 90.408741,
+    "address": "HOLDING # 52, RADA SHAM SHAHA STREET, UTTOR MOSUNDI,  DHAKA-1100",
+    "lac": 56402,
+    "ci": 25916192
+  },
+  "56401-26900512": {
+    "lat": 23.707557,
+    "lng": 90.414958,
+    "address": "MUNICIPAL ROAD, ADJUCENT DHAKA CENTRAL GIRLS HIGH SCOOL, LAXMIBAZAR,DHAKA.",
+    "lac": 56401,
+    "ci": 26900512
+  },
+  "21037-16111": {
+    "lat": 23.749808,
+    "lng": 90.391382,
+    "address": "13/A, PANTHAPATH, TEJGAON, DHAKA.",
+    "lac": 21037,
+    "ci": 16111
+  },
+  "56303-25756939": {
+    "lat": 23.751898,
+    "lng": 90.389485,
+    "address": "13/A, PANTHAPATH, TEJGAON, DHAKA.",
+    "lac": 56303,
+    "ci": 25756939
+  },
+  "56303-26145292": {
+    "lat": 23.751026,
+    "lng": 90.390749,
+    "address": "BASHUNDHARA CITY, PANTHAPATH, DHAKA,RAMNA,DHAKA",
+    "lac": 56303,
+    "ci": 26145292
+  },
+  "56303-25756999": {
+    "lat": 23.750395,
+    "lng": 90.391717,
+    "address": "13/A, PANTHAPATH, TEJGAON, DHAKA.",
+    "lac": 56303,
+    "ci": 25756999
+  },
+  "56234-25655841": {
+    "lat": 23.710169,
+    "lng": 90.406535,
+    "address": "HOLDING # 61 & 61/1, MOHAKHALI AMTOLI, NEW AIRPORT ROAD, DHAKA-1212",
+    "lac": 56234,
+    "ci": 25655841
+  },
+  "56402-25916733": {
+    "lat": 23.710518,
+    "lng": 90.40809,
+    "address": "SALAUDDIN BHABAN, 44/A, SHAHID NAZRUL ISLAM ROAD, (HATKHOLA ROAD), DHAKA",
+    "lac": 56402,
+    "ci": 25916733
+  },
+  "56192-25681440": {
+    "lat": 23.709503,
+    "lng": 90.406835,
+    "address": "HOUSE # 23, ROAD # 10, P. C. CULTURE HOUSING LTD., MOHAMMADPUR, DHAKA",
+    "lac": 56192,
+    "ci": 25681440
+  },
+  "21027-45874": {
+    "lat": 23.711885,
+    "lng": 90.40785,
+    "address": "14/15 PROBAL HOUSING, MOHAMMADPUR, DHAKA",
+    "lac": 21027,
+    "ci": 45874
+  },
+  "21027-16019": {
+    "lat": 23.710214,
+    "lng": 90.407453,
+    "address": "HOUSE # 23, ROAD # 10, P. C. CULTURE HOUSING LTD., MOHAMMADPUR, DHAKA",
+    "lac": 21027,
+    "ci": 16019
+  },
+  "56273-25793853": {
+    "lat": 23.709263,
+    "lng": 90.406574,
+    "address": "MUNICIPAL HOLDING NO. 29/16/KA, BLOCK-C, TAJMAHAL ROAD, P.S: MOHAMMADPUR, DHAKA.",
+    "lac": 56273,
+    "ci": 25793853
+  },
+  "56273-25804577": {
+    "lat": 23.709914,
+    "lng": 90.407665,
+    "address": "HOUSE NO. 12/14, BLOCK - C, TAJMOHAL ROAD, MOHAMMADPUR, DHAKA-1207",
+    "lac": 56273,
+    "ci": 25804577
+  },
+  "56302-25864971": {
+    "lat": 23.75909,
+    "lng": 90.390461,
+    "address": "HAFEZIA MADRASA BUILDING, BAITUL AMAN JAME MASJID COMPLEX, TEJGAON INDUSTRIAL AREA, TEJGAON, DHAKA-1208",
+    "lac": 56302,
+    "ci": 25864971
+  },
+  "56243-25787148": {
+    "lat": 23.709113,
+    "lng": 90.407793,
+    "address": "ASHIRBAD,  DCC HOLDING NO. 285/A, NAYATOLA, AMBAGAN, DHAKA.",
+    "lac": 56243,
+    "ci": 25787148
+  },
+  "56242-25786891": {
+    "lat": 23.709587,
+    "lng": 90.408616,
+    "address": "357/14, NOYATOLA, MODHUBAG, DHAKA",
+    "lac": 56242,
+    "ci": 25786891
+  },
+  "56242-27137293": {
+    "lat": 23.711479,
+    "lng": 90.406113,
+    "address": "MD. MUSTAFIZUR RAHMAN  S/O: LATE MD. KARIM BAKS  63  WEST ULON  RAMPURA  DHAKA. PH # 9354270",
+    "lac": 56242,
+    "ci": 27137293
+  },
+  "56441-26965321": {
+    "lat": 23.709614,
+    "lng": 90.407907,
+    "address": "MATUAIL-KONOPARA-SHAKERJAIGA MAIN ROAD,DEMRA",
+    "lac": 56441,
+    "ci": 26965321
+  },
+  "56441-26037024": {
+    "lat": 23.709543,
+    "lng": 90.406297,
+    "address": "MONU MOLLA SHOPPING COMPLEX, MOUZA - SARULIA, PS - DEMRA, DHAKA-1361",
+    "lac": 56441,
+    "ci": 26037024
+  },
+  "56263-25849611": {
+    "lat": 23.711707,
+    "lng": 90.407613,
+    "address": "CITY CORPORATION HOLDING NO. 1/11, HUMAYAN ROAD, BLOCK NO. B, MOHAMMADPUR, DHAKA.",
+    "lac": 56263,
+    "ci": 25849611
+  },
+  "56234-27406367": {
+    "lat": 23.710318,
+    "lng": 90.408254,
+    "address": "ABOVE MOHAKHALI FLYOVER, JAHANGIR GATE END",
+    "lac": 56234,
+    "ci": 27406367
+  },
+  "58213-26287372": {
+    "lat": 23.711322,
+    "lng": 90.406471,
+    "address": "LE MARIDIAN HOTEL NIKUNJA DHAKA",
+    "lac": 58213,
+    "ci": 26287372
+  },
+  "58213-25672481": {
+    "lat": 23.709191,
+    "lng": 90.407193,
+    "address": "45, KAWLA PASCHIMPARA, DAKSHIN KHAN, DHAKA",
+    "lac": 58213,
+    "ci": 25672481
+  },
+  "56382-25829899": {
+    "lat": 23.737771,
+    "lng": 90.400901,
+    "address": "219, SAYED NAZRUL ISLAM SHARANI, GPO, RAMNA, DHAKA-1000",
+    "lac": 56382,
+    "ci": 25829899
+  },
+  "56402-27268365": {
+    "lat": 23.711087,
+    "lng": 90.40792,
+    "address": "PODDHONIDHI LANE. DAKKSHIN MUHSENDI",
+    "lac": 56402,
+    "ci": 27268365
+  },
+  "56401-25723425": {
+    "lat": 23.705652,
+    "lng": 90.417195,
+    "address": "HOTEL VENUS, 12/1 NASIRUDDIN SARDAR LANE (DHOLAIKHAL), SUTRAPUR, DHAKA-1100.",
+    "lac": 56401,
+    "ci": 25723425
+  },
+  "56401-25803020": {
+    "lat": 23.710108,
+    "lng": 90.406918,
+    "address": "110/A, TATI BAZAR, KOTWALI, DHAKA",
+    "lac": 56401,
+    "ci": 25803020
+  },
+  "56401-25715231": {
+    "lat": 23.705285,
+    "lng": 90.417646,
+    "address": "30/32, NORTH BROOK HALL ROAD, DCC WARD # 89,SUTRAPUR, DHAKA-1100",
+    "lac": 56401,
+    "ci": 25715231
+  },
+  "56381-25807116": {
+    "lat": 23.732071,
+    "lng": 90.417146,
+    "address": "6, MOTIJHEEL, DHAKA",
+    "lac": 56381,
+    "ci": 25807116
+  },
+  "56273-25792269": {
+    "lat": 23.710166,
+    "lng": 90.406736,
+    "address": "HOUSE # 13/9, SIR SYED ROAD, MOHAMMADPUR, DHAKA",
+    "lac": 56273,
+    "ci": 25792269
+  },
+  "56283-25731853": {
+    "lat": 23.709649,
+    "lng": 90.40867,
+    "address": "73, MIRPUR ROAD,DHAKA",
+    "lac": 56283,
+    "ci": 25731853
+  },
+  "56353-25732364": {
+    "lat": 23.710229,
+    "lng": 90.408484,
+    "address": "H# 251, ELEPHANT ROAD, DHAKA",
+    "lac": 56353,
+    "ci": 25732364
+  },
+  "56353-25732363": {
+    "lat": 23.710551,
+    "lng": 90.406052,
+    "address": "H# 251, ELEPHANT ROAD, DHAKA",
+    "lac": 56353,
+    "ci": 25732363
+  },
+  "56401-25714977": {
+    "lat": 23.711898,
+    "lng": 90.408408,
+    "address": "3/7/2, JOHNSON ROAD, DHAKA-1100",
+    "lac": 56401,
+    "ci": 25714977
+  },
+  "56401-25746699": {
+    "lat": 23.711807,
+    "lng": 90.408679,
+    "address": "78/6 LOYAL STREET, PATUATULI, SADARGHAT, DHAKA 1100",
+    "lac": 56401,
+    "ci": 25746699
+  },
+  "56401-25723405": {
+    "lat": 23.705246,
+    "lng": 90.417399,
+    "address": "HOTEL VENUS, 12/1 NASIRUDDIN SARDAR LANE (DHOLAIKHAL), SUTRAPUR, DHAKA-1100.",
+    "lac": 56401,
+    "ci": 25723405
+  },
+  "56401-25746208": {
+    "lat": 23.710357,
+    "lng": 90.406541,
+    "address": "7/1, AHSAN ULLAH ROAD, BURIGANGA BHABAN, WISE GHAT, DHAKA-1100",
+    "lac": 56401,
+    "ci": 25746208
+  },
+  "21048-10587": {
+    "lat": 23.710103,
+    "lng": 90.406076,
+    "address": "3/7/2, JOHNSON ROAD, DHAKA-1100",
+    "lac": 21048,
+    "ci": 10587
+  }
+}

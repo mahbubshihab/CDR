@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+ 
+@theme {
+  --color-brand-canvas: #121212;
+  --color-brand-sidebar: #171717;
+  --color-brand-card: #1e1e1e;
+  --color-brand-input: #121212;
+  
+  --color-brand-blue: #3ecf8e;
+  --color-brand-emerald: #3ecf8e;
+  --color-brand-cyan: #0ea5e9;
+  --color-brand-purple: #8b5cf6;
+  --font-mono: "Geist Mono", "JetBrains Mono", monospace;
+  --font-sans: "Geist", "Inter", sans-serif;
+}
+ 
+/* Custom Base Styles for Supabase Dashboard */
+body {
+  background-color: #121212;
+  color: #ededed;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  min-height: 100vh;
+  font-size: 14px;
+}
+ 
+/* Premium Glassmorphic Panels in Flat Theme */
+.glass-panel {
+  background: rgba(30, 30, 30, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+}
+ 
+/* Sleek futuristic Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+ 
+::-webkit-scrollbar-track {
+  background: #171717;
+}
+ 
+::-webkit-scrollbar-thumb {
+  background: #2e2e2e;
+  border-radius: 99px;
+}
+ 
+::-webkit-scrollbar-thumb:hover {
+  background: #3ecf8e;
+}
+
+/* Leaflet Map Overrides to fit Dark Theme */
+.leaflet-container {
+  background-color: #121212 !important;
+}
+ 
+.leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.7) contrast(1.35);
+}
+ 
+.leaflet-bar {
+  border: 1px solid #2e2e2e !important;
+  background: #1e1e1e !important;
+}
+ 
+.leaflet-bar a {
+  background: #1e1e1e !important;
+  color: #ededed !important;
+  border-bottom: 1px solid #2e2e2e !important;
+}
+ 
+.leaflet-bar a:hover {
+  background: #252525 !important;
+  color: #3ecf8e !important;
+}
+ 
+.leaflet-popup-content-wrapper {
+  background: #1e1e1e !important;
+  color: #ededed !important;
+  border: 1px solid #2e2e2e !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+}
+ 
+.leaflet-popup-tip {
+  background: #1e1e1e !important;
+}

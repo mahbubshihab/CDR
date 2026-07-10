@@ -1,0 +1,472 @@
+import React, { useEffect, useState, useMemo } from 'react';
+import { 
+  Folder, Clock, CheckCircle2, ShieldAlert, FileText, 
+  Phone, Users, MapPin, Smartphone, PlusCircle, ArrowRight 
+} from 'lucide-react';
+import { db, type Case } from '../../../utils/db';
+
+interface GlobalDashboardProps {
+  onAddNewCase: () => void;
+  onViewCases: () => void;
+  onOpenCase: (c: Case) => void;
+}
+
+export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({ 
+  onAddNewCase, onViewCases, onOpenCase 
+}) => {
+  const [cases, setCases] = useState<Case[]>([]);
+  const [totalFilesCount, setTotalFilesCount] = useState(0);
+  const [analyzedNumbersCount, setAnalyzedNumbersCount] = useState(0);
+  const [commonNumbersCount, setCommonNumbersCount] = useState(0);
+  const [locationsCount, setLocationsCount] = useState(0);
+  const [frequentLocations, setFrequentLocations] = useState<{ name: string; count: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboardStats = async () => {
+    setLoading(true);
+    try {
+      const casesData = await db.cases.toArray();
+      setCases(casesData);
+
+      const filesCount = await db.cdrFiles.count();
+      setTotalFilesCount(filesCount);
+
+      const records = await db.cdrRecords.toArray();
+
+      // Unique phone numbers
+      const uniqueParties = new Set(records.map(r => r.otherParty).filter(Boolean));
+      setAnalyzedNumbersCount(uniqueParties.size);
+
+      // Common numbers: connected across multiple cases
+      const numberToCaseMap: { [num: string]: Set<number> } = {};
+      records.forEach(r => {
+        if (!r.otherParty) return;
+        if (!numberToCaseMap[r.otherParty]) {
+          numberToCaseMap[r.otherParty] = new Set();
+        }
+        numberToCaseMap[r.otherParty].add(r.caseId);
+      });
+      const commonCount = Object.values(numberToCaseMap).filter(casesSet => casesSet.size > 1).length;
+      setCommonNumbersCount(commonCount);
+
+      // Locations count
+      const uniqueLocations = new Set(records.map(r => r.address).filter(Boolean));
+      setLocationsCount(uniqueLocations.size);
+
+      // Top frequent locations
+      const locCountsMap: { [addr: string]: number } = {};
+      records.forEach(r => {
+        if (r.address) {
+          locCountsMap[r.address] = (locCountsMap[r.address] || 0) + 1;
+        }
+      });
+      const sortedLocs = Object.entries(locCountsMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([name, count]) => ({ name, count }));
+      setFrequentLocations(sortedLocs);
+
+    } catch (err) {
+      console.error('Failed to load dashboard statistics:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
+
+  // Compute status metrics
+  const totalCases = cases.length;
+  const pendingCases = cases.filter(c => c.status === 'Pending').length;
+  const activeCases = cases.filter(c => c.status === 'Active').length;
+  const completedCases = cases.filter(c => c.status === 'Completed').length;
+
+  const pendingPct = totalCases > 0 ? Math.round((pendingCases / totalCases) * 100) : 0;
+  const activePct = totalCases > 0 ? Math.round((activeCases / totalCases) * 100) : 0;
+  const completedPct = totalCases > 0 ? 100 - pendingPct - activePct : 0;
+
+  // Max location count for bar chart scaling
+  const maxLocCount = useMemo(() => {
+    if (frequentLocations.length === 0) return 1;
+    return Math.max(...frequentLocations.map(l => l.count));
+  }, [frequentLocations]);
+
+  return (
+    <div className="space-y-6 text-left animate-in fade-in duration-300">
+      {/* Title Header Section */}
+      <div className="space-y-1">
+        <span className="text-sm font-bold tracking-widest text-[#3ecf8e] uppercase">
+          CDR FORENSIC ANALYZER V5.2.0
+        </span>
+        <h2 className="text-xl md:text-2xl font-semibold text-gray-100 tracking-tight">
+          Investigation Command Center
+        </h2>
+        <p className="text-sm text-gray-500 font-medium leading-relaxed">
+          Professional forensic intelligence dashboard, real-time case & CDR analytics
+        </p>
+      </div>
+
+      {/* 8 Metrics Cards Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Metric 1: Total Cases */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {totalCases}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-[#1e1e1e] flex items-center justify-center border border-[#2e2e2e]">
+              <Folder className="h-4 w-4 text-[#3ecf8e]" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Total Cases
+          </span>
+        </div>
+
+        {/* Metric 2: Pending Cases */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {pendingCases}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-[#3ecf8e]/10 flex items-center justify-center border border-amber-500/15">
+              <Clock className="h-4 w-4 text-amber-455" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Pending Cases
+          </span>
+        </div>
+
+        {/* Metric 3: Completed Cases */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {completedCases}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/15">
+              <CheckCircle2 className="h-4 w-4 text-brand-emerald" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Completed Cases
+          </span>
+        </div>
+
+        {/* Metric 4: Active Investigations */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {activeCases}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/15">
+              <ShieldAlert className="h-4 w-4 text-purple-400" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Active Investigations
+          </span>
+        </div>
+
+        {/* Metric 5: Total Uploaded CDRs */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {totalFilesCount}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-[#1e1e1e] flex items-center justify-center border border-[#2e2e2e]">
+              <FileText className="h-4 w-4 text-[#3ecf8e]" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Total Uploaded CDRs
+          </span>
+        </div>
+
+        {/* Metric 6: Analyzed Numbers */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {analyzedNumbersCount.toLocaleString()}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-[#1e1e1e] flex items-center justify-center border border-[#2e2e2e]">
+              <Phone className="h-4 w-4 text-[#3ecf8e]" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Analyzed Numbers
+          </span>
+        </div>
+
+        {/* Metric 7: Common Numbers */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {commonNumbersCount}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/15">
+              <Users className="h-4 w-4 text-purple-400" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Common Numbers
+          </span>
+        </div>
+
+        {/* Metric 8: Locations Tracked */}
+        <div className="bg-[#1e1e1e] border border-[#2e2e2e] hover:border-[#3ecf8e]/30 rounded-xl p-4 transition-all duration-150">
+          <div className="flex justify-between items-start">
+            <h3 className="text-3xl font-semibold text-gray-150 font-mono tracking-tight">
+              {locationsCount.toLocaleString()}
+            </h3>
+            <div className="h-7 w-7 rounded-lg bg-teal-500/10 flex items-center justify-center border border-teal-500/15">
+              <MapPin className="h-4 w-4 text-teal-400" />
+            </div>
+          </div>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block mt-2">
+            Locations Tracked
+          </span>
+        </div>
+      </div>
+
+      {/* Action Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Action 1: IMEI Info */}
+        <div className="bg-[#0a0e24]/40 hover:bg-[#0a0e24]/60 border border-[#2e2e2e] hover:border-[#2e2e2e] rounded-2xl p-5 flex items-center gap-4 transition-all duration-200 group relative">
+          <div className="h-10 w-10 bg-purple-500/15 border border-purple-500/25 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <Smartphone className="h-5 w-5 text-purple-400" />
+          </div>
+          <div className="flex-1 min-w-0 pr-6 text-left">
+            <h4 className="font-bold text-gray-200">IMEI Info</h4>
+            <p className="text-sm text-gray-500 mt-1 truncate">
+              Look up device details from TAC database
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-gray-655 group-hover:text-purple-400 absolute right-5 group-hover:translate-x-1 transition-all duration-200" />
+        </div>
+
+        {/* Action 2: Add New Case */}
+        <div 
+          onClick={onAddNewCase}
+          className="bg-[#0a0e24]/40 hover:bg-[#0a0e24]/60 border border-[#2e2e2e] hover:border-[#2e2e2e] rounded-2xl p-5 flex items-center gap-4 transition-all duration-200 group relative cursor-pointer"
+        >
+          <div className="h-10 w-10 bg-[#3ecf8e] text-gray-950 font-semibold/15 border border-brand-blue/25 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <PlusCircle className="h-5 w-5 text-[#3ecf8e]" />
+          </div>
+          <div className="flex-1 min-w-0 pr-6 text-left">
+            <h4 className="font-bold text-gray-200">Add New Case</h4>
+            <p className="text-sm text-gray-500 mt-1 truncate">
+              Register FIR, assign IO, start investigation
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-gray-655 group-hover:text-[#3ecf8e] absolute right-5 group-hover:translate-x-1 transition-all duration-200" />
+        </div>
+
+        {/* Action 3: View All Cases */}
+        <div 
+          onClick={onViewCases}
+          className="bg-[#0a0e24]/40 hover:bg-[#0a0e24]/60 border border-[#2e2e2e] hover:border-[#2e2e2e] rounded-2xl p-5 flex items-center gap-4 transition-all duration-200 group relative cursor-pointer"
+        >
+          <div className="h-10 w-10 bg-[#3ecf8e] text-gray-950 font-semibold/15 border border-brand-blue/25 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <Folder className="h-5 w-5 text-[#3ecf8e]" />
+          </div>
+          <div className="flex-1 min-w-0 pr-6 text-left">
+            <h4 className="font-bold text-gray-200">View All Cases</h4>
+            <p className="text-sm text-gray-500 mt-1 truncate">
+              Search, filter & open case workspaces
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-gray-655 group-hover:text-[#3ecf8e] absolute right-5 group-hover:translate-x-1 transition-all duration-200" />
+        </div>
+      </div>
+
+      {/* Middle Row: Progress and Locations Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Card 1: Investigation Progress */}
+        <div className="bg-[#171717]/40 border border-[#2e2e2e] rounded-2xl p-5 backdrop-blur-xl">
+          <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-4">
+            Investigation Progress
+          </h4>
+          <div className="flex flex-col items-center justify-center">
+            {/* SVG Donut */}
+            <div className="relative h-32 w-32 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#1d2238" strokeWidth="2.5" />
+                {totalCases > 0 ? (
+                  <>
+                    {/* Pending Pct - Blue */}
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#3b82f6" strokeWidth="3" 
+                      strokeDasharray={`${pendingPct} ${100 - pendingPct}`} 
+                      strokeDashoffset="0" 
+                    />
+                    {/* Active Pct - Green */}
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#10b981" strokeWidth="3" 
+                      strokeDasharray={`${activePct} ${100 - activePct}`} 
+                      strokeDashoffset={`-${pendingPct}`} 
+                    />
+                    {/* Completed Pct - Yellow */}
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f59e0b" strokeWidth="3" 
+                      strokeDasharray={`${completedPct} ${100 - completedPct}`} 
+                      strokeDashoffset={`-${pendingPct + activePct}`} 
+                    />
+                  </>
+                ) : null}
+              </svg>
+              {/* Inner Label */}
+              <div className="absolute text-center">
+                <span className="text-sm text-gray-500 uppercase tracking-wider block">Completed</span>
+                <span className="text-md font-semibold text-gray-250 font-mono">{completedPct}%</span>
+              </div>
+            </div>
+
+            <div className="w-full grid grid-cols-3 gap-2 mt-5 text-sm font-bold text-gray-400 font-mono text-center border-t border-[#1e1e1e] pt-3">
+              <div>
+                <span className="block text-[#3ecf8e]">Pending</span>
+                <span className="text-gray-300 block mt-0.5">{pendingPct}%</span>
+              </div>
+              <div className="border-x border-[#1e1e1e]">
+                <span className="block text-brand-emerald">Active</span>
+                <span className="text-gray-300 block mt-0.5">{activePct}%</span>
+              </div>
+              <div>
+                <span className="block text-amber-500">Completed</span>
+                <span className="text-gray-300 block mt-0.5">{completedPct}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Most Active Cases */}
+        <div className="bg-[#171717]/40 border border-[#2e2e2e] rounded-2xl p-5 backdrop-blur-xl">
+          <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-4">
+            Most Active Cases
+          </h4>
+          <div className="space-y-2.5">
+            {cases.slice(0, 4).map((c, idx) => (
+              <div 
+                key={idx}
+                onClick={() => onOpenCase(c)}
+                className="p-3 bg-[#0a0e24]/40 border border-[#1e1e1e] hover:border-[#2e2e2e] rounded-xl flex items-center justify-between transition-colors cursor-pointer group"
+              >
+                <div className="min-w-0 flex-1">
+                  <h5 className="font-bold text-gray-200 group-hover:text-[#3ecf8e] truncate">{c.title}</h5>
+                  <span className="text-sm text-gray-500 font-medium font-mono block mt-0.5">{c.caseIdString}</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-sm font-bold font-mono ${
+                  c.status === 'Completed' ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-800/20' :
+                  c.status === 'Active' ? 'bg-blue-950/30 text-blue-400 border border-blue-800/20' :
+                  'bg-amber-950/30 text-amber-400 border border-amber-800/20'
+                }`}>
+                  {c.status}
+                </span>
+              </div>
+            ))}
+            {cases.length === 0 && (
+              <div className="py-8 text-center text-gray-500 text-sm">
+                No cases registered yet.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Card 3: Frequent Locations */}
+        <div className="bg-[#171717]/40 border border-[#2e2e2e] rounded-2xl p-5 backdrop-blur-xl">
+          <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-4">
+            Frequent Locations
+          </h4>
+          <div className="h-32 flex items-end justify-between gap-2.5 pt-3">
+            {frequentLocations.length > 0 ? (
+              frequentLocations.map((loc, idx) => {
+                const heightPct = Math.max(10, Math.round((loc.count / maxLocCount) * 90));
+                return (
+                  <div key={idx} title={`${loc.name}: ${loc.count}`} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                    <div 
+                      className="w-full bg-brand-emerald/20 border-t border-brand-emerald rounded-t-sm transition-all duration-300 group-hover:bg-brand-emerald/35"
+                      style={{ height: `${heightPct}%` }}
+                    />
+                    <span className="text-sm text-gray-400 font-bold font-mono truncate max-w-full">
+                      {loc.name.split(',')[0]}
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+              [40, 60, 30, 80, 50, 70].map((h, idx) => (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div 
+                    className="w-full bg-brand-emerald/20 border-t border-brand-emerald rounded-t-sm"
+                    style={{ height: `${h}%` }}
+                  />
+                  <span className="text-sm text-gray-600 font-bold font-mono">T{idx + 1}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Row: Software Usage and Active Hours */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Software Usage (Daily) */}
+        <div className="bg-[#171717]/40 border border-[#2e2e2e] rounded-2xl p-5 backdrop-blur-xl text-left">
+          <div>
+            <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block">
+              Software Usage (Daily)
+            </h4>
+            <p className="text-sm text-gray-400 block mt-0.5">
+              When you opened this application (last 30 days, Pakistan time PKT)
+            </p>
+          </div>
+
+          <div className="h-36 w-full flex items-end justify-center pt-6 relative">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path 
+                d="M 0 90 Q 20 90 40 90 T 55 30 T 70 65 T 85 45 T 100 35" 
+                fill="none" 
+                stroke="#3b82f6" 
+                strokeWidth="2" 
+                className="drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
+              />
+              {/* Highlight points */}
+              <circle cx="55" cy="30" r="1.5" fill="#3b82f6" />
+              <circle cx="70" cy="65" r="1.5" fill="#3b82f6" />
+              <circle cx="85" cy="45" r="1.5" fill="#3b82f6" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Software Open Times (Hourly) */}
+        <div className="bg-[#171717]/40 border border-[#2e2e2e] rounded-2xl p-5 backdrop-blur-xl text-left">
+          <div>
+            <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block">
+              Software Open Times (Hourly)
+            </h4>
+            <p className="text-sm text-gray-400 block mt-0.5">
+              Which hours you usually open the app (Pakistan time PKT)
+            </p>
+          </div>
+
+          <div className="h-36 w-full flex items-end justify-center pt-6 relative">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {/* Area filled path */}
+              <path 
+                d="M 0 90 Q 10 70 15 85 T 45 90 T 60 90 T 75 35 T 82 80 T 90 60 T 96 90 L 100 90 L 100 100 L 0 100 Z" 
+                fill="url(#purpleGlow)" 
+                stroke="#a855f7" 
+                strokeWidth="1.5"
+              />
+              <defs>
+                <linearGradient id="purpleGlow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#a855f7" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#a855f7" stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
