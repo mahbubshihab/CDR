@@ -44,6 +44,9 @@ export interface CDRRecord {
   networkType?: string;
   mcc?: number;
   mnc?: number;
+  aparty?: string;
+  uePort?: string;
+  ueLocalIp?: string;
 }
 
 export class CDRDatabase extends Dexie {

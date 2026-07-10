@@ -22,24 +22,29 @@ export const RawCDRLogs: React.FC<RawCDRLogsProps> = ({ cdrFile, records }) => {
             <thead>
               <tr className="bg-[#171717] border-b border-[#2e2e2e] text-gray-400 uppercase font-semibold tracking-wider text-[10px]">
                 <th className="py-2.5 px-4">Time</th>
+                <th className="py-2.5 px-4">Carrier</th>
+                <th className="py-2.5 px-4">A-Party</th>
                 <th className="py-2.5 px-4">B-Party (Contact)</th>
                 <th className="py-2.5 px-4">Duration</th>
                 <th className="py-2.5 px-4">Type</th>
-                <th className="py-2.5 px-4">IMEI</th>
-                <th className="py-2.5 px-4">IMSI</th>
                 <th className="py-2.5 px-4">Net Type</th>
                 <th className="py-2.5 px-4">MCC</th>
                 <th className="py-2.5 px-4">MNC</th>
                 <th className="py-2.5 px-4">LAC</th>
                 <th className="py-2.5 px-4">CI (Cell ID)</th>
+                <th className="py-2.5 px-4">IMEI</th>
+                <th className="py-2.5 px-4">IMSI</th>
                 <th className="py-2.5 px-4">Cell tower Address</th>
-                <th className="py-2.5 px-4">Carrier</th>
+                <th className="py-2.5 px-4">UE Port</th>
+                <th className="py-2.5 px-4">UE Local IP</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#2e2e2e]/50 font-mono text-[11px]">
               {records.slice(0, 100).map((rec, idx) => (
                 <tr key={idx} className="hover:bg-[#171717]/30 transition-colors">
                   <td className="py-2.5 px-4 text-gray-300 truncate max-w-[120px]">{rec.timestamp}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.provider || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.aparty || '—'}</td>
                   <td className="py-2.5 px-4 text-[#3ecf8e] font-semibold">{rec.otherParty}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.duration}s</td>
                   <td className="py-2.5 px-4">
@@ -51,15 +56,16 @@ export const RawCDRLogs: React.FC<RawCDRLogsProps> = ({ cdrFile, records }) => {
                       {rec.usageType}
                     </span>
                   </td>
-                  <td className="py-2.5 px-4 text-gray-300">{rec.imei || '—'}</td>
-                  <td className="py-2.5 px-4 text-gray-300">{rec.imsi || '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.networkType || '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.mcc !== undefined ? rec.mcc : '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.mnc !== undefined ? rec.mnc : '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.lac !== undefined ? rec.lac : '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.cellId !== undefined ? rec.cellId : '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.imei || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.imsi || '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300 truncate max-w-[200px]">{rec.address || '—'}</td>
-                  <td className="py-2.5 px-4 text-gray-300">{rec.provider || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.uePort || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.ueLocalIp || '—'}</td>
                 </tr>
               ))}
             </tbody>

@@ -184,6 +184,10 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
             const networkType = row.NETWORK_TYPE || row.network_type || row.networkType || '';
             const mcc = row.MCCSTARTA || row.mcc ? Number(row.MCCSTARTA || row.mcc) : undefined;
             const mnc = row.MNCSTARTA || row.mnc ? Number(row.MNCSTARTA || row.mnc) : undefined;
+            const aparty = row.APARTY || row.aparty || '';
+            const uePort = row.UE_PORT || row.ue_port || row.uePort || '';
+            const ueLocalIp = row.UE_LOCAL_IP || row.ue_local_ip || row.ueLocalIp || '';
+            const providerName = row.PROVIDER_NAME || row.provider_name || row.provider || operator || 'Unknown';
 
             return {
               caseId,
@@ -195,12 +199,15 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               imei: String(imei),
               imsi: String(imsi),
               address: String(address),
-              provider: operator,
+              provider: String(providerName),
               lac,
               cellId,
               networkType: String(networkType),
               mcc,
-              mnc
+              mnc,
+              aparty: String(aparty),
+              uePort: String(uePort),
+              ueLocalIp: String(ueLocalIp)
             };
           });
 
