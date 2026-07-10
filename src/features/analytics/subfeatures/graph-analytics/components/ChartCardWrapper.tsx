@@ -311,6 +311,45 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             }
           });
         }
+        // 2g. Split progress list (Incoming vs Outgoing Top Contacts)
+        else if (first.incoming !== undefined && first.outgoing !== undefined && first.number !== undefined) {
+          const list = exportData.slice(0, 6);
+          const padT = 60;
+          const rowH = 35;
+
+          list.forEach((item: any, idx: number) => {
+            const y = padT + idx * rowH;
+            const label = item.number || 'N/A';
+            const totalVal = item.total || 1;
+            const inPct = Math.round((item.incoming / totalVal) * 100);
+            const outPct = Math.round((item.outgoing / totalVal) * 100);
+
+            // Draw contact label
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 10px monospace';
+            ctx.fillText(`${idx + 1}. ${label}`, 20, y + 10);
+
+            // Draw right value splits
+            ctx.fillStyle = '#555555';
+            ctx.font = '10px monospace';
+            ctx.fillText(`In: ${item.incoming} (${inPct}%) | Out: ${item.outgoing} (${outPct}%)`, 600 - 240, y + 10);
+
+            // Draw progress bar background (full width track)
+            ctx.fillStyle = '#f3f4f6';
+            ctx.fillRect(20, y + 16, 600 - 40, 6);
+
+            // Draw incoming segment (green)
+            const trackW = 600 - 40;
+            const incomingW = (inPct / 100) * trackW;
+            ctx.fillStyle = '#3ecf8e';
+            ctx.fillRect(20, y + 16, incomingW, 6);
+
+            // Draw outgoing segment (purple)
+            const outgoingW = (outPct / 100) * trackW;
+            ctx.fillStyle = '#8b5cf6';
+            ctx.fillRect(20 + incomingW, y + 16, outgoingW, 6);
+          });
+        }
         // 2e. Horizontal Progress List (IMEI, Contacts, Locations)
         else {
           const list = exportData.slice(0, 6);
