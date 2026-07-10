@@ -184,6 +184,11 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
                 onMouseEnter={() => setHoveredBar(item)}
                 onMouseLeave={() => setHoveredBar(null)}
               >
+                {item.count > 0 && (
+                  <span className="text-[9px] font-mono text-gray-300 mb-1 leading-none select-none">
+                    {item.count}
+                  </span>
+                )}
                 <div 
                   className={`w-full ${gradients[idx % gradients.length]} rounded-t transition-all duration-150`}
                   style={{ height: `${Math.max(heightPct, 4)}%` }}

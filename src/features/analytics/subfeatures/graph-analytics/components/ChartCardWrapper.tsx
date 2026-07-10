@@ -73,21 +73,21 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
     ctx.scale(scaleFactor, scaleFactor);
 
     // Draw background
-    ctx.fillStyle = '#1e1e1e';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 600, 320);
 
     // Draw card border
-    ctx.strokeStyle = '#2e2e2e';
+    ctx.strokeStyle = '#e5e7eb';
     ctx.lineWidth = 1;
     ctx.strokeRect(1, 1, 598, 318);
 
     // Draw Title
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#000000';
     ctx.font = 'bold 13px monospace';
     ctx.fillText(title.toUpperCase(), 20, 30);
 
     // Draw watermark logo
-    ctx.fillStyle = '#555555';
+    ctx.fillStyle = '#888888';
     ctx.font = '10px monospace';
     ctx.fillText('AI-Powered CDR Analyzer', 600 - 165, 320 - 15);
 
@@ -118,6 +118,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.fillStyle = '#3ecf8e';
             ctx.fillRect(x, y, w * 0.8, h);
             
+            if (val > 0) {
+              ctx.fillStyle = '#000000';
+              ctx.font = '7px monospace';
+              ctx.textAlign = 'center';
+              ctx.fillText(String(val), x + (w * 0.8) / 2, y - 4);
+              ctx.textAlign = 'left';
+            }
+
             if (hr % 4 === 0) {
               ctx.fillStyle = '#888888';
               ctx.font = '8px monospace';
@@ -137,7 +145,7 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
           const chartH = 320 - padT - padB;
 
           // Draw axes
-          ctx.strokeStyle = '#2e2e2e';
+          ctx.strokeStyle = '#cccccc';
           ctx.beginPath();
           ctx.moveTo(padL, padT);
           ctx.lineTo(padL, padT + chartH);
@@ -164,6 +172,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.beginPath();
             ctx.arc(x, y, 3, 0, 2 * Math.PI);
             ctx.fill();
+            
+            if (p.count > 0 && points.length < 35) {
+              ctx.fillStyle = '#000000';
+              ctx.font = '7px monospace';
+              ctx.textAlign = 'center';
+              ctx.fillText(String(p.count), x, y - 5);
+              ctx.textAlign = 'left';
+            }
           });
         }
         // 2c. Monthly Bar Chart (Month, count, pct)
@@ -187,8 +203,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.fillStyle = '#888888';
             ctx.font = '8px monospace';
             ctx.fillText(item.month, x, padT + chartH + 12);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(String(item.count), x, y - 5);
+            
+            if (item.count > 0) {
+              ctx.fillStyle = '#000000';
+              ctx.font = '8px monospace';
+              ctx.textAlign = 'center';
+              ctx.fillText(String(item.count), x + (w * 0.7) / 2, y - 5);
+              ctx.textAlign = 'left';
+            }
           });
         }
         // 2d. Weekly/Duration Bar Chart (Name, count, pct)
@@ -212,8 +234,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.fillStyle = '#888888';
             ctx.font = '9px monospace';
             ctx.fillText(item.name, x, padT + chartH + 15);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(String(item.count), x, y - 5);
+            
+            if (item.count > 0) {
+              ctx.fillStyle = '#000000';
+              ctx.font = '8px monospace';
+              ctx.textAlign = 'center';
+              ctx.fillText(String(item.count), x + (w * 0.7) / 2, y - 5);
+              ctx.textAlign = 'left';
+            }
           });
         }
         // 2e. Horizontal Progress List (IMEI, Contacts, Locations)
@@ -228,14 +256,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             const count = item.count || 0;
             const pct = item.pct || '0';
 
-            ctx.fillStyle = '#cccccc';
+            ctx.fillStyle = '#000000';
             ctx.font = '10px monospace';
             ctx.fillText(`${idx + 1}. ${label}`, 20, y + 10);
 
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#000000';
             ctx.fillText(`${count} (${pct}%)`, 600 - 150, y + 10);
 
-            ctx.fillStyle = '#121212';
+            ctx.fillStyle = '#f3f4f6';
             ctx.fillRect(20, y + 16, 600 - 40, 5);
 
             ctx.fillStyle = title.includes('Location') ? '#8b5cf6' : '#3ecf8e';
@@ -244,7 +272,7 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         }
       }
     }
-    // 3. Hourly Bar Pattern (Array of numbers)
+    // 3. Donut Charts (Object representations)
     else if (Array.isArray(exportData) === false && typeof exportData === 'object' && exportData !== null) {
       if (exportData.incoming !== undefined && exportData.outgoing !== undefined) {
         // Call Type
@@ -254,17 +282,27 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         const outPct = parseFloat(t.outgoingPct || '0');
         const smsPct = parseFloat(t.smsPct || '0');
 
+        // Draw custom legend bullets
         ctx.fillStyle = '#3ecf8e';
-        ctx.fillText(`Incoming Calls: ${t.incoming} (${incPct}%)`, 30, 80);
+        ctx.beginPath(); ctx.arc(25, 77, 4, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.font = '11px monospace';
+        ctx.fillText(`Incoming Calls: ${t.incoming} (${incPct}%)`, 35, 80);
+
         ctx.fillStyle = '#8b5cf6';
-        ctx.fillText(`Outgoing Calls: ${t.outgoing} (${outPct}%)`, 30, 110);
+        ctx.beginPath(); ctx.arc(25, 107, 4, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.fillText(`Outgoing Calls: ${t.outgoing} (${outPct}%)`, 35, 110);
+
         if (t.sms !== undefined) {
           ctx.fillStyle = '#f59e0b';
-          ctx.fillText(`SMS Activities: ${t.sms} (${smsPct}%)`, 30, 140);
+          ctx.beginPath(); ctx.arc(25, 137, 4, 0, 2 * Math.PI); ctx.fill();
+          ctx.fillStyle = '#000000';
+          ctx.fillText(`SMS Activities: ${t.sms} (${smsPct}%)`, 35, 140);
         }
 
         // Draw donut
-        ctx.strokeStyle = '#2e2e2e';
+        ctx.strokeStyle = '#e5e7eb';
         ctx.lineWidth = 15;
         ctx.beginPath();
         ctx.arc(600 - 120, 110, 45, 0, 2 * Math.PI);
@@ -297,11 +335,17 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         const nightPct = parseFloat(t.nightPct || '0');
 
         ctx.fillStyle = '#3ecf8e';
-        ctx.fillText(`Day Calls: ${t.day} (${dayPct}%)`, 30, 90);
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillText(`Night Calls: ${t.night} (${nightPct}%)`, 30, 120);
+        ctx.beginPath(); ctx.arc(25, 87, 4, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.font = '11px monospace';
+        ctx.fillText(`Day Calls: ${t.day} (${dayPct}%)`, 35, 90);
 
-        ctx.strokeStyle = '#2e2e2e';
+        ctx.fillStyle = '#8b5cf6';
+        ctx.beginPath(); ctx.arc(25, 117, 4, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.fillText(`Night Calls: ${t.night} (${nightPct}%)`, 35, 120);
+
+        ctx.strokeStyle = '#e5e7eb';
         ctx.lineWidth = 15;
         ctx.beginPath();
         ctx.arc(600 - 120, 110, 45, 0, 2 * Math.PI);
@@ -326,11 +370,17 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         const smsPct = parseFloat(t.smsPct || '0');
 
         ctx.fillStyle = '#3ecf8e';
-        ctx.fillText(`Voice Calls: ${t.calls} (${callsPct}%)`, 30, 90);
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillText(`SMS Activities: ${t.sms} (${smsPct}%)`, 30, 120);
+        ctx.beginPath(); ctx.arc(25, 87, 4, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.font = '11px monospace';
+        ctx.fillText(`Voice Calls: ${t.calls} (${callsPct}%)`, 35, 90);
 
-        ctx.strokeStyle = '#2e2e2e';
+        ctx.fillStyle = '#8b5cf6';
+        ctx.beginPath(); ctx.arc(25, 117, 4, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.fillText(`SMS Activities: ${t.sms} (${smsPct}%)`, 35, 120);
+
+        ctx.strokeStyle = '#e5e7eb';
         ctx.lineWidth = 15;
         ctx.beginPath();
         ctx.arc(600 - 120, 110, 45, 0, 2 * Math.PI);
@@ -366,6 +416,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
 
         ctx.fillStyle = '#3ecf8e';
         ctx.fillRect(x, y, w * 0.7, h);
+        
+        if (val > 0) {
+          ctx.fillStyle = '#000000';
+          ctx.font = '7px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(String(val), x + (w * 0.7) / 2, y - 4);
+          ctx.textAlign = 'left';
+        }
       });
     }
 

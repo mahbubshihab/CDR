@@ -290,6 +290,11 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
                 onMouseMove={(e) => handleHourlyMouseMove(e, hr, count)}
                 onMouseLeave={() => setHourlyHover(null)}
               >
+                {count > 0 && (
+                  <span className="text-[8px] font-mono text-gray-300 mb-0.5 leading-none shrink-0 scale-90 sm:scale-100 origin-bottom select-none">
+                    {count}
+                  </span>
+                )}
                 <div 
                   className={`w-full rounded-t transition-all duration-150 cursor-pointer ${isPeak ? 'bg-gradient-to-t from-red-600 to-red-400 hover:brightness-110 shadow-lg shadow-red-500/10' : 'bg-gradient-to-t from-[#059669] to-[#3ecf8e] hover:brightness-110 shadow-lg shadow-emerald-500/10'}`}
                   style={{ height: `${Math.max(heightPct, 2)}%` }}
