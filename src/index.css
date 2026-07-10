@@ -117,13 +117,24 @@ body {
     border: 1px solid #cccccc !important;
     color: #000000 !important;
   }
+  
+  /* Force exact color adjustment to print backgrounds and gradients */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Override dark backgrounds only for layouts, keeping text black */
+  .bg-\[\#1e1e1e\], .bg-\[\#171717\], .bg-\[\#121212\] {
+    background-color: #ffffff !important;
+    background-image: none !important;
+  }
   div, span, table, tr, th, td, h2, h3, strong, p {
-    background-color: transparent !important;
     color: #000000 !important;
     border-color: #cccccc !important;
   }
-  .bg-\[\#1e1e1e\], .bg-\[\#171717\], .bg-\[\#121212\] {
-    background-color: #ffffff !important;
+  .text-white, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400 {
+    color: #000000 !important;
   }
   svg {
     filter: none !important;
