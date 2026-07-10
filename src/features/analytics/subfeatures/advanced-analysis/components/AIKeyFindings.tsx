@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Sparkles } from 'lucide-react';
+import { parseCDRTimestamp } from '../AdvancedCDRAnalysis';
 
 interface AIKeyFindingsProps {
   stats: {
@@ -9,49 +10,68 @@ interface AIKeyFindingsProps {
     peakDayCount: number;
     peakHour: number;
     peakHourCount: number;
-    nightRatio: string;
+    topParty: string;
+    maxPartyCount: number;
+    topAddress: string;
+    maxAddressCount: number;
+    mostUsedImei: string;
+    maxImeiCount: number;
+    activeDays: number;
+    bPartiesCount: number;
+    smsCount: number;
   };
+  records: any[];
 }
 
-export const AIKeyFindings: React.FC<AIKeyFindingsProps> = ({ stats }) => {
-  return (
-    <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between text-left">
-      <div>
-        <div className="flex items-center gap-2 mb-4 border-b border-[#2e2e2e]/55 pb-2">
-          <Sparkles className="h-4.5 w-4.5 text-[#3ecf8e]" />
-          <h3 className="text-xs font-semibold text-gray-255 uppercase tracking-wider">
-            AI Key Findings Summary
-          </h3>
-        </div>
+export const AIKeyFindings: React.FC<AIKeyFindingsProps> = ({ stats, records }) => {
+  
+  // Calculate longest inactivity gap in days
+  const maxGapDays = useMemo(() => {
+    if (records.length < 2) return 0;
+    const times = records
+      .map(r => parseCDRTimestamp(r.timestamp).getTime())
+      .filter(t => !isNaN(t))
+      .sort((a, b) => a - b);
+    
+    let maxGapMs = 0;
+    for (let i = 1; i < times.length; i++) {
+      const diff = times[i] - times[i - 1];
+      if (diff > maxGapMs) maxGapMs = diff;
+    }
+    return Math.floor(maxGapMs / (24 * 3600 * 1000));
+  }, [records]);
 
-        <div className="space-y-3 font-mono text-[11px] text-gray-450">
-          <div className="flex items-center justify-between border-b border-[#2e2e2e]/40 pb-2">
-            <span>First Logged Activity</span>
-            <strong className="text-gray-200">{stats.firstActivityDate}</strong>
-          </div>
-          <div className="flex items-center justify-between border-b border-[#2e2e2e]/40 pb-2">
-            <span>Last Logged Activity</span>
-            <strong className="text-gray-200">{stats.lastActivityDate}</strong>
-          </div>
-          <div className="flex items-center justify-between border-b border-[#2e2e2e]/40 pb-2">
-            <span>Peak Activity Day</span>
-            <strong className="text-gray-200">
-              {stats.peakDay} <span className="text-gray-500 font-normal ml-1">({stats.peakDayCount} events)</span>
-            </strong>
-          </div>
-          <div className="flex items-center justify-between border-b border-[#2e2e2e]/40 pb-2">
-            <span>Peak Hour Window</span>
-            <strong className="text-gray-200">
-              {stats.peakHour === -1 ? '—' : `${String(stats.peakHour).padStart(2, '0')}:00`}
-              <span className="text-gray-500 font-normal ml-1">({stats.peakHourCount} events)</span>
-            </strong>
-          </div>
-          <div className="flex items-center justify-between pb-1 text-left">
-            <span>Night Call Ratio</span>
-            <strong className="text-gray-200">{stats.nightRatio}%</strong>
-          </div>
-        </div>
+  const findings = [
+    stats.peakDay !== '—' && `Peak activity observed on ${stats.peakDay} with ${stats.peakDayCount} events.`,
+    stats.topParty !== '—' && `Most contacted number: ${stats.topParty} (${stats.maxPartyCount} communications).`,
+    stats.topAddress !== '—' && `Highest activity location: ${stats.topAddress} (${stats.maxAddressCount} events).`,
+    stats.mostUsedImei !== '—' && `Most used IMEI: ${stats.mostUsedImei} (${stats.maxImeiCount} records).`,
+    stats.peakHour !== -1 && `Most active hour: ${String(stats.peakHour).padStart(2, '0')}:00 with ${stats.peakHourCount} events.`,
+    stats.activeDays > 0 && `Subject active on ${stats.activeDays} days across period ${stats.firstActivityDate} \u2192 ${stats.lastActivityDate}.`,
+    `Total unique contacts identified: ${stats.bPartiesCount}.`,
+    `SMS volume: ${stats.smsCount} messages in filtered dataset.`,
+    maxGapDays > 0 && `Longest inactivity gap: ${maxGapDays} consecutive days without CDR activity.`
+  ].filter(Boolean) as string[];
+
+  return (
+    <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 space-y-4 text-left font-mono">
+      <div className="flex items-center gap-1.5 border-b border-[#2e2e2e]/55 pb-3">
+        <Sparkles className="h-4 w-4 text-[#3ecf8e]" />
+        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">
+          Key Findings
+        </span>
       </div>
+
+      <ul className="space-y-2.5 text-[11px] text-gray-300 list-disc list-inside">
+        {findings.map((f, idx) => (
+          <li key={idx} className="leading-relaxed hover:text-white transition-colors">
+            {f}
+          </li>
+        ))}
+        {findings.length === 0 && (
+          <li className="text-gray-600 list-none">No key findings could be generated from current logs.</li>
+        )}
+      </ul>
     </div>
   );
 };

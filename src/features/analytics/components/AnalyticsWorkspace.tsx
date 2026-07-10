@@ -178,6 +178,7 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <AdvancedCDRAnalysis 
               cdrFile={targetFile}
               records={targetRecords}
+              onNavigateToTab={(tabId) => setActiveAnalysisTab(tabId)}
             />
           ) : activeAnalysisTab === 'graph' ? (
             <GraphAnalytics 

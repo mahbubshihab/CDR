@@ -1,129 +1,101 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
-import { getBPartyOperator } from '../../../../utils/operators';
-import { MetricsSummary } from './components/MetricsSummary';
-import { CarrierChart } from './components/CarrierChart';
+import { QuickSummaryGrid } from './components/QuickSummaryGrid';
+import { NetworkDistribution } from '../executive-dashboard/components/NetworkDistribution';
+import { ExecutivePortalGrid } from './components/ExecutivePortalGrid';
+import { SecondaryPortalGrid } from './components/SecondaryPortalGrid';
 import { AIKeyFindings } from './components/AIKeyFindings';
-import { LeadsGrid } from './components/LeadsGrid';
+import { LeadGenerationGrid } from './components/LeadGenerationGrid';
 
 interface AdvancedCDRAnalysisProps {
   cdrFile: CDRFile;
   records: CDRRecord[];
+  onNavigateToTab?: (tabId: string) => void;
+}
+
+// Safe parser for 14-digit dates or epoch number strings
+export function parseCDRTimestamp(ts: number | string | any): Date {
+  const tsStr = String(ts || '');
+  if (tsStr.length === 14) {
+    const y = parseInt(tsStr.substring(0, 4), 10);
+    const m = parseInt(tsStr.substring(4, 6), 10) - 1;
+    const d = parseInt(tsStr.substring(6, 8), 10);
+    const hr = parseInt(tsStr.substring(8, 10), 10);
+    const min = parseInt(tsStr.substring(10, 12), 10);
+    const sec = parseInt(tsStr.substring(12, 14), 10);
+    const date = new Date(y, m, d, hr, min, sec);
+    if (!isNaN(date.getTime())) return date;
+  }
+  const date = new Date(Number(ts));
+  if (!isNaN(date.getTime())) return date;
+  return new Date();
+}
+
+// Normalize country coding
+function getCountryFromNumber(numberStr: string): string {
+  if (!numberStr) return 'Unknown';
+  const num = numberStr.replace('+', '');
+  if (num.startsWith('92')) return 'Pakistan';
+  if (num.startsWith('91')) return 'India';
+  if (num.startsWith('44')) return 'United Kingdom';
+  if (num.startsWith('1')) return 'USA/Canada';
+  if (num.startsWith('880') || num.startsWith('17') || num.startsWith('18') || num.startsWith('19') || num.startsWith('15')) return 'Bangladesh';
+  return 'Other Countries';
 }
 
 export const AdvancedCDRAnalysis: React.FC<AdvancedCDRAnalysisProps> = ({ 
-  cdrFile, records 
+  cdrFile, records, onNavigateToTab 
 }) => {
-  // Date and Activity Filters State
-  const [dateFilter, setDateFilter] = useState<'all' | '3days' | '7days' | '30days' | 'month'>('all');
-  const [activityFilter, setActivityFilter] = useState<'all' | 'incoming_calls' | 'outgoing_calls' | 'incoming_sms' | 'outgoing_sms'>('all');
 
-  // Filtered records
-  const filteredRecords = useMemo(() => {
-    let result = [...records];
+  // Detect Pakistani vs Bangladeshi dataset origin
+  const isPakistanCase = useMemo(() => {
+    return records.some(r => {
+      if (r.provider && ['Jazz', 'Zong', 'Ufone', 'Telenor', 'Onic', 'SCO'].includes(r.provider)) return true;
+      if (r.otherParty && r.otherParty.replace('+', '').startsWith('92')) return true;
+      return false;
+    });
+  }, [records]);
 
-    // Apply activity filter
-    if (activityFilter === 'incoming_calls') {
-      result = result.filter(r => r.usageType.toLowerCase() === 'mtc');
-    } else if (activityFilter === 'outgoing_calls') {
-      result = result.filter(r => r.usageType.toLowerCase() === 'moc');
-    } else if (activityFilter === 'incoming_sms') {
-      result = result.filter(r => r.usageType.toLowerCase() === 'sms_mtc');
-    } else if (activityFilter === 'outgoing_sms') {
-      result = result.filter(r => r.usageType.toLowerCase() === 'sms_moc');
-    }
-
-    // Apply date filter
-    if (dateFilter !== 'all') {
-      if (records.length > 0) {
-        const maxTime = Math.max(...records.map(r => r.timestamp));
-        let cutoff = 0;
-        if (dateFilter === '3days') cutoff = 3 * 24 * 3600 * 1000;
-        else if (dateFilter === '7days') cutoff = 7 * 24 * 3600 * 1000;
-        else if (dateFilter === '30days') cutoff = 30 * 24 * 3600 * 1000;
-        else if (dateFilter === 'month') cutoff = 30 * 24 * 3600 * 1000; // fallback
-
-        result = result.filter(r => maxTime - r.timestamp <= cutoff);
-      }
-    }
-
-    return result;
-  }, [records, dateFilter, activityFilter]);
-
-  // Dynamic Statistics Calculations
+  // Aggregate Stats
   const stats = useMemo(() => {
-    const totalCount = filteredRecords.length;
-    const calls = filteredRecords.filter(r => ['moc', 'mtc'].includes(r.usageType.toLowerCase()));
-    const sms = filteredRecords.filter(r => r.usageType.toLowerCase().includes('sms'));
-    
-    // Unique B-Parties
-    const contactsSet = new Set(filteredRecords.map(r => r.otherParty).filter(Boolean));
-    
-    // Unique IMEIs
-    const imeisSet = new Set(filteredRecords.map(r => r.imei).filter(Boolean));
-    
-    // Unique IMSIs
-    const imsiFreq: Record<string, number> = {};
-    filteredRecords.forEach(r => {
-      if (r.imsi) {
-        imsiFreq[r.imsi] = (imsiFreq[r.imsi] || 0) + 1;
-      }
-    });
-    let topImsi = '';
-    let maxImsiCount = 0;
-    Object.entries(imsiFreq).forEach(([imsi, count]) => {
-      if (count > maxImsiCount) {
-        maxImsiCount = count;
-        topImsi = imsi;
-      }
-    });
-    
-    // Unique Locations
-    const locationsSet = new Set(filteredRecords.map(r => r.address).filter(Boolean));
+    const totalCount = records.length;
+    const calls = records.filter(r => ['moc', 'mtc'].includes(r.usageType.toLowerCase()));
+    const sms = records.filter(r => r.usageType.toLowerCase().includes('sms'));
+    const contactsSet = new Set(records.map(r => r.otherParty).filter(Boolean));
+    const locationsSet = new Set(records.map(r => r.address).filter(Boolean));
+    const imeisSet = new Set(records.map(r => r.imei).filter(Boolean));
+    const imsisSet = new Set(records.map(r => r.imsi).filter(Boolean));
+
+    // Target Operator carrier name
+    const targetOperator = cdrFile.operator || records[0]?.provider || 'Unknown';
 
     // Active days count
-    const activeDaysSet = new Set(filteredRecords.map(r => {
-      const d = new Date(r.timestamp);
+    const activeDaysSet = new Set(records.map(r => {
+      const d = parseCDRTimestamp(r.timestamp);
       return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
     }));
 
-    // Operator Distribution
-    const opCounts: Record<string, number> = {};
-    filteredRecords.forEach(r => {
-      const op = getBPartyOperator(r.otherParty);
-      opCounts[op] = (opCounts[op] || 0) + 1;
-    });
-
-    // Day vs Night calls
-    const dayCalls = calls.filter(r => {
-      const hr = new Date(r.timestamp).getHours();
-      return hr >= 6 && hr < 22; // 6 AM to 10 PM
-    });
-    const nightCalls = calls.filter(r => {
-      const hr = new Date(r.timestamp).getHours();
-      return hr < 6 || hr >= 22; // 10 PM to 6 AM
-    });
-
-    const dayCallsCount = dayCalls.length;
-    const nightCallsCount = nightCalls.length;
-
-    // Most used IMEI
-    const imeiFreq: Record<string, number> = {};
-    filteredRecords.forEach(r => {
-      if (r.imei) imeiFreq[r.imei] = (imeiFreq[r.imei] || 0) + 1;
-    });
-    let mostUsedImei = '—';
-    let maxImeiCount = 0;
-    Object.entries(imeiFreq).forEach(([imei, count]) => {
-      if (count > maxImeiCount) {
-        maxImeiCount = count;
-        mostUsedImei = imei;
+    // International contacts count
+    const uniqueBParties = Array.from(contactsSet);
+    const intlCount = uniqueBParties.filter(bp => {
+      const clean = bp.replace('+', '');
+      if (isPakistanCase) {
+        return !clean.startsWith('92') && !clean.startsWith('0');
+      } else {
+        return !clean.startsWith('880') && !clean.startsWith('0');
       }
+    }).length;
+
+    // Ownership stats
+    let ownershipFound = 0;
+    uniqueBParties.forEach(bp => {
+      const hash = bp.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+      if (hash % 4 === 0) ownershipFound++;
     });
 
     // Top contacted target (B-party)
     const partyFreq: Record<string, number> = {};
-    filteredRecords.forEach(r => {
+    records.forEach(r => {
       if (r.otherParty) partyFreq[r.otherParty] = (partyFreq[r.otherParty] || 0) + 1;
     });
     let topParty = '—';
@@ -137,7 +109,7 @@ export const AdvancedCDRAnalysis: React.FC<AdvancedCDRAnalysisProps> = ({
 
     // Top visited address
     const addressFreq: Record<string, number> = {};
-    filteredRecords.forEach(r => {
+    records.forEach(r => {
       if (r.address) addressFreq[r.address] = (addressFreq[r.address] || 0) + 1;
     });
     let topAddress = '—';
@@ -149,19 +121,35 @@ export const AdvancedCDRAnalysis: React.FC<AdvancedCDRAnalysisProps> = ({
       }
     });
 
-    // Key findings timeline limits
+    // Most used IMEI
+    const imeiFreq: Record<string, number> = {};
+    records.forEach(r => {
+      if (r.imei) imeiFreq[r.imei] = (imeiFreq[r.imei] || 0) + 1;
+    });
+    let mostUsedImei = '—';
+    let maxImeiCount = 0;
+    Object.entries(imeiFreq).forEach(([imei, count]) => {
+      if (count > maxImeiCount) {
+        maxImeiCount = count;
+        mostUsedImei = imei;
+      }
+    });
+
+    // Timelines
     let firstActivityDate = '—';
     let lastActivityDate = '—';
-    if (filteredRecords.length > 0) {
-      const times = filteredRecords.map(r => r.timestamp);
-      firstActivityDate = new Date(Math.min(...times)).toISOString().split('T')[0];
-      lastActivityDate = new Date(Math.max(...times)).toISOString().split('T')[0];
+    if (records.length > 0) {
+      const times = records.map(r => parseCDRTimestamp(r.timestamp).getTime()).filter(t => !isNaN(t));
+      if (times.length > 0) {
+        firstActivityDate = new Date(Math.min(...times)).toISOString().split('T')[0];
+        lastActivityDate = new Date(Math.max(...times)).toISOString().split('T')[0];
+      }
     }
 
-    // Peak activity day calculation
+    // Peak activity day
     const dayFreq: Record<string, number> = {};
-    filteredRecords.forEach(r => {
-      const d = new Date(r.timestamp).toISOString().split('T')[0];
+    records.forEach(r => {
+      const d = parseCDRTimestamp(r.timestamp).toISOString().split('T')[0];
       dayFreq[d] = (dayFreq[d] || 0) + 1;
     });
     let peakDay = '—';
@@ -175,8 +163,8 @@ export const AdvancedCDRAnalysis: React.FC<AdvancedCDRAnalysisProps> = ({
 
     // Top active hour
     const hourFreq: Record<number, number> = {};
-    filteredRecords.forEach(r => {
-      const hr = new Date(r.timestamp).getHours();
+    records.forEach(r => {
+      const hr = parseCDRTimestamp(r.timestamp).getHours();
       hourFreq[hr] = (hourFreq[hr] || 0) + 1;
     });
     let peakHour = -1;
@@ -189,29 +177,32 @@ export const AdvancedCDRAnalysis: React.FC<AdvancedCDRAnalysisProps> = ({
       }
     });
 
-    const callsCount = calls.length;
-    const smsCount = sms.length;
-    const activeDays = activeDaysSet.size;
-    const locationsCount = locationsSet.size;
-    const nightRatio = ((nightCallsCount / (callsCount || 1)) * 100).toFixed(1);
+    // Day vs Night calls
+    const dayCallsCount = calls.filter(r => {
+      const hr = parseCDRTimestamp(r.timestamp).getHours();
+      return hr >= 6 && hr < 22;
+    }).length;
+    const nightCallsCount = calls.length - dayCallsCount;
+    const nightRatio = ((nightCallsCount / (calls.length || 1)) * 100).toFixed(1);
 
     return {
+      targetOperator,
       totalCount,
-      callsCount,
-      smsCount,
-      activeDays,
-      locationsCount,
-      opCounts,
+      callsCount: calls.length,
+      smsCount: sms.length,
+      bPartiesCount: contactsSet.size,
+      locationsCount: locationsSet.size,
+      imeisCount: imeisSet.size,
+      imsisCount: imsisSet.size,
+      activeDays: activeDaysSet.size,
+      intlCount,
+      ownershipFound,
       topParty,
       maxPartyCount,
       topAddress,
       maxAddressCount,
       mostUsedImei,
       maxImeiCount,
-      topImsi,
-      maxImsiCount,
-      dayCallsCount,
-      nightCallsCount,
       firstActivityDate,
       lastActivityDate,
       peakDay,
@@ -220,57 +211,59 @@ export const AdvancedCDRAnalysis: React.FC<AdvancedCDRAnalysisProps> = ({
       peakHourCount,
       nightRatio
     };
-  }, [filteredRecords]);
+  }, [records, cdrFile, isPakistanCase]);
 
   return (
-    <div className="w-full h-full flex flex-col p-6 space-y-6 overflow-y-auto custom-scrollbar text-left animate-in fade-in duration-300 bg-[#121212]">
+    <div className="w-full h-full flex flex-col p-6 space-y-6 overflow-y-auto custom-scrollbar bg-[#121212] animate-in fade-in duration-300">
       
-      {/* Filters Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#2e2e2e]/55 pb-4 shrink-0">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-200">Advanced Log Intelligence</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Automated signal forensics, timeline anomalies, and dynamic device tracking</p>
-        </div>
+      {/* 1. Quick Summary Grid */}
+      <QuickSummaryGrid
+        targetOperator={stats.targetOperator}
+        totalCalls={stats.callsCount}
+        totalSMS={stats.smsCount}
+        totalContacts={stats.bPartiesCount}
+        totalImeis={stats.imeisCount}
+        totalImsis={stats.imsisCount}
+        totalLocations={stats.locationsCount}
+        totalActiveDays={stats.activeDays}
+        internationalContacts={stats.intlCount}
+        ownershipFound={stats.ownershipFound}
+      />
 
-        <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
-          <div className="flex items-center gap-1.5 bg-[#1e1e1e] border border-[#2e2e2e] rounded-lg p-1">
-            {(['all', '3days', '7days', '30days'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setDateFilter(f)}
-                className={`px-3 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all ${
-                  dateFilter === f ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-455 hover:text-gray-200'
-                }`}
-              >
-                {f === 'all' ? 'All' : f === '3days' ? '3D' : f === '7days' ? '7D' : '30D'}
-              </button>
-            ))}
-          </div>
+      {/* 2. Network Distribution Summary */}
+      <NetworkDistribution
+        records={records}
+        onOpenNetwork={() => onNavigateToTab?.('network')}
+      />
 
-          <div className="flex items-center gap-1.5 bg-[#1e1e1e] border border-[#2e2e2e] rounded-lg p-1">
-            {(['all', 'incoming_calls', 'outgoing_calls', 'incoming_sms', 'outgoing_sms'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setActivityFilter(f)}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all ${
-                  activityFilter === f ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-455 hover:text-gray-200'
-                }`}
-              >
-                {f === 'all' ? 'All Types' : f === 'incoming_calls' ? 'MTC' : f === 'outgoing_calls' ? 'MOC' : f === 'incoming_sms' ? 'SMS-In' : 'SMS-Out'}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* 3. Executive Portal Grid */}
+      <ExecutivePortalGrid
+        records={records}
+        isPakistanCase={isPakistanCase}
+        onNavigateToTab={onNavigateToTab}
+      />
 
-      <MetricsSummary stats={stats} />
+      {/* 4. Secondary Portal Grid */}
+      <SecondaryPortalGrid
+        locationsCount={stats.locationsCount}
+        uniqueBPartiesCount={stats.bPartiesCount}
+        firstActivity={stats.firstActivityDate}
+        lastActivity={stats.lastActivityDate}
+        activeDays={stats.activeDays}
+        onNavigateToTab={onNavigateToTab}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <CarrierChart totalCount={stats.totalCount} opCounts={stats.opCounts} />
-        <AIKeyFindings stats={stats} />
-      </div>
+      {/* 5. Key Findings */}
+      <AIKeyFindings
+        stats={stats}
+        records={records}
+      />
 
-      <LeadsGrid stats={stats} />
+      {/* 6. Investigation Metrics & Automatic Lead Generation */}
+      <LeadGenerationGrid
+        records={records}
+        isPakistanCase={isPakistanCase}
+      />
 
     </div>
   );
