@@ -385,6 +385,12 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
     if (!containerRef.current) return;
     
     const cardHtml = containerRef.current.innerHTML;
+    
+    // Dynamically clone all active stylesheets and script tags of the host application
+    const styleElements = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+      .map(el => el.outerHTML)
+      .join('\n');
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -392,23 +398,39 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
       <html>
         <head>
           <title>${title} - Print View</title>
-          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          ${styleElements}
           <style>
-            body { background-color: #121212; color: #ffffff; padding: 40px; font-family: monospace; }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body { 
+              background-color: #ffffff !important; 
+              color: #000000 !important; 
+              padding: 40px; 
+              font-family: monospace; 
+            }
             .no-print-actions { display: none !important; }
-            table { width: 100%; border-collapse: collapse; border: 1px solid #2e2e2e; }
-            th, td { padding: 8px; border: 1px solid #2e2e2e; text-align: left; }
-            th { background-color: #171717; }
+            table { width: 100%; border-collapse: collapse; border: 1px solid #cccccc; }
+            th, td { padding: 8px; border: 1px solid #cccccc; text-align: left; color: #000000 !important; }
+            th { background-color: #f3f4f6 !important; }
+            div, span, h2, h3, strong, p {
+              color: #000000 !important;
+            }
+            .text-white, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400 {
+              color: #000000 !important;
+            }
           </style>
         </head>
         <body>
-          <h2 class="text-lg font-bold border-b border-gray-700 pb-3 mb-6">${title}</h2>
+          <h2 class="text-lg font-bold border-b border-gray-350 pb-3 mb-6">${title}</h2>
           ${cardHtml}
           <script>
+            // Wait for stylesheets to finish loading before printing
             setTimeout(() => {
               window.print();
               window.close();
-            }, 600);
+            }, 800);
           </script>
         </body>
       </html>
