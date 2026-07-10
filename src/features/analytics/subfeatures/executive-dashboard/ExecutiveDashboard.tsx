@@ -300,6 +300,26 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       .sort((a, b) => b.count - a.count);
   }, [filteredRecords, metrics.total]);
 
+  // B-Party Type Breakdown (Domestic, International, Brand Masking, Short Code)
+  const bPartyTypeBreakdown = useMemo(() => {
+    const total = metrics.total || 1;
+    const counts: Record<string, number> = {};
+    filteredRecords.forEach(r => {
+      const type = getBPartyType(r.otherParty || '', isPakistanCase);
+      counts[type] = (counts[type] || 0) + 1;
+    });
+
+    const colors = ['#3ecf8e', '#a855f7', '#ffc107', '#f97316'];
+    return Object.entries(counts)
+      .map(([name, count], idx) => ({
+        name,
+        count,
+        pct: ((count / total) * 100).toFixed(1),
+        color: colors[idx % colors.length]
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [filteredRecords, metrics.total, isPakistanCase]);
+
   return (
     <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden text-left bg-[#121212] animate-in fade-in duration-300">
       
@@ -340,11 +360,15 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         {/* Row 1: Location pill tags */}
         <LocationTags locations={metrics.locationBadges} />
 
-        {/* Row 2: Timeline daily trendline */}
+        {/* Row 2: Daily Activity Trendline */}
         <ActivityTrendline metrics={metrics} />
 
-        {/* Row 3: Pie charts block */}
-        <PieChartsGrid callTypeBreakdown={callTypeBreakdown} countryBreakdown={countryBreakdown} />
+        {/* Row 3: Pie charts block (3 columns) */}
+        <PieChartsGrid 
+          callTypeBreakdown={callTypeBreakdown} 
+          bPartyTypeBreakdown={bPartyTypeBreakdown}
+          countryBreakdown={countryBreakdown} 
+        />
 
         {/* Row 4: Row of small metric cards */}
         <MetricsSummaryRow 
@@ -356,18 +380,18 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           calls={metrics.totalCalls}
         />
 
-        {/* Row 5: Dynamic Network distribution and progress bars */}
-        <NetworkDistribution 
-          records={filteredRecords}
-          onOpenNetwork={() => onNavigateToTab('network')}
-        />
-
-        {/* Row 6: Top 10 Locations bar chart list */}
-        <TopLocationsList 
-          locations={metrics.sortedLocations}
-          totalRecords={metrics.total}
-          onOpenLocations={() => onNavigateToTab('locations')}
-        />
+        {/* Row 5: Dynamic Network distribution and Top Locations side-by-side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <NetworkDistribution 
+            records={filteredRecords}
+            onOpenNetwork={() => onNavigateToTab('network')}
+          />
+          <TopLocationsList 
+            locations={metrics.sortedLocations}
+            totalRecords={metrics.total}
+            onOpenLocations={() => onNavigateToTab('locations')}
+          />
+        </div>
 
       </section>
 
