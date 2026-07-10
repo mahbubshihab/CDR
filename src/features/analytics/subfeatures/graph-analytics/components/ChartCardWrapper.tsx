@@ -533,7 +533,7 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             <Download className="h-3.5 w-3.5" />
           </button>
           <button 
-            onClick={handleScreenshot} 
+            onClick={() => setIsExpanded(true)} 
             className="p-1 hover:bg-[#2e2e2e] text-gray-300 hover:text-white rounded transition-colors cursor-pointer" 
             title="Export PNG screenshot"
           >
@@ -569,7 +569,42 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
       {/* Expand / Maximize Modal overlay */}
       {isExpanded && (
         <div className="fixed inset-0 z-50 bg-[#121212]/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] p-6 sm:p-8 flex flex-col justify-between relative shadow-2xl overflow-y-auto custom-scrollbar">
+          <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] p-6 sm:p-8 flex flex-col relative shadow-2xl overflow-y-auto custom-scrollbar">
+            
+            {/* Modal actions header toolbar */}
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-[#2e2e2e]/60 no-print-actions">
+              <div>
+                <h2 className="text-sm font-bold text-gray-100 uppercase tracking-wider">{title}</h2>
+                {subdetails && <div className="mt-1">{subdetails}</div>}
+              </div>
+              <div className="flex items-center gap-3 mr-12">
+                <button 
+                  onClick={handleScreenshot}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ffffff] text-[#121212] font-semibold text-xs rounded-lg hover:bg-gray-200 transition-all cursor-pointer shadow-lg"
+                  title="Capture & Download PNG"
+                >
+                  <Camera className="h-3.5 w-3.5" />
+                  <span>Download PNG</span>
+                </button>
+                <button 
+                  onClick={handleDownloadData}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2e2e2e] border border-gray-700 text-gray-200 text-xs rounded-lg hover:bg-[#383838] transition-all cursor-pointer"
+                  title="Download CSV"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>CSV</span>
+                </button>
+                <button 
+                  onClick={handlePrint}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2e2e2e] border border-gray-700 text-gray-200 text-xs rounded-lg hover:bg-[#383838] transition-all cursor-pointer"
+                  title="Print Card"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  <span>Print</span>
+                </button>
+              </div>
+            </div>
+
             {/* Close modal action button */}
             <button 
               onClick={() => setIsExpanded(false)}
@@ -579,7 +614,10 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
               <X className="h-4 w-4" />
             </button>
             
-            {CardContent}
+            {/* Chart children content itself */}
+            <div className="flex-1 flex flex-col justify-between">
+              {children}
+            </div>
           </div>
         </div>
       )}

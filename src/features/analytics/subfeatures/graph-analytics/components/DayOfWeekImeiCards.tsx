@@ -96,6 +96,11 @@ export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records 
                 onMouseEnter={() => setHoveredDay(item)}
                 onMouseLeave={() => setHoveredDay(null)}
               >
+                {item.count > 0 && (
+                  <span className="text-[10px] font-mono text-gray-300 mb-1 leading-none select-none">
+                    {item.count}
+                  </span>
+                )}
                 <div 
                   className="w-full rounded-t transition-all duration-150 opacity-80 hover:opacity-100"
                   style={{ 
