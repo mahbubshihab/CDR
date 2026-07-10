@@ -4,7 +4,7 @@ import {
   Edit2, Trash2, Search, CheckCircle, FileText
 } from 'lucide-react';
 import { db, type Case, type CDRFile } from '../../../utils/db';
-import { UploadCDRModal } from './UploadCDRModal';
+import { UploadCDRModal } from '../../workspace/components/UploadCDRModal';
 import { FileStatsModal } from './FileStatsModal';
 
 
