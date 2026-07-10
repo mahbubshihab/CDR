@@ -51,14 +51,13 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
       else if (d <= 900) range4++;
       else range5++;
     });
-
     const total = range1 + range2 + range3 + range4 + range5 || 1;
     return [
-      { name: '0-30s', count: range1, pct: ((range1 / total) * 100).toFixed(1) },
-      { name: '30s-1m', count: range2, pct: ((range2 / total) * 100).toFixed(1) },
-      { name: '1-5m', count: range3, pct: ((range3 / total) * 100).toFixed(1) },
-      { name: '5-15m', count: range4, pct: ((range4 / total) * 100).toFixed(1) },
-      { name: '15m+', count: range5, pct: ((range5 / total) * 100).toFixed(1) },
+      { name: '0-30s', count: range1, pct: ((range1 / total) * 100).toFixed(1), color: '#3b82f6' },
+      { name: '30s-1m', count: range2, pct: ((range2 / total) * 100).toFixed(1), color: '#8b5cf6' },
+      { name: '1-5m', count: range3, pct: ((range3 / total) * 100).toFixed(1), color: '#f59e0b' },
+      { name: '5-15m', count: range4, pct: ((range4 / total) * 100).toFixed(1), color: '#10b981' },
+      { name: '15m+', count: range5, pct: ((range5 / total) * 100).toFixed(1), color: '#ec4899' },
     ];
   }, [records]);
 

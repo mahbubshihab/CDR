@@ -171,6 +171,7 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         else if (typeof first === 'number') {
           const list = exportData;
           const maxVal = Math.max(...list) || 1;
+          const peakHr = list.indexOf(maxVal);
           const padL = 40;
           const padT = 70;
           const chartW = 600 - padL - 40;
@@ -182,7 +183,8 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             const x = padL + hr * w + w * 0.1;
             const y = padT + chartH - h;
 
-            ctx.fillStyle = '#3ecf8e';
+            const isPeak = hr === peakHr && val > 0;
+            ctx.fillStyle = isPeak ? '#ef4444' : '#3ecf8e';
             ctx.fillRect(x, y, w * 0.8, h);
             
             if (val > 0) {
@@ -509,6 +511,7 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
     else if (Array.isArray(exportData)) {
       const list = exportData;
       const maxVal = Math.max(...list) || 1;
+      const peakHr = list.indexOf(maxVal);
       const padL = 40;
       const padT = 70;
       const chartW = 600 - padL - 40;
@@ -520,7 +523,8 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         const x = padL + hr * w;
         const y = padT + chartH - h;
 
-        ctx.fillStyle = '#3ecf8e';
+        const isPeak = hr === peakHr && val > 0;
+        ctx.fillStyle = isPeak ? '#ef4444' : '#3ecf8e';
         ctx.fillRect(x, y, w * 0.7, h);
         
         if (val > 0) {
