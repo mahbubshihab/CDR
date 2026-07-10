@@ -9,7 +9,7 @@ import { GlobalDashboard } from './features/dashboard/components/GlobalDashboard
 import { AddCaseModal } from './features/dashboard/components/AddCaseModal';
 import { CaseList } from './features/cases/components/CaseList';
 import { EditCaseModal } from './features/cases/components/EditCaseModal';
-import { Workspace } from './features/cases/components/Workspace';
+import { Workspace } from './features/workspace/components/Workspace';
 import { db, seedMockDataIfEmpty, type Case } from './utils/db';
 
 function App() {

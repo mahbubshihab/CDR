@@ -221,8 +221,8 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#2e2e2e]">
           <div>
-            <h3 className="text-sm font-bold text-gray-200">Upload CDR</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Add call detail records without leaving the workspace</p>
+            <h3 className="text-xs font-semibold text-gray-205">Upload CDR</h3>
+            <p className="text-xs text-gray-500 mt-0.5 font-medium">Add call detail records without leaving the workspace</p>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-300 transition-colors">
             <X className="h-4.5 w-4.5" />
@@ -232,7 +232,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
         <form onSubmit={handleUploadSubmit} className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-sm text-gray-400 font-bold uppercase tracking-wider block">
+              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
                 Phone number / SIM
               </label>
               <input
@@ -240,11 +240,11 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                 value={phoneNumber}
                 onChange={e => setPhoneNumber(e.target.value)}
                 placeholder="Auto-detected from CDR"
-                className="w-full bg-[#070a1c] border border-[#2e2e2e] rounded-lg px-3 py-2 text-gray-250 placeholder-gray-650 focus:outline-none focus:border-[#3ecf8e]"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm text-gray-400 font-bold uppercase tracking-wider block">
+              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
                 Description
               </label>
               <input
@@ -252,7 +252,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Short description or reference"
-                className="w-full bg-[#070a1c] border border-[#2e2e2e] rounded-lg px-3 py-2 text-gray-250 placeholder-gray-650 focus:outline-none focus:border-[#3ecf8e]"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
               />
             </div>
           </div>
@@ -260,7 +260,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
           {/* Drag & Drop File area */}
           <div 
             onClick={handleDropAreaClick}
-            className="border-2 border-dashed border-[#2e2e2e] hover:border-brand-blue bg-[#070a1c]/60 hover:bg-[#070a1c] rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all text-center relative overflow-hidden"
+            className="border-2 border-dashed border-[#2e2e2e] hover:border-[#3ecf8e]/35 bg-[#121212]/50 hover:bg-[#121212] rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all text-center relative overflow-hidden"
           >
             <input 
               type="file" 
@@ -269,24 +269,24 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               accept=".csv,.xlsx,.xls"
               className="hidden" 
             />
-            <div className="h-10 w-10 bg-[#3ecf8e] text-gray-950 font-semibold/15 border border-brand-blue/20 rounded-xl flex items-center justify-center">
+            <div className="h-10 w-10 bg-[#3ecf8e]/10 border border-[#3ecf8e]/20 rounded-xl flex items-center justify-center">
               <Upload className="h-5 w-5 text-[#3ecf8e]" />
             </div>
 
             {selectedFile ? (
               <div className="space-y-1">
-                <span className="font-mono text-[#3ecf8e] font-bold block">{selectedFile.name}</span>
-                <span className="text-sm text-gray-500 block">
+                <span className="font-mono text-[#3ecf8e] text-xs font-semibold block">{selectedFile.name}</span>
+                <span className="text-[11px] text-gray-500 block">
                   File successfully loaded ({(selectedFile.size / 1024).toFixed(1)} KB)
                 </span>
               </div>
             ) : (
               <div>
-                <span className="text-sm font-bold text-gray-300 block">
+                <span className="text-xs font-semibold text-gray-300 block">
                   Upload CDR file(s) — CSV, Excel, TXT
                 </span>
-                <span className="text-sm text-gray-500 block mt-1 font-mono">
-                  Jazz, Zong, Ufone, Telenor, SCOM auto-detected
+                <span className="text-[10px] text-gray-500 block mt-1 font-mono">
+                  GP, Robi, Banglalink, Teletalk, Airtel auto-detected
                 </span>
               </div>
             )}
@@ -294,7 +294,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
           {/* Notes textarea */}
           <div className="space-y-1">
-            <label className="text-sm text-gray-400 font-bold uppercase tracking-wider block">
+            <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
               Notes
             </label>
             <textarea
@@ -302,27 +302,27 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               onChange={e => setNotes(e.target.value)}
               placeholder="Case-linked notes, tags..."
               rows={2}
-              className="w-full bg-[#070a1c] border border-[#2e2e2e] rounded-lg px-3 py-2 text-gray-250 placeholder-gray-650 focus:outline-none focus:border-[#3ecf8e] resize-none"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e] resize-none"
             />
           </div>
 
           {/* Expandable Additional Metadata chevron */}
-          <div className="border border-[#1e1e1e] rounded-xl overflow-hidden bg-[#121212]/10">
+          <div className="border border-[#2e2e2e] rounded-xl overflow-hidden bg-[#171717]/40">
             <button
               type="button"
               onClick={() => setIsMetadataExpanded(!isMetadataExpanded)}
-              className="w-full flex items-center justify-between p-3 text-gray-350 hover:text-gray-200 transition-colors"
+              className="w-full flex items-center justify-between p-3 text-xs text-gray-450 hover:text-gray-200 transition-colors"
             >
-              <span className="font-bold flex items-center gap-1.5">
+              <span className="font-semibold flex items-center gap-1.5">
                 {isMetadataExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 Additional metadata
               </span>
             </button>
 
             {isMetadataExpanded && (
-              <div className="p-4 border-t border-[#1e1e1e] bg-[#05070e]/40 grid grid-cols-2 gap-4">
+              <div className="p-4 border-t border-[#2e2e2e] bg-[#121212]/30 grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold uppercase tracking-wider block">
+                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
                     CDR reference number
                   </label>
                   <input
@@ -330,18 +330,18 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                     value={referenceNumber}
                     onChange={e => setReferenceNumber(e.target.value)}
                     placeholder="Reference code"
-                    className="w-full bg-[#070a1c] border border-[#2e2e2e] rounded-lg px-3 py-2 text-gray-250 placeholder-gray-650 focus:outline-none focus:border-[#3ecf8e]"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold uppercase tracking-wider block">
+                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
                     Network operator
                   </label>
                   <select
                     value={operator}
                     onChange={e => setOperator(e.target.value)}
-                    className="w-full bg-[#070a1c] border border-[#2e2e2e] rounded-lg px-3 py-2 text-gray-250 focus:outline-none focus:border-[#3ecf8e]"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#3ecf8e]"
                   >
                     {['Grameenphone', 'Robi', 'Banglalink', 'Teletalk', 'Airtel'].map(op => (
                       <option key={op} value={op}>{op}</option>
@@ -350,13 +350,13 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold uppercase tracking-wider block">
+                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
                     Category (case link)
                   </label>
                   <select
                     value={category}
                     onChange={e => setCategory(e.target.value)}
-                    className="w-full bg-[#070a1c] border border-[#2e2e2e] rounded-lg px-3 py-2 text-gray-250 focus:outline-none focus:border-[#3ecf8e]"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#3ecf8e]"
                   >
                     {['Suspect', 'Victim', 'Witness', '-'].map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -365,7 +365,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold uppercase tracking-wider block">
+                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
                     SIM owner name
                   </label>
                   <input
@@ -373,7 +373,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                     value={ownerName}
                     onChange={e => setOwnerName(e.target.value)}
                     placeholder="Owner reference name"
-                    className="w-full bg-[#070a1c] border border-[#2e2e2e] rounded-lg px-3 py-2 text-gray-250 placeholder-gray-650 focus:outline-none focus:border-[#3ecf8e]"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
                   />
                 </div>
               </div>
@@ -382,14 +382,14 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
           {/* Auto/Manual mapping section */}
           {selectedFile && rowCount !== null && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#0a0e24]/40 border border-[#2e2e2e] rounded-xl font-mono">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#171717] border border-[#2e2e2e] rounded-xl font-mono text-xs">
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setMappingMode('auto')}
-                  className={`px-3 py-1 rounded-md text-sm font-bold border transition-colors ${
+                  className={`px-3 py-1 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
                     mappingMode === 'auto'
-                      ? 'bg-[#3ecf8e] text-gray-950 font-semibold/15 border-brand-blue/40 text-[#3ecf8e]'
+                      ? 'bg-[#2e2e2e] text-white border-[#2e2e2e]'
                       : 'bg-transparent border-[#2e2e2e] text-gray-500 hover:text-gray-300'
                   }`}
                 >
@@ -398,9 +398,9 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setMappingMode('manual')}
-                  className={`px-3 py-1 rounded-md text-sm font-bold border transition-colors ${
+                  className={`px-3 py-1 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
                     mappingMode === 'manual'
-                      ? 'bg-[#3ecf8e] text-gray-950 font-semibold/15 border-brand-blue/40 text-[#3ecf8e]'
+                      ? 'bg-[#2e2e2e] text-white border-[#2e2e2e]'
                       : 'bg-transparent border-[#2e2e2e] text-gray-500 hover:text-gray-300'
                   }`}
                 >
@@ -408,12 +408,12 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                 </button>
               </div>
 
-              <div className="text-right">
-                <span className="text-sm text-gray-450 block font-bold">
-                  {rowCount.toLocaleString()} rows · {operator.toLowerCase()}
+              <div className="text-right leading-tight">
+                <span className="text-xs text-gray-400 block font-semibold">
+                  {rowCount.toLocaleString()} rows · {operator}
                 </span>
-                <span className="text-sm text-brand-emerald font-bold flex items-center justify-end gap-1 mt-0.5">
-                  <Check className="h-3 w-3" />
+                <span className="text-xs text-[#3ecf8e] font-semibold flex items-center justify-end gap-1 mt-0.5">
+                  <Check className="h-3.5 w-3.5" />
                   Operator detected — ready to import
                 </span>
               </div>
@@ -421,7 +421,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
           )}
 
           {errorMsg && (
-            <div className="p-3 bg-red-950/20 border border-red-900/30 rounded-xl text-red-400 font-mono text-sm">
+            <div className="p-3 bg-red-950/20 border border-red-900/30 rounded-xl text-red-400 font-mono text-xs">
               {errorMsg}
             </div>
           )}
@@ -431,14 +431,14 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-transparent border border-[#2e2e2e] rounded-lg text-gray-400 font-bold hover:text-gray-200 transition-colors"
+              className="px-4 py-1.5 bg-transparent border border-[#2e2e2e] rounded-lg text-xs text-gray-400 font-semibold hover:text-gray-200 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !selectedFile || rowCount === null}
-              className="flex items-center gap-1.5 px-5 py-2 bg-[#046a38] text-white font-medium border border-[#3ecf8e] hover:bg-[#00522c] disabled:opacity-40 disabled:hover:bg-[#046a38] rounded-lg shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-5 py-1.5 bg-[#046a38] text-white font-medium border border-[#3ecf8e] hover:bg-[#00522c] disabled:opacity-40 disabled:hover:bg-[#046a38] rounded-lg shadow-md transition-all cursor-pointer text-xs"
             >
               Upload CDR
             </button>
