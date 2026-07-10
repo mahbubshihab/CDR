@@ -100,8 +100,75 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
       } else {
         const first = exportData[0];
         
+        // 2f. 2D array (e.g. Heatmap Grid: 7 rows, 24 cols)
+        if (Array.isArray(first)) {
+          const grid = exportData as number[][];
+          const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          const maxVal = Math.max(...grid.map((row: any) => Math.max(...row))) || 1;
+          
+          const padL = 40;
+          const padT = 75;
+          const gridW = 600 - padL - 20;
+          const gridH = 320 - padT - 30;
+          const cellW = gridW / 24;
+          const cellH = gridH / 7;
+
+          // Draw hour labels header (0 to 23)
+          ctx.fillStyle = '#666666';
+          ctx.font = '8px monospace';
+          for (let h = 0; h < 24; h++) {
+            ctx.fillText(String(h), padL + h * cellW + cellW / 3, padT - 8);
+          }
+
+          grid.forEach((row: number[], dIdx: number) => {
+            // Draw day label
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText(days[dIdx], 10, padT + dIdx * cellH + cellH / 1.6);
+
+            row.forEach((val: number, hIdx: number) => {
+              const x = padL + hIdx * cellW;
+              const y = padT + dIdx * cellH;
+
+              // Determine color intensity based on val
+              let fillStyle = '#ffffff'; // Idle (white on white background)
+              let textStyle = '#ffffff';
+              if (val > 0) {
+                const pct = val / maxVal;
+                if (pct <= 0.3) {
+                  fillStyle = '#d1fae5'; // Light green
+                  textStyle = '#065f46';
+                } else if (pct <= 0.6) {
+                  fillStyle = '#6ee7b7'; // Medium green
+                  textStyle = '#065f46';
+                } else {
+                  fillStyle = '#10b981'; // Peak emerald green
+                  textStyle = '#ffffff';
+                }
+              }
+
+              // Draw cell background
+              ctx.fillStyle = fillStyle;
+              ctx.fillRect(x + 0.5, y + 0.5, cellW - 1, cellH - 1);
+
+              // Draw cell border
+              ctx.strokeStyle = '#e5e7eb';
+              ctx.lineWidth = 0.5;
+              ctx.strokeRect(x + 0.5, y + 0.5, cellW - 1, cellH - 1);
+
+              // Draw cell value if > 0
+              if (val > 0) {
+                ctx.fillStyle = textStyle;
+                ctx.font = '8px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(String(val), x + cellW / 2, y + cellH / 1.6);
+                ctx.textAlign = 'left';
+              }
+            });
+          });
+        }
         // 2a. Primitive number array (e.g. hourly data)
-        if (typeof first === 'number') {
+        else if (typeof first === 'number') {
           const list = exportData;
           const maxVal = Math.max(...list) || 1;
           const padL = 40;
