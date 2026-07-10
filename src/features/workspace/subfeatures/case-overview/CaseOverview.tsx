@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { db, type Case, type CDRFile } from '../../../../utils/db';
 import { UploadCDRModal } from '../../components/UploadCDRModal';
-import { FileStatsModal } from './FileStatsModal';
 
 
 interface CaseOverviewProps {
@@ -22,8 +21,6 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
   const [totalRecordsCount, setTotalRecordsCount] = useState(0);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isStatsOpen, setIsStatsOpen] = useState(false);
-  const [activeFileForStats, setActiveFileForStats] = useState<CDRFile | null>(null);
 
   // Table selections
   const [selectedFileIds, setSelectedFileIds] = useState<number[]>([]);
@@ -362,21 +359,11 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
                     <td className="py-3 px-5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button 
-                          onClick={() => {
-                            setActiveFileForStats(file);
-                            setIsStatsOpen(true);
-                          }}
-                          title="View stats"
-                          className="p-1 hover:bg-[#1e1e1e] text-gray-450 hover:text-gray-200 rounded cursor-pointer"
-                        >
-                          <BarChart2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button 
                           onClick={() => file.id !== undefined && onOpenTargetFileId(file.id)}
-                          title="Open workspace"
+                          title="Analyze CDR"
                           className="p-1 hover:bg-[#1e1e1e] text-gray-450 hover:text-gray-200 rounded cursor-pointer"
                         >
-                          <ExternalLink className="h-3.5 w-3.5" />
+                          <BarChart2 className="h-3.5 w-3.5 text-[#3ecf8e]" />
                         </button>
                         <button 
                           title="Edit metadata"
@@ -418,12 +405,6 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
         />
       )}
 
-      {/* Stats modal */}
-      <FileStatsModal
-        isOpen={isStatsOpen}
-        onClose={() => setIsStatsOpen(false)}
-        file={activeFileForStats}
-      />
     </div>
   );
 };

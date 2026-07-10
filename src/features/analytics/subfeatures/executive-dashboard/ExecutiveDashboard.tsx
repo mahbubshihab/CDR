@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
-import { getBPartyOperator } from '../../../../utils/operators';
 import { FiltersSidebar } from './components/FiltersSidebar';
-import { MetricsGrid } from './components/MetricsGrid';
+import { LocationTags } from './components/LocationTags';
 import { ActivityTrendline } from './components/ActivityTrendline';
 import { PieChartsGrid } from './components/PieChartsGrid';
+import { MetricsSummaryRow } from './components/MetricsSummaryRow';
+import { NetworkDistribution } from './components/NetworkDistribution';
+import { TopLocationsList } from './components/TopLocationsList';
 
 interface ExecutiveDashboardProps {
   cdrFile: CDRFile;
@@ -15,7 +17,7 @@ interface ExecutiveDashboardProps {
 export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ 
   cdrFile, records, onNavigateToTab 
 }) => {
-  // --- Filter states ---
+  // Filter states
   const [searchInput, setSearchInput] = useState('');
   const [yearSel, setYearSel] = useState('All');
   const [monthSel, setMonthSel] = useState('All');
@@ -45,7 +47,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     operator: 'All'
   });
 
-  // Extract unique options from raw records for filter panel list
+  // Extract unique options from raw records for filter panel
   const filterOptions = useMemo(() => {
     const years = new Set<string>();
     const locations = new Set<string>();
@@ -53,13 +55,23 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     const imeis = new Set<string>();
     const imsis = new Set<string>();
     const operators = new Set<string>();
+    const countries = new Set<string>();
 
     records.forEach(r => {
       if (r.timestamp) {
         years.add(new Date(r.timestamp).getFullYear().toString());
       }
       if (r.address) locations.add(r.address);
-      if (r.otherParty) bParties.add(r.otherParty);
+      if (r.otherParty) {
+        bParties.add(r.otherParty);
+        // Classify country
+        const num = r.otherParty.replace('+', '');
+        if (num.startsWith('92')) countries.add('Pakistan');
+        else if (num.startsWith('91')) countries.add('India');
+        else if (num.startsWith('44')) countries.add('United Kingdom');
+        else if (num.startsWith('1')) countries.add('USA/Canada');
+        else countries.add('Bangladesh');
+      }
       if (r.imei) imeis.add(r.imei);
       if (r.imsi) imsis.add(r.imsi);
       if (r.provider) operators.add(r.provider);
@@ -69,13 +81,14 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       years: Array.from(years).sort(),
       locations: Array.from(locations).sort().slice(0, 15),
       bParties: Array.from(bParties).sort().slice(0, 15),
-      imeis: Array.from(imeis).sort(),
-      imsis: Array.from(imsis).sort(),
-      operators: Array.from(operators).sort()
+      imeis: Array.from(imeis).sort().slice(0, 10),
+      imsis: Array.from(imsis).sort().slice(0, 10),
+      operators: Array.from(operators).sort(),
+      countries: Array.from(countries).sort()
     };
   }, [records]);
 
-  // Apply button handler
+  // Apply button
   const handleApplyFilters = () => {
     setAppliedFilters({
       search: searchInput,
@@ -160,6 +173,9 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       if (appliedFilters.imsi !== 'All') {
         if (r.imsi !== appliedFilters.imsi) return false;
       }
+      if (appliedFilters.operator !== 'All') {
+        if (r.provider !== appliedFilters.operator) return false;
+      }
       if (appliedFilters.callType !== 'All') {
         const t = r.usageType.toLowerCase();
         if (appliedFilters.callType === 'Incoming Call' && t !== 'mtc') return false;
@@ -167,14 +183,11 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         if (appliedFilters.callType === 'SMS - Incoming' && t !== 'sms_mtc') return false;
         if (appliedFilters.callType === 'SMS - Outgoing' && t !== 'sms_moc') return false;
       }
-      if (appliedFilters.operator !== 'All') {
-        if (r.provider !== appliedFilters.operator) return false;
-      }
       return true;
     });
   }, [records, appliedFilters]);
 
-  // Calculations for charts and summary blocks
+  // Aggregate Metrics
   const metrics = useMemo(() => {
     const total = filteredRecords.length;
     const incomingCalls = filteredRecords.filter(r => r.usageType.toLowerCase() === 'mtc').length;
@@ -187,14 +200,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     const bPartiesSet = new Set(filteredRecords.map(r => r.otherParty).filter(Boolean));
     const locationsSet = new Set(filteredRecords.map(r => r.address).filter(Boolean));
 
-    // Operator counts based on B-party number prefix!
-    const opCounts: Record<string, number> = {};
-    filteredRecords.forEach(r => {
-      const op = getBPartyOperator(r.otherParty);
-      opCounts[op] = (opCounts[op] || 0) + 1;
-    });
-
-    // Locations Top 10 counts
+    // Top locations
     const locCounts: Record<string, number> = {};
     filteredRecords.forEach(r => {
       if (r.address) locCounts[r.address] = (locCounts[r.address] || 0) + 1;
@@ -204,28 +210,21 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    const locationBadges = sortedLocations.slice(0, 8);
+    const locationBadges = sortedLocations.slice(0, 12);
 
-    // Timeline chart activity points by month (grouped daily activity)
-    const monthColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+    // Timeline charts series by month
     const monthsList = ['Jan', 'Feb', 'Mar', 'Apr'];
-
+    const monthColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
     const dailyActivityByMonth = monthsList.map((m, mIdx) => {
       const dailyPoints = Array(30).fill(0);
       filteredRecords.forEach(r => {
         const d = new Date(r.timestamp);
         if (d.getMonth() === mIdx) {
-          const dateDay = d.getDate() - 1; // 0-indexed day
-          if (dateDay >= 0 && dateDay < 30) {
-            dailyPoints[dateDay]++;
-          }
+          const day = d.getDate() - 1;
+          if (day >= 0 && day < 30) dailyPoints[day]++;
         }
       });
-      return {
-        month: m,
-        points: dailyPoints,
-        color: monthColors[mIdx]
-      };
+      return { month: m, points: dailyPoints, color: monthColors[mIdx] };
     });
 
     return {
@@ -236,28 +235,26 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       totalCalls,
       bPartiesCount: bPartiesSet.size,
       locationsCount: locationsSet.size,
-      opCounts,
       sortedLocations,
       locationBadges,
       dailyActivityByMonth
     };
   }, [filteredRecords]);
 
-  // Call Type breakdown calculations for pie chart
+  // Chart breakdowns
   const callTypeBreakdown = useMemo(() => {
     const total = metrics.total || 1;
     const sms = filteredRecords.filter(r => r.usageType.toLowerCase().includes('sms')).length;
-    const incoming = filteredRecords.filter(r => r.usageType.toLowerCase() === 'mtc').length;
-    const outgoing = filteredRecords.filter(r => r.usageType.toLowerCase() === 'moc').length;
+    const incoming = metrics.incomingCalls;
+    const outgoing = metrics.outgoingCalls;
 
     return [
       { name: 'SMS - Outgoing', count: sms, pct: ((sms / total) * 100).toFixed(1), color: '#3ecf8e' },
       { name: 'Incoming Call', count: incoming, pct: ((incoming / total) * 100).toFixed(1), color: '#ef4444' },
       { name: 'Outgoing Call', count: outgoing, pct: ((outgoing / total) * 100).toFixed(1), color: '#3b82f6' }
     ];
-  }, [filteredRecords, metrics.total]);
+  }, [filteredRecords, metrics]);
 
-  // Country breakdown simulation
   const countryBreakdown = useMemo(() => {
     const total = metrics.total || 1;
     const bdCount = Math.floor(total * 0.994);
@@ -271,34 +268,10 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     ];
   }, [metrics.total]);
 
-  // Operator breakdowns
-  const operatorBreakdown = useMemo(() => {
-    const total = metrics.total || 1;
-    const operators = ['Grameenphone', 'Robi', 'Banglalink', 'Teletalk', 'Airtel'];
-    const colors: Record<string, string> = {
-      'Grameenphone': 'bg-sky-500',
-      'Robi': 'bg-orange-500',
-      'Banglalink': 'bg-emerald-500',
-      'Teletalk': 'bg-blue-500',
-      'Airtel': 'bg-red-500'
-    };
-
-    return operators.map(op => {
-      const count = metrics.opCounts[op] || 0;
-      const percentage = ((count / total) * 100).toFixed(1);
-      return { 
-        name: op, 
-        count, 
-        percentage,
-        color: colors[op] || 'bg-gray-500'
-      };
-    });
-  }, [metrics]);
-
   return (
-    <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden text-left animate-in fade-in duration-300 bg-[#121212]">
+    <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden text-left bg-[#121212] animate-in fade-in duration-300">
       
-      {/* 1. LEFT COLUMN: FILTER DRAWER PANEL */}
+      {/* 1. LEFT SIDEBAR: FILTERS */}
       <FiltersSidebar
         searchInput={searchInput}
         setSearchInput={setSearchInput}
@@ -314,20 +287,56 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         setBPartySel={setBPartySel}
         imeiSel={imeiSel}
         setImeiSel={setImeiSel}
+        imsiSel={imsiSel}
+        setImsiSel={setImsiSel}
         callTypeSel={callTypeSel}
         setCallTypeSel={setCallTypeSel}
+        bPartyTypeSel={bPartyTypeSel}
+        setBPartyTypeSel={setBPartyTypeSel}
+        countrySel={countrySel}
+        setCountrySel={setCountrySel}
         operatorSel={operatorSel}
         setOperatorSel={setOperatorSel}
-        filterOptions={filterOptions}
+        filterOptions={{ ...filterOptions, countries: ['Bangladesh', 'Pakistan', 'United Kingdom', 'USA/Canada'] }}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
       />
 
-      {/* 2. RIGHT COLUMN: WORKSPACE DASHBOARD PANELS */}
+      {/* 2. RIGHT CONTENT AREA: SWITCHARABLE CHARTS */}
       <section className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar">
-        <MetricsGrid metrics={metrics} operatorBreakdown={operatorBreakdown} />
+        
+        {/* Row 1: Location pill tags */}
+        <LocationTags locations={metrics.locationBadges} />
+
+        {/* Row 2: Timeline daily trendline */}
         <ActivityTrendline metrics={metrics} />
+
+        {/* Row 3: Pie charts block */}
         <PieChartsGrid callTypeBreakdown={callTypeBreakdown} countryBreakdown={countryBreakdown} />
+
+        {/* Row 4: Row of small metric cards */}
+        <MetricsSummaryRow 
+          incoming={metrics.incomingCalls}
+          outgoing={metrics.outgoingCalls}
+          sms={metrics.totalSMS}
+          bParties={metrics.bPartiesCount}
+          locations={metrics.locationsCount}
+          calls={metrics.totalCalls}
+        />
+
+        {/* Row 5: Dynamic Network distribution and progress bars */}
+        <NetworkDistribution 
+          records={filteredRecords}
+          onOpenNetwork={() => onNavigateToTab('network')}
+        />
+
+        {/* Row 6: Top 10 Locations bar chart list */}
+        <TopLocationsList 
+          locations={metrics.sortedLocations}
+          totalRecords={metrics.total}
+          onOpenLocations={() => onNavigateToTab('locations')}
+        />
+
       </section>
 
     </div>
