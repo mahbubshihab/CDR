@@ -58,7 +58,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   const hours = ['All', ...Array.from({ length: 24 }, (_, i) => String(i))];
 
   return (
-    <aside className="w-full lg:w-60 shrink-0 bg-[#171717] border-r border-[#2e2e2e] p-4 flex flex-col gap-4.5 h-full overflow-y-auto custom-scrollbar overscroll-contain">
+    <aside className="w-full lg:w-60 shrink-0 bg-[#171717] border-r border-[#2e2e2e] p-4 flex flex-col gap-4.5 h-full overflow-y-auto custom-scrollbar overscroll-contain text-left">
       {/* Apply / Clear Actions */}
       <div className="flex items-center gap-2.5">
         <button 
@@ -77,7 +77,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
       {/* Text search input */}
       <div className="space-y-1.5">
-        <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider font-mono">
+        <label className="text-[10px] text-[#3ecf8e] font-semibold uppercase tracking-wider font-mono">
           Search Number / IMEI
         </label>
         <div className="relative">
@@ -86,7 +86,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder="Search number or IMEI..."
-            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e] font-mono"
+            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-250 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e] font-mono"
           />
           <Search className="h-3.5 w-3.5 text-gray-500 absolute left-2.5 top-2.5" />
         </div>
@@ -97,14 +97,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
         
         {/* YEAR FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">YEAR</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">YEAR</span>
           <div className="space-y-0.5">
             {['All', ...filterOptions.years].map(yr => (
               <button
                 key={yr}
                 onClick={() => setYearSel(yr)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  yearSel === yr ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-450 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  yearSel === yr ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {yr}
@@ -115,14 +115,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* MONTH FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">MONTH</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">MONTH</span>
           <div className="space-y-0.5 max-h-36 overflow-y-auto custom-scrollbar">
             {['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
               <button
                 key={m}
                 onClick={() => setMonthSel(m)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  monthSel === m ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-455 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  monthSel === m ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {m}
@@ -133,14 +133,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* HOUR FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">HOUR</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">HOUR</span>
           <div className="space-y-0.5 max-h-36 overflow-y-auto custom-scrollbar">
             {hours.map(hr => (
               <button
                 key={hr}
                 onClick={() => setHourSel(hr)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  hourSel === hr ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-455 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  hourSel === hr ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {hr === 'All' ? 'All Hours' : `${hr.padStart(2, '0')}:00`}
@@ -151,14 +151,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* LOCATION FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">LOCATION</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">LOCATION</span>
           <div className="space-y-0.5 max-h-40 overflow-y-auto custom-scrollbar">
             {['All', ...filterOptions.locations].map(loc => (
               <button
                 key={loc}
                 onClick={() => setLocationSel(loc)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all truncate cursor-pointer ${
-                  locationSel === loc ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-455 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  locationSel === loc ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
                 title={loc}
               >
@@ -170,14 +170,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* B PARTY FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">B PARTY</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">B PARTY</span>
           <div className="space-y-0.5 max-h-40 overflow-y-auto custom-scrollbar">
             {['All', ...filterOptions.bParties].map(no => (
               <button
                 key={no}
                 onClick={() => setBPartySel(no)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  bPartySel === no ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-455 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  bPartySel === no ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {no}
@@ -188,14 +188,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* IMEI FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">IMEI</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">IMEI</span>
           <div className="space-y-0.5 max-h-36 overflow-y-auto custom-scrollbar">
             {['All', ...filterOptions.imeis].map(imei => (
               <button
                 key={imei}
                 onClick={() => setImeiSel(imei)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all truncate cursor-pointer ${
-                  imeiSel === imei ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-455 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  imeiSel === imei ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {imei}
@@ -206,14 +206,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* IMSI FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">IMSI</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">IMSI</span>
           <div className="space-y-0.5 max-h-36 overflow-y-auto custom-scrollbar">
             {['All', ...filterOptions.imsis].map(imsi => (
               <button
                 key={imsi}
                 onClick={() => setImsiSel(imsi)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all truncate cursor-pointer ${
-                  imsiSel === imsi ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-455 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  imsiSel === imsi ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {imsi}
@@ -224,14 +224,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* CALL TYPE FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">CALL TYPE</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">CALL TYPE</span>
           <div className="space-y-0.5">
             {['All', 'Incoming Call', 'Outgoing Call', 'SMS - Incoming', 'SMS - Outgoing'].map(t => (
               <button
                 key={t}
                 onClick={() => setCallTypeSel(t)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  callTypeSel === t ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-450 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  callTypeSel === t ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {t}
@@ -242,14 +242,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* B PARTY TYPE FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">B PARTY TYPE</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">B PARTY TYPE</span>
           <div className="space-y-0.5">
             {['All', 'Domestic', 'International', 'Short Code', 'Brand Masking'].map(bt => (
               <button
                 key={bt}
                 onClick={() => setBPartyTypeSel(bt)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  bPartyTypeSel === bt ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-450 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  bPartyTypeSel === bt ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {bt}
@@ -260,14 +260,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* COUNTRY FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">COUNTRY</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">COUNTRY</span>
           <div className="space-y-0.5 max-h-36 overflow-y-auto custom-scrollbar">
             {['All', ...filterOptions.countries].map(c => (
               <button
                 key={c}
                 onClick={() => setCountrySel(c)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  countrySel === c ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-450 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  countrySel === c ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {c}
@@ -278,14 +278,14 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
         {/* NETWORK OPERATOR FILTER */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-gray-500 font-semibold tracking-wider block">OPERATOR</span>
+          <span className="text-[10px] text-[#3ecf8e] font-semibold tracking-wider block">OPERATOR</span>
           <div className="space-y-0.5">
             {['All', ...filterOptions.operators].map(op => (
               <button
                 key={op}
                 onClick={() => setOperatorSel(op)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  operatorSel === op ? 'bg-[#facc15] text-gray-950 font-bold' : 'text-gray-455 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
+                  operatorSel === op ? 'bg-[#2e2e2e] text-white font-semibold' : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                 }`}
               >
                 {op}
