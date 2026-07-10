@@ -7,7 +7,7 @@ import {
   Home, Radio, LineChart, Settings
 } from 'lucide-react';
 import { db, type Case, type CDRFile, type CDRRecord } from '../../../utils/db';
-import { CaseOverview } from '../../cases/components/CaseOverview';
+import { CaseOverview } from '../subfeatures/case-overview/CaseOverview';
 import { UploadCDRModal } from './UploadCDRModal';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
 import { AdvancedCDRAnalysis } from '../subfeatures/advanced-analysis/AdvancedCDRAnalysis';
@@ -21,6 +21,9 @@ import { ImeiSummary } from '../subfeatures/imei-summary/ImeiSummary';
 import { ImsiSummary } from '../subfeatures/imsi-summary/ImsiSummary';
 import { LocationSummary } from '../subfeatures/location-summary/LocationSummary';
 import { LocationIntelligence } from '../subfeatures/location-intelligence/LocationIntelligence';
+import { SearchCDRLogs } from '../subfeatures/search-cdr-logs/SearchCDRLogs';
+import { MfcCellTowerMapping } from '../subfeatures/mfc-cell-tower/MfcCellTowerMapping';
+import { ImeiImsiSummary } from '../subfeatures/imei-imsi-summary/ImeiImsiSummary';
 
 interface WorkspaceProps {
   activeCase: Case;
@@ -354,56 +357,11 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               onOpenTargetFileId={handleOpenTargetFile}
             />
           ) : activeCaseTab === 'search' ? (
-            <div className="space-y-6 text-left animate-in fade-in duration-300">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-200">Search CDR Logs</h2>
-                <p className="text-xs text-gray-500 font-mono uppercase tracking-wider block mt-1">
-                  Filter and query Call Detail Records dynamically
-                </p>
-              </div>
-              
-              <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl p-6 text-center max-w-md mx-auto space-y-3">
-                <Search className="h-8 w-8 text-[#3ecf8e] mx-auto" />
-                <h3 className="font-bold text-gray-300">Advanced Log Search</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  You can search dialer patterns, tower addresses, and durations. Upload a CDR sheet in the overview tab to begin searching case records.
-                </p>
-              </div>
-            </div>
+            <SearchCDRLogs activeCase={activeCase} />
           ) : activeCaseTab === 'mfc' ? (
-            <div className="space-y-6 text-left animate-in fade-in duration-300">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-200">MFC / IMF Cell Tower Mapping</h2>
-                <p className="text-xs text-gray-500 font-mono uppercase tracking-wider block mt-1">
-                  Most Frequent Cell & Tower locations analysis
-                </p>
-              </div>
-
-              <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl p-6 text-center max-w-md mx-auto space-y-3">
-                <MapPin className="h-8 w-8 text-[#3ecf8e] mx-auto" />
-                <h3 className="font-bold text-gray-300">Tower Coverage Profiler</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  Profile towers by transit frequency to pinpoint candidate suspect hideouts, residence nodes, or workplace addresses dynamically.
-                </p>
-              </div>
-            </div>
+            <MfcCellTowerMapping activeCase={activeCase} />
           ) : activeCaseTab === 'imei' ? (
-            <div className="space-y-6 text-left animate-in fade-in duration-300">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-200">IMEI & IMSI Summary</h2>
-                <p className="text-xs text-gray-500 font-mono uppercase tracking-wider block mt-1">
-                  Handset swaps and SIM exchange timeline profiles
-                </p>
-              </div>
-
-              <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl p-6 text-center max-w-md mx-auto space-y-3">
-                <Smartphone className="h-8 w-8 text-[#3ecf8e] mx-auto" />
-                <h3 className="font-bold text-gray-300">Device Swap Tracker</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  Identifies hardware transitions when multiple IMSI SIMs are used in a single IMEI device handset.
-                </p>
-              </div>
-            </div>
+            <ImeiImsiSummary activeCase={activeCase} />
           ) : null}
         </main>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, BarChart, PhoneCall, Clock, CheckCircle } from 'lucide-react';
-import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
+import { db, type CDRFile, type CDRRecord } from '../../../../utils/db';
 
 interface FileStatsModalProps {
   isOpen: boolean;

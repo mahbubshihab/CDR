@@ -6,10 +6,20 @@ import {
   BookOpen
 } from 'lucide-react';
 import { GlobalDashboard } from './features/dashboard/components/GlobalDashboard';
-import { AddCaseModal } from './features/dashboard/components/AddCaseModal';
-import { CaseList } from './features/cases/components/CaseList';
-import { EditCaseModal } from './features/cases/components/EditCaseModal';
+import { AddCaseModal } from './features/add-case/components/AddCaseModal';
+import { CaseList } from './features/view-cases/components/CaseList';
+import { EditCaseModal } from './features/view-cases/components/EditCaseModal';
 import { Workspace } from './features/workspace/components/Workspace';
+import { ImeiInfo } from './features/imei-info/ImeiInfo';
+import { NumberLookup } from './features/number-lookup/NumberLookup';
+import { OwnershipFinder } from './features/ownership-finder/OwnershipFinder';
+import { Reports } from './features/reports/Reports';
+import { Watchlist } from './features/watchlist/Watchlist';
+import { CommonReport } from './features/common-report/CommonReport';
+import { IntelligenceDatabase } from './features/intelligence-database/IntelligenceDatabase';
+import { UsefulLinks } from './features/useful-links/UsefulLinks';
+import { Settings as SettingsTab } from './features/settings/Settings';
+import { About } from './features/about/About';
 import { db, seedMockDataIfEmpty, type Case } from './utils/db';
 
 function App() {
@@ -59,6 +69,18 @@ function App() {
           if (caseRecord) {
             setActiveWorkspaceCase(caseRecord);
             return;
+          }
+        }
+      } else if (hash.startsWith('#/file/')) {
+        const fileId = parseInt(hash.replace('#/file/', ''), 10);
+        if (!isNaN(fileId)) {
+          const fileRecord = await db.cdrFiles.get(fileId);
+          if (fileRecord) {
+            const caseRecord = await db.cases.get(fileRecord.caseId);
+            if (caseRecord) {
+              setActiveWorkspaceCase(caseRecord);
+              return;
+            }
           }
         }
       }
@@ -268,6 +290,26 @@ function App() {
               refreshKey={refreshKey}
               onTriggerRefresh={handleCaseSaved}
             />
+          ) : activeMenu === 'imei' ? (
+            <ImeiInfo />
+          ) : activeMenu === 'lookup' ? (
+            <NumberLookup />
+          ) : activeMenu === 'ownership' ? (
+            <OwnershipFinder />
+          ) : activeMenu === 'reports' ? (
+            <Reports />
+          ) : activeMenu === 'watchlist' ? (
+            <Watchlist />
+          ) : activeMenu === 'common' ? (
+            <CommonReport />
+          ) : activeMenu === 'intelligence' ? (
+            <IntelligenceDatabase />
+          ) : activeMenu === 'links' ? (
+            <UsefulLinks />
+          ) : activeMenu === 'settings' ? (
+            <SettingsTab />
+          ) : activeMenu === 'about' ? (
+            <About />
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
               <Database className="h-8 w-8 text-gray-500 mb-3" />

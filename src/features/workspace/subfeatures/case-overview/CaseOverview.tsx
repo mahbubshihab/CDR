@@ -3,8 +3,8 @@ import {
   FileSpreadsheet, Printer, Upload, BarChart2, ExternalLink, 
   Edit2, Trash2, Search, CheckCircle, FileText
 } from 'lucide-react';
-import { db, type Case, type CDRFile } from '../../../utils/db';
-import { UploadCDRModal } from '../../workspace/components/UploadCDRModal';
+import { db, type Case, type CDRFile } from '../../../../utils/db';
+import { UploadCDRModal } from '../../components/UploadCDRModal';
 import { FileStatsModal } from './FileStatsModal';
 
 
