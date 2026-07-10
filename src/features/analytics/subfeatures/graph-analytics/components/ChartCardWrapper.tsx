@@ -600,7 +600,7 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             <Download className="h-3.5 w-3.5" />
           </button>
           <button 
-            onClick={() => setIsExpanded(true)} 
+            onClick={handleScreenshot} 
             className="p-1 hover:bg-[#2e2e2e] text-gray-300 hover:text-white rounded transition-colors cursor-pointer" 
             title="Export PNG screenshot"
           >
