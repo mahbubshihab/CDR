@@ -181,6 +181,9 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
             const lac = row.LACSTARTA || row.lac ? Number(row.LACSTARTA || row.lac) : undefined;
             const cellId = row.CISTARTA || row.cellId || row.cid ? Number(row.CISTARTA || row.cellId || row.cid) : undefined;
+            const networkType = row.NETWORK_TYPE || row.network_type || row.networkType || '';
+            const mcc = row.MCCSTARTA || row.mcc ? Number(row.MCCSTARTA || row.mcc) : undefined;
+            const mnc = row.MNCSTARTA || row.mnc ? Number(row.MNCSTARTA || row.mnc) : undefined;
 
             return {
               caseId,
@@ -194,7 +197,10 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               address: String(address),
               provider: operator,
               lac,
-              cellId
+              cellId,
+              networkType: String(networkType),
+              mcc,
+              mnc
             };
           });
 

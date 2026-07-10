@@ -41,6 +41,9 @@ export interface CDRRecord {
   provider?: string; // Grameenphone, Robi, Banglalink, Teletalk, Airtel
   lac?: number;
   cellId?: number;
+  networkType?: string;
+  mcc?: number;
+  mnc?: number;
 }
 
 export class CDRDatabase extends Dexie {

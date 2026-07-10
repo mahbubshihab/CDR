@@ -27,6 +27,11 @@ export const RawCDRLogs: React.FC<RawCDRLogsProps> = ({ cdrFile, records }) => {
                 <th className="py-2.5 px-4">Type</th>
                 <th className="py-2.5 px-4">IMEI</th>
                 <th className="py-2.5 px-4">IMSI</th>
+                <th className="py-2.5 px-4">Net Type</th>
+                <th className="py-2.5 px-4">MCC</th>
+                <th className="py-2.5 px-4">MNC</th>
+                <th className="py-2.5 px-4">LAC</th>
+                <th className="py-2.5 px-4">CI (Cell ID)</th>
                 <th className="py-2.5 px-4">Cell tower Address</th>
                 <th className="py-2.5 px-4">Carrier</th>
               </tr>
@@ -48,6 +53,11 @@ export const RawCDRLogs: React.FC<RawCDRLogsProps> = ({ cdrFile, records }) => {
                   </td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.imei || '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.imsi || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.networkType || '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.mcc !== undefined ? rec.mcc : '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.mnc !== undefined ? rec.mnc : '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.lac !== undefined ? rec.lac : '—'}</td>
+                  <td className="py-2.5 px-4 text-gray-300">{rec.cellId !== undefined ? rec.cellId : '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300 truncate max-w-[200px]">{rec.address || '—'}</td>
                   <td className="py-2.5 px-4 text-gray-300">{rec.provider || '—'}</td>
                 </tr>
