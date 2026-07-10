@@ -61,21 +61,25 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
   const handleScreenshot = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Create a virtual canvas to draw chart
+    // Create a virtual canvas to draw chart in high-resolution (3x scale factor)
+    const scaleFactor = 3;
     const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 320;
+    canvas.width = 600 * scaleFactor;
+    canvas.height = 320 * scaleFactor;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Scale canvas operations
+    ctx.scale(scaleFactor, scaleFactor);
+
     // Draw background
     ctx.fillStyle = '#1e1e1e';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, 600, 320);
 
     // Draw card border
     ctx.strokeStyle = '#2e2e2e';
     ctx.lineWidth = 1;
-    ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+    ctx.strokeRect(1, 1, 598, 318);
 
     // Draw Title
     ctx.fillStyle = '#ffffff';
@@ -85,14 +89,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
     // Draw watermark logo
     ctx.fillStyle = '#555555';
     ctx.font = '10px monospace';
-    ctx.fillText('AI-Powered CDR Analyzer', canvas.width - 165, canvas.height - 15);
+    ctx.fillText('AI-Powered CDR Analyzer', 600 - 165, 320 - 15);
 
     // Check data and draw representation
     if (Array.isArray(exportData)) {
       if (exportData.length === 0) {
         ctx.fillStyle = '#888888';
         ctx.font = '11px monospace';
-        ctx.fillText('No data available', canvas.width / 2 - 50, canvas.height / 2);
+        ctx.fillText('No data available', 600 / 2 - 50, 320 / 2);
       } else {
         const first = exportData[0];
         
@@ -102,8 +106,8 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
           const maxVal = Math.max(...list) || 1;
           const padL = 40;
           const padT = 70;
-          const chartW = canvas.width - padL - 40;
-          const chartH = canvas.height - padT - 50;
+          const chartW = 600 - padL - 40;
+          const chartH = 320 - padT - 50;
 
           list.forEach((val: number, hr: number) => {
             const w = chartW / list.length;
@@ -129,8 +133,8 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
           const padR = 40;
           const padT = 70;
           const padB = 50;
-          const chartW = canvas.width - padL - padR;
-          const chartH = canvas.height - padT - padB;
+          const chartW = 600 - padL - padR;
+          const chartH = 320 - padT - padB;
 
           // Draw axes
           ctx.strokeStyle = '#2e2e2e';
@@ -162,14 +166,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.fill();
           });
         }
-        // 2b. Monthly Bar Chart (Month, count, pct)
+        // 2c. Monthly Bar Chart (Month, count, pct)
         else if (first.month !== undefined && first.count !== undefined) {
           const list = exportData;
           const maxVal = Math.max(...list.map((m: any) => m.count)) || 1;
           const padL = 50;
           const padT = 70;
-          const chartW = canvas.width - padL - 40;
-          const chartH = canvas.height - padT - 50;
+          const chartW = 600 - padL - 40;
+          const chartH = 320 - padT - 50;
 
           list.forEach((item: any, idx: number) => {
             const w = chartW / list.length;
@@ -187,14 +191,14 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.fillText(String(item.count), x, y - 5);
           });
         }
-        // 2c. Weekly/Duration Bar Chart (Name, count, pct)
+        // 2d. Weekly/Duration Bar Chart (Name, count, pct)
         else if (first.name !== undefined && first.count !== undefined) {
           const list = exportData;
           const maxVal = Math.max(...list.map((d: any) => d.count)) || 1;
           const padL = 50;
           const padT = 70;
-          const chartW = canvas.width - padL - 40;
-          const chartH = canvas.height - padT - 50;
+          const chartW = 600 - padL - 40;
+          const chartH = 320 - padT - 50;
 
           list.forEach((item: any, idx: number) => {
             const w = chartW / list.length;
@@ -212,7 +216,7 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.fillText(String(item.count), x, y - 5);
           });
         }
-        // 2d. Horizontal Progress List (IMEI, Contacts, Locations)
+        // 2e. Horizontal Progress List (IMEI, Contacts, Locations)
         else {
           const list = exportData.slice(0, 6);
           const padT = 60;
@@ -229,13 +233,13 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             ctx.fillText(`${idx + 1}. ${label}`, 20, y + 10);
 
             ctx.fillStyle = '#ffffff';
-            ctx.fillText(`${count} (${pct}%)`, canvas.width - 150, y + 10);
+            ctx.fillText(`${count} (${pct}%)`, 600 - 150, y + 10);
 
             ctx.fillStyle = '#121212';
-            ctx.fillRect(20, y + 16, canvas.width - 40, 5);
+            ctx.fillRect(20, y + 16, 600 - 40, 5);
 
             ctx.fillStyle = title.includes('Location') ? '#8b5cf6' : '#3ecf8e';
-            ctx.fillRect(20, y + 16, (parseFloat(pct) / 100) * (canvas.width - 40), 5);
+            ctx.fillRect(20, y + 16, (parseFloat(pct) / 100) * (600 - 40), 5);
           });
         }
       }
@@ -263,26 +267,26 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         ctx.strokeStyle = '#2e2e2e';
         ctx.lineWidth = 15;
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, 0, 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, 0, 2 * Math.PI);
         ctx.stroke();
 
         let startAng = -Math.PI / 2;
         ctx.strokeStyle = '#3ecf8e';
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, startAng, startAng + (incPct / 100) * 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, startAng, startAng + (incPct / 100) * 2 * Math.PI);
         ctx.stroke();
         startAng += (incPct / 100) * 2 * Math.PI;
 
         ctx.strokeStyle = '#8b5cf6';
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, startAng, startAng + (outPct / 100) * 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, startAng, startAng + (outPct / 100) * 2 * Math.PI);
         ctx.stroke();
         startAng += (outPct / 100) * 2 * Math.PI;
 
         if (t.sms !== undefined && smsPct > 0) {
           ctx.strokeStyle = '#f59e0b';
           ctx.beginPath();
-          ctx.arc(canvas.width - 120, 110, 45, startAng, startAng + (smsPct / 100) * 2 * Math.PI);
+          ctx.arc(600 - 120, 110, 45, startAng, startAng + (smsPct / 100) * 2 * Math.PI);
           ctx.stroke();
         }
       }
@@ -300,19 +304,19 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         ctx.strokeStyle = '#2e2e2e';
         ctx.lineWidth = 15;
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, 0, 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, 0, 2 * Math.PI);
         ctx.stroke();
 
         let startAng = -Math.PI / 2;
         ctx.strokeStyle = '#3ecf8e';
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, startAng, startAng + (dayPct / 100) * 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, startAng, startAng + (dayPct / 100) * 2 * Math.PI);
         ctx.stroke();
         startAng += (dayPct / 100) * 2 * Math.PI;
 
         ctx.strokeStyle = '#8b5cf6';
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, startAng, startAng + (nightPct / 100) * 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, startAng, startAng + (nightPct / 100) * 2 * Math.PI);
         ctx.stroke();
       }
       else if (exportData.calls !== undefined && exportData.sms !== undefined) {
@@ -329,19 +333,19 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
         ctx.strokeStyle = '#2e2e2e';
         ctx.lineWidth = 15;
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, 0, 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, 0, 2 * Math.PI);
         ctx.stroke();
 
         let startAng = -Math.PI / 2;
         ctx.strokeStyle = '#3ecf8e';
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, startAng, startAng + (callsPct / 100) * 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, startAng, startAng + (callsPct / 100) * 2 * Math.PI);
         ctx.stroke();
         startAng += (callsPct / 100) * 2 * Math.PI;
 
         ctx.strokeStyle = '#8b5cf6';
         ctx.beginPath();
-        ctx.arc(canvas.width - 120, 110, 45, startAng, startAng + (smsPct / 100) * 2 * Math.PI);
+        ctx.arc(600 - 120, 110, 45, startAng, startAng + (smsPct / 100) * 2 * Math.PI);
         ctx.stroke();
       }
     } 
@@ -351,8 +355,8 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
       const maxVal = Math.max(...list) || 1;
       const padL = 40;
       const padT = 70;
-      const chartW = canvas.width - padL - 40;
-      const chartH = canvas.height - padT - 50;
+      const chartW = 600 - padL - 40;
+      const chartH = 320 - padT - 50;
 
       list.forEach((val: number, hr: number) => {
         const w = chartW / list.length;

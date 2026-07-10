@@ -151,7 +151,10 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
               <button className="p-1.5 hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-200 rounded text-xs font-mono font-semibold cursor-pointer">Excel</button>
             </div>
             <div className="flex items-center gap-2 text-xs font-mono">
-              <button className="flex items-center gap-1 px-2.5 py-1.5 bg-[#046a38] border border-[#3ecf8e] text-white rounded-lg transition-colors cursor-pointer font-medium">
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#046a38] border border-[#3ecf8e] text-white rounded-lg transition-colors cursor-pointer font-medium"
+              >
                 <Download className="h-3.5 w-3.5 text-white" />
                 <span>PDF Report</span>
               </button>

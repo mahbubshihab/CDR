@@ -89,3 +89,46 @@ body {
 .leaflet-popup-tip {
   background: #1e1e1e !important;
 }
+
+/* @media print styles for perfect high-contrast PDF reports */
+@media print {
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 0;
+    margin: 0;
+  }
+  aside {
+    display: none !important;
+  }
+  button, .no-print-actions, nav, .flex-wrap, .shrink-0, .border-b {
+    display: none !important;
+  }
+  .grid {
+    display: block !important;
+  }
+  .grid > div {
+    page-break-inside: avoid !important;
+    margin-bottom: 20px !important;
+    width: 100% !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    color: #000000 !important;
+  }
+  div, span, table, tr, th, td, h2, h3, strong, p {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-color: #cccccc !important;
+  }
+  .bg-\[\#1e1e1e\], .bg-\[\#171717\], .bg-\[\#121212\] {
+    background-color: #ffffff !important;
+  }
+  svg {
+    filter: none !important;
+  }
+  svg polyline {
+    stroke: #059669 !important;
+  }
+}

@@ -36,7 +36,21 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
     });
 
     const sortedDates = Object.keys(countsMap).sort();
-    const list = sortedDates.map(date => ({ date, count: countsMap[date] }));
+    const list: { date: string; count: number }[] = [];
+    if (sortedDates.length > 0) {
+      const minDate = new Date(sortedDates[0]);
+      const maxDate = new Date(sortedDates[sortedDates.length - 1]);
+      
+      const curr = new Date(minDate);
+      while (curr <= maxDate) {
+        const dateStr = curr.toISOString().split('T')[0];
+        list.push({
+          date: dateStr,
+          count: countsMap[dateStr] || 0
+        });
+        curr.setDate(curr.getDate() + 1);
+      }
+    }
     
     // Find Peak
     let peakDate = '—';
@@ -221,28 +235,30 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
 
         {/* Timeline Mini Data Table */}
         <div className="mt-4">
-          <div className="overflow-hidden border border-[#2e2e2e]/60 rounded-lg">
-            <table className="w-full text-left border-collapse text-[11px] font-mono">
-              <thead>
-                <tr className="bg-[#171717] border-b border-[#2e2e2e] text-gray-300">
-                  <th className="py-1.5 px-3">Date</th>
-                  <th className="py-1.5 px-3 text-right">Events</th>
-                  <th className="py-1.5 px-3 text-right">%</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#2e2e2e]/40 text-gray-300">
-                {timelineData.list.slice(0, 3).map((item, idx) => {
-                  const total = timelineData.list.reduce((a,b)=>a+b.count,0) || 1;
-                  return (
-                    <tr key={idx} className="hover:bg-[#171717]/40">
-                      <td className="py-1.5 px-3 text-gray-200 font-medium">{item.date}</td>
-                      <td className="py-1.5 px-3 text-right font-semibold text-white">{item.count}</td>
-                      <td className="py-1.5 px-3 text-right text-gray-400">{((item.count / total) * 100).toFixed(1)}%</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="border border-[#2e2e2e]/60 rounded-lg overflow-hidden">
+            <div className="max-h-36 overflow-y-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse text-[11px] font-mono">
+                <thead className="sticky top-0 bg-[#171717] border-b border-[#2e2e2e] text-gray-300 z-10">
+                  <tr>
+                    <th className="py-1.5 px-3">Date</th>
+                    <th className="py-1.5 px-3 text-right">Events</th>
+                    <th className="py-1.5 px-3 text-right">%</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2e2e2e]/40 text-gray-300">
+                  {timelineData.list.map((item, idx) => {
+                    const total = timelineData.list.reduce((a,b)=>a+b.count,0) || 1;
+                    return (
+                      <tr key={idx} className="hover:bg-[#171717]/40">
+                        <td className="py-1.5 px-3 text-gray-200 font-medium">{item.date}</td>
+                        <td className="py-1.5 px-3 text-right font-semibold text-white">{item.count}</td>
+                        <td className="py-1.5 px-3 text-right text-gray-400">{((item.count / total) * 100).toFixed(1)}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </ChartCardWrapper>
