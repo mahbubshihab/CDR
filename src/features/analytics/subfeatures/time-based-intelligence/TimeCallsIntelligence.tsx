@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Sun, Moon, Download, FileText, Map as MapIcon, Database, BarChart3, Link, Globe } from 'lucide-react';
-import { CDRRecord } from '../../../../types/cdr';
+import { CDRRecord } from '../../../../utils/db';
 import { TimeRangeFilter } from './TimeRangeFilter';
 
 interface TimeCallsIntelligenceProps {
