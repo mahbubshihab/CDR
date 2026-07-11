@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
 import { Server, Phone, MessageSquare, ShieldAlert, Cpu } from 'lucide-react';
 
@@ -8,6 +9,8 @@ interface NetworkAnalysisProps {
 }
 
 export const NetworkAnalysis: React.FC<NetworkAnalysisProps> = ({ cdrFile, records }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Aggregate network carrier stats
   const carrierStats = useMemo(() => {
     const map: { 
@@ -45,15 +48,45 @@ export const NetworkAnalysis: React.FC<NetworkAnalysisProps> = ({ cdrFile, recor
     }));
   }, [records]);
 
+  const filteredStats = useMemo(() => {
+    if (!searchTerm.trim()) return carrierStats;
+    const lower = searchTerm.toLowerCase();
+    return carrierStats.filter(op => {
+      const avgDur = op.voiceCount > 0 ? (op.duration / op.voiceCount).toFixed(0) : '—';
+      return (
+        op.name.toLowerCase().includes(lower) ||
+        String(op.voiceCount).includes(lower) ||
+        String(op.smsCount).includes(lower) ||
+        String(op.duration).includes(lower) ||
+        String(avgDur).includes(lower) ||
+        String(op.pct).includes(lower)
+      );
+    });
+  }, [carrierStats, searchTerm]);
+
   return (
     <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#121212] animate-in fade-in duration-300">
       
       {/* Title Header */}
-      <div className="border-b border-[#2e2e2e] pb-4">
-        <h2 className="text-sm font-semibold text-gray-200">Network / Carrier Analysis</h2>
-        <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-wider">
-          Cellular provider shares, durations, and SMS-voice splits for target: <strong className="text-gray-300 font-mono font-bold">{cdrFile.phoneNumber}</strong>
-        </p>
+      <div className="border-b border-[#2e2e2e] pb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-200">Network / Carrier Analysis</h2>
+          <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-wider">
+            Cellular provider shares, durations, and SMS-voice splits for target: <strong className="text-gray-300 font-mono font-bold">{cdrFile.phoneNumber}</strong>
+          </p>
+        </div>
+        <div className="relative shrink-0">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-500" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search network stats..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full sm:w-64 bg-[#1a1a1a] border border-[#2e2e2e] text-gray-200 text-xs rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#3ecf8e]/50 focus:ring-1 focus:ring-[#3ecf8e]/50 transition-colors font-mono"
+          />
+        </div>
       </div>
 
       {/* Grid of Operators */}
@@ -108,8 +141,8 @@ export const NetworkAnalysis: React.FC<NetworkAnalysisProps> = ({ cdrFile, recor
               </tr>
             </thead>
             <tbody className="divide-y divide-[#2e2e2e]/40 text-gray-300">
-              {carrierStats.length > 0 ? (
-                carrierStats.map((op, idx) => (
+              {filteredStats.length > 0 ? (
+                filteredStats.map((op, idx) => (
                   <tr key={idx} className="hover:bg-[#171717]/40 transition-colors">
                     <td className="py-3.5 px-4 font-sans text-gray-200 font-semibold">{op.name}</td>
                     <td className="py-3.5 px-4 text-right font-semibold text-gray-300">{op.voiceCount}</td>

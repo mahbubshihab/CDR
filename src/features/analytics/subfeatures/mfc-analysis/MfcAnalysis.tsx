@@ -48,8 +48,7 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
     const totals = {
       inCalls: 0,
       outCalls: 0,
-      inSms: 0,
-      outSms: 0,
+      totalSms: 0,
       duration: 0,
       communications: 0
     };
@@ -68,8 +67,7 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
           
           inCalls: 0,
           outCalls: 0,
-          inSms: 0,
-          outSms: 0,
+          totalSms: 0,
           totalActivities: 0,
           
           totalDurationSeconds: 0,
@@ -108,11 +106,11 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
         stat.outCalls++;
         totals.outCalls++;
       } else if (uType.includes('sms-mt') || uType.includes('incoming sms')) {
-        stat.inSms++;
-        totals.inSms++;
+        stat.totalSms++;
+        totals.totalSms++;
       } else if (uType.includes('sms-mo') || uType.includes('outgoing sms') || uType === 'sms') {
-        stat.outSms++;
-        totals.outSms++;
+        stat.totalSms++;
+        totals.totalSms++;
       } else {
         // Fallback guess
         stat.outCalls++;
@@ -237,8 +235,7 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
       Total: row.totalActivities,
       'In Calls': row.inCalls,
       'Out Calls': row.outCalls,
-      'In SMS': row.inSms,
-      'Out SMS': row.outSms,
+      'Total SMS': row.totalSms,
       'Total Min': Math.round(row.totalDurationSeconds / 60),
       'Total Hrs': (row.totalDurationSeconds / 3600).toFixed(2),
       'First Date': row.firstDate,
@@ -271,8 +268,7 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
         perPage={15}
         inCalls={summaryTotals.inCalls}
         outCalls={summaryTotals.outCalls}
-        inSms={summaryTotals.inSms}
-        outSms={summaryTotals.outSms}
+        totalSms={summaryTotals.totalSms}
         totalMin={Math.round(summaryTotals.duration / 60)}
         totalHrs={summaryTotals.duration / 3600}
       />

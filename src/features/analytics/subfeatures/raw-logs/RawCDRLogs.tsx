@@ -14,13 +14,8 @@ export const RawCDRLogs: React.FC<RawCDRLogsProps> = ({ cdrFile, records }) => {
     if (!searchTerm.trim()) return records;
     const lowerSearch = searchTerm.toLowerCase();
     return records.filter(rec => {
-      return (
-        (rec.otherParty && rec.otherParty.toLowerCase().includes(lowerSearch)) ||
-        (rec.imei && rec.imei.toLowerCase().includes(lowerSearch)) ||
-        (rec.imsi && rec.imsi.toLowerCase().includes(lowerSearch)) ||
-        (rec.address && rec.address.toLowerCase().includes(lowerSearch)) ||
-        (rec.usageType && rec.usageType.toLowerCase().includes(lowerSearch)) ||
-        (rec.provider && rec.provider.toLowerCase().includes(lowerSearch))
+      return Object.values(rec).some(val => 
+        val !== null && val !== undefined && String(val).toLowerCase().includes(lowerSearch)
       );
     });
   }, [records, searchTerm]);

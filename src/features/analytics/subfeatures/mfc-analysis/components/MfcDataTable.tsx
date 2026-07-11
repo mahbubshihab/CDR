@@ -14,7 +14,7 @@ export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
 
   const allColumns = [
     'Rank', 'B-Party Number', 'Type', 'Operator', 'Country', 'Total',
-    'In Calls', 'Out Calls', 'In SMS', 'Out SMS', 'Total Min', 'Total Hrs',
+    'In Calls', 'Out Calls', 'Total SMS', 'Total Min', 'Total Hrs',
     'Avg Dur', 'Longest', 'Shortest', 'First Date', 'First Time', 'Last Date',
     'Last Time', 'Active Days', 'Locations', 'IMEIs', 'Freq Score'
   ];
@@ -77,8 +77,7 @@ export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
       <Th align="right" colName="Total">Total</Th>
       <Th align="right" colName="In Calls">In Calls</Th>
       <Th align="right" colName="Out Calls">Out Calls</Th>
-      <Th align="right" colName="In SMS">In SMS</Th>
-      <Th align="right" colName="Out SMS">Out SMS</Th>
+      <Th align="right" colName="Total SMS">Total SMS</Th>
       <Th align="right" colName="Total Min">Total Min</Th>
       <Th align="right" colName="Total Hrs">Total Hrs</Th>
       <Th align="right" colName="Avg Dur">Avg Dur</Th>
@@ -121,16 +120,10 @@ export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
             {row.outCalls}
           </span>
         </Td>
-        <Td align="right" color="text-gray-400" colName="In SMS">
+        <Td align="right" color="text-gray-400" colName="Total SMS">
           <span className="flex items-center justify-end gap-1.5">
             <MessageSquare className="h-3 w-3 text-emerald-500 print:text-emerald-700" />
-            {row.inSms}
-          </span>
-        </Td>
-        <Td align="right" color="text-gray-400" colName="Out SMS">
-          <span className="flex items-center justify-end gap-1.5">
-            <ArrowRightSquare className="h-3 w-3 text-indigo-500 print:text-indigo-700" />
-            {row.outSms}
+            {row.totalSms}
           </span>
         </Td>
         
