@@ -2,23 +2,23 @@
 @import "tailwindcss";
  
 @theme {
-  --color-brand-canvas: #121212;
-  --color-brand-sidebar: #171717;
-  --color-brand-card: #1e1e1e;
-  --color-brand-input: #121212;
+  --color-brand-canvas: #081025;
+  --color-brand-sidebar: #0c152d;
+  --color-brand-card: #0f1d40;
+  --color-brand-input: #0b1226;
   
-  --color-brand-blue: #3ecf8e;
-  --color-brand-emerald: #3ecf8e;
-  --color-brand-cyan: #0ea5e9;
-  --color-brand-purple: #8b5cf6;
+  --color-brand-blue: #1d6bf3;
+  --color-brand-emerald: #10b981;
+  --color-brand-cyan: #06b6d4;
+  --color-brand-purple: #a855f7;
   --font-mono: "Geist Mono", "JetBrains Mono", monospace;
   --font-sans: "Geist", "Inter", sans-serif;
 }
  
 /* Custom Base Styles for Supabase Dashboard */
 body {
-  background-color: #121212;
-  color: #ededed;
+  background-color: #081025;
+  color: #cbd5e1;
   font-family: var(--font-sans);
   overflow-x: hidden;
   min-height: 100vh;
@@ -27,10 +27,10 @@ body {
  
 /* Premium Glassmorphic Panels in Flat Theme */
 .glass-panel {
-  background: rgba(30, 30, 30, 0.65);
+  background: rgba(12, 21, 45, 0.65);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(29, 107, 243, 0.1);
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
 }
  
@@ -41,16 +41,92 @@ body {
 }
  
 ::-webkit-scrollbar-track {
-  background: #171717;
+  background: #081025;
 }
  
 ::-webkit-scrollbar-thumb {
-  background: #2e2e2e;
+  background: #1e2e5a;
   border-radius: 99px;
 }
  
 ::-webkit-scrollbar-thumb:hover {
-  background: #3ecf8e;
+  background: #1d6bf3;
+}
+
+/* ==========================================
+   CYBER-NOIR NAVY THEME OVERRIDES
+   ========================================== */
+
+/* Canvas backgrounds */
+.bg-\[\#121212\] {
+  background-color: #081025 !important;
+}
+
+/* Sidebar backgrounds */
+.bg-\[\#171717\] {
+  background-color: #0c152d !important;
+}
+
+/* Card backgrounds */
+.bg-\[\#1e1e1e\] {
+  background-color: #0f1d40 !important;
+}
+
+/* Row hover backgrounds */
+.hover\:bg-\[\#1c1c1c\]\/50:hover {
+  background-color: rgba(29, 107, 243, 0.1) !important;
+}
+.hover\:bg-\[\#1e1e1e\]:hover, .hover\:bg-\[\#1a1a1a\]:hover {
+  background-color: #1c2a52 !important;
+}
+.bg-\[\#2e2e2e\] {
+  background-color: #1d6bf3 !important; /* Active navigation item background */
+}
+
+/* Primary actions and buttons */
+.bg-\[\#046a38\] {
+  background-color: #1d6bf3 !important; /* Change green buttons to active blue */
+  border-color: #1d6bf3 !important;
+}
+.hover\:bg-\[\#00522c\]:hover {
+  background-color: #1a5ec7 !important;
+}
+
+/* Border colors */
+.border-\[\#2e2e2e\] {
+  border-color: #1e2e5a !important;
+}
+.border-r-\[\#2e2e2e\], .border-r {
+  border-right-color: #1e2e5a !important;
+}
+.border-b-\[\#2e2e2e\], .border-b {
+  border-bottom-color: #1e2e5a !important;
+}
+.border-t-\[\#2e2e2e\], .border-t {
+  border-top-color: #1e2e5a !important;
+}
+
+/* Active highlights and typography */
+.text-\[\#3ecf8e\] {
+  color: #1d6bf3 !important;
+}
+.hover\:text-\[\#3ecf8e\]:hover {
+  color: #1d6bf3 !important;
+}
+.hover\:border-\[\#3ecf8e\]\/30:hover, .hover\:border-\[\#3ecf8e\]\/35:hover {
+  border-color: rgba(29, 107, 243, 0.35) !important;
+}
+.bg-\[\#3ecf8e\] {
+  background-color: #1d6bf3 !important;
+}
+.border-\[\#3ecf8e\] {
+  border-color: #1d6bf3 !important;
+}
+.text-gray-450 {
+  color: #94a3b8 !important;
+}
+.text-gray-500 {
+  color: #64748b !important;
 }
 
 /* Leaflet Map Overrides to fit Dark Theme */
