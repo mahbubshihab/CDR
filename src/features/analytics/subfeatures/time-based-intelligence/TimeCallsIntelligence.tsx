@@ -41,17 +41,40 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
   });
   
   const [activeTab, setActiveTab] = useState('Table');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50;
 
   // Filter records based on mode and time ranges
   const filteredRecords = useMemo(() => {
-    return records.filter(r => {
+    let result = records.filter(r => {
       if (mode === 'day') {
         return isTimeInRange(r.timestamp, ranges.dayStart, ranges.dayEnd);
       } else {
         return isTimeInRange(r.timestamp, ranges.nightStart, ranges.nightEnd);
       }
     });
-  }, [records, mode, ranges]);
+
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      result = result.filter(r => 
+        (r.aparty && r.aparty.toLowerCase().includes(lower)) ||
+        (r.otherParty && r.otherParty.toLowerCase().includes(lower)) ||
+        (r.imei && r.imei.toLowerCase().includes(lower)) ||
+        (r.imsi && r.imsi.toLowerCase().includes(lower)) ||
+        (r.address && r.address.toLowerCase().includes(lower)) ||
+        (r.cellId && r.cellId.toString().includes(lower))
+      );
+    }
+    
+    return result;
+  }, [records, mode, ranges, searchTerm]);
+
+  const totalPages = Math.ceil(filteredRecords.length / pageSize);
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRecords.slice(start, start + pageSize);
+  }, [filteredRecords, currentPage]);
 
   // Aggregate stats
   const stats = useMemo(() => {
@@ -117,37 +140,38 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
 
       {/* Content Area */}
       {activeTab === 'Table' && (
-        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col">
-          <div className="p-4 border-b border-[#2e2e2e] flex items-center justify-between">
+        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col flex-1 min-h-0">
+          <div className="p-4 border-b border-[#2e2e2e] flex items-center justify-between shrink-0">
             <input 
               type="text" 
               placeholder="Search..." 
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white w-64 focus:outline-none focus:border-[#3ecf8e]" 
             />
             <div className="flex items-center gap-4 text-xs font-mono text-gray-500">
-              <span>Columns</span>
+              <span className="bg-[#1e1e1e] border border-[#2e2e2e] px-3 py-1 rounded cursor-pointer">Columns</span>
               <span>{filteredRecords.length} rows</span>
             </div>
           </div>
           
-          <div className="w-full">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-[#1a1a1a] sticky top-0 z-10">
+          <div className="flex-1 overflow-auto custom-scrollbar relative">
+            <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
+              <thead className="bg-[#1a1a1a] sticky top-0 z-10 shadow-sm">
                 <tr>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">A-Number</th>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">A Operator</th>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">B-Number</th>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">B Operator</th>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Type</th>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">In/Out</th>
                   <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Date</th>
                   <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Time</th>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Min</th>
+                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Type</th>
+                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">A-Number</th>
+                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">B-Number</th>
+                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Duration</th>
                   <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">IMEI</th>
                   <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">IMSI</th>
                   <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Cell</th>
                   <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Location</th>
-                  <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Lat</th>
                   <th className="p-3 text-gray-400 font-semibold border-b border-[#2e2e2e]">Lng</th>
                 </tr>
               </thead>

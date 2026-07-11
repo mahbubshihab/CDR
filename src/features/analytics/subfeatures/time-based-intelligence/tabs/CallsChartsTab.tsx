@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { Download, Camera, Printer, Maximize2, Hash, Clock, Flame, CheckSquare } from 'lucide-react';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { type CDRRecord } from '../../../../../utils/db';
 
 interface CallsChartsTabProps {
@@ -115,25 +116,16 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
   const highlightColor = mode === 'day' ? '#facc15' : '#fef08a'; // Yellow
   const greenColor = '#3ecf8e';
 
-  const CardHeader = ({ title }: { title: string }) => (
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-sm font-semibold text-gray-300">{title}</h3>
-      <div className="flex gap-3 bg-[#1e1e1e] px-2 py-1.5 rounded border border-[#2e2e2e]">
-        <Download className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-        <Camera className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-        <Printer className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-        <Maximize2 className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-      </div>
-    </div>
-  );
-
   return (
-    <div className="w-full flex flex-col gap-6 pb-10">
-      {/* ROW 1: Call Frequency & Communication Timeline */}
-      <div className="grid grid-cols-2 gap-6">
+    <div className="flex flex-col gap-6 pb-10">
+      <div className="flex gap-6 h-full min-h-[600px]">
         {/* Call Frequency */}
-        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col h-[600px]">
-          <CardHeader title={`${modeLabel} Call Frequency`} />
+        <ExportableChartCard 
+          title={`${modeLabel} Call Frequency`}
+          exportData={chartData.hourlyList}
+          className="flex-1 w-1/2 h-[600px] !bg-[#121212] !border-[#2e2e2e]"
+          contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
+        >
           <div className="flex-1 flex flex-col gap-4 min-h-0">
             {/* Top Area: Stats */}
             <div className="flex justify-around items-center shrink-0 py-2 border-b border-[#2e2e2e]/50 mb-2">
@@ -198,11 +190,15 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
               </div>
             </div>
           </div>
-        </div>
+        </ExportableChartCard>
 
         {/* Communication Timeline */}
-        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col h-[600px]">
-          <CardHeader title={`${modeLabel} Communication Timeline`} />
+        <ExportableChartCard 
+          title={`${modeLabel} Communication Timeline`}
+          exportData={chartData.dailyData}
+          className="flex-1 w-1/2 h-[600px] !bg-[#121212] !border-[#2e2e2e]"
+          contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
+        >
           <div className="text-[11px] text-gray-400 mb-6 flex gap-4 font-mono shrink-0">
             <span>Total: <strong className="text-white">{chartData.stats.totalEvents}</strong></span>
             <span>Days: <strong className="text-white">{chartData.stats.daysCount}</strong></span>
@@ -237,14 +233,18 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
               </div>
             </div>
           </div>
-        </div>
+        </ExportableChartCard>
       </div>
 
       {/* ROW 2: Contact Distribution & Duration Distribution */}
       <div className="grid grid-cols-2 gap-6">
         {/* Contact Distribution */}
-        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col h-[400px]">
-          <CardHeader title={`${modeLabel} Contact Distribution`} />
+        <ExportableChartCard 
+          title={`${modeLabel} Contact Distribution`}
+          exportData={chartData.topContacts}
+          className="h-[400px] !bg-[#121212] !border-[#2e2e2e]"
+          contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
+        >
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
             <div className="flex flex-col gap-4">
               {chartData.topContacts.map((c, i) => {
@@ -270,11 +270,15 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
               })}
             </div>
           </div>
-        </div>
+        </ExportableChartCard>
 
         {/* Duration Distribution */}
-        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col h-[400px]">
-          <CardHeader title={`${modeLabel} Duration Distribution`} />
+        <ExportableChartCard 
+          title={`${modeLabel} Duration Distribution`}
+          exportData={chartData.durationData}
+          className="h-[400px] !bg-[#121212] !border-[#2e2e2e]"
+          contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
+        >
           <div className="flex-1 flex items-center min-h-0">
             <div className="w-1/2 h-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -315,14 +319,17 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
               </div>
             </div>
           </div>
-        </div>
+        </ExportableChartCard>
       </div>
 
       {/* ROW 3: Heatmap & Top Contacts (Yellow) */}
       <div className="grid grid-cols-2 gap-6">
         {/* Heatmap */}
-        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col h-[480px]">
-          <CardHeader title={`${modeLabel} Activity Heatmap (Hourly)`} />
+        <ExportableChartCard 
+          title={`${modeLabel} Activity Heatmap (Hourly)`}
+          className="h-[480px] !bg-[#121212] !border-[#2e2e2e]"
+          contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
+        >
           <div className="flex-1 flex flex-col min-h-0">
             <div className="flex mb-2 shrink-0">
               <div className="w-8 text-[9px] text-gray-500">Day</div>
@@ -335,16 +342,26 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
               const hourMap = chartData.heatmapData.get(day) || new Map();
               return (
                 <div key={day} className="flex mb-1">
-                  <div className="w-8 text-[10px] text-gray-300 pt-1">{day}</div>
-                  <div className="flex-1 flex gap-1">
-                    {Array.from({ length: 24 }).map((_, i) => {
-                      const count = hourMap.get(i) || 0;
-                      const opacity = count > 0 ? Math.min(0.2 + (count * 0.1), 1) : 0.05;
+                  <div className="w-8 text-[10px] text-gray-400 font-mono leading-6">{day}</div>
+                  <div className="flex-1 flex gap-0.5">
+                    {Array.from({length: 24}).map((_, h) => {
+                      const count = hourMap.get(h) || 0;
+                      // Determine color intensity based on count
+                      const maxCount = Math.max(1, ...Array.from(chartData.heatmapData.values()).flatMap(m => Array.from(m.values() as Iterable<number>)));
+                      let opacity = count === 0 ? 0 : Math.max(0.2, count / maxCount);
+                      
                       return (
-                        <div key={i} className="flex-1 aspect-square bg-[#facc15] rounded-sm group relative" style={{ opacity }}>
-                          <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#1e1e1e] border border-[#2e2e2e] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
-                            {count}
-                          </span>
+                        <div 
+                          key={h} 
+                          className="flex-1 h-6 rounded-sm flex items-center justify-center group relative cursor-pointer"
+                          style={{ backgroundColor: count === 0 ? '#1e1e1e' : highlightColor, opacity: count === 0 ? 1 : opacity }}
+                        >
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-50">
+                            <div className="bg-[#2a2a2a] text-white text-[10px] px-2 py-1 rounded whitespace-nowrap border border-[#3e3e3e]">
+                              {day} {h}:00 - {count} events
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
@@ -376,11 +393,15 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
               </div>
             </div>
           </div>
-        </div>
+        </ExportableChartCard>
 
         {/* Top Contacts (Yellow Bars) */}
-        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col h-[480px]">
-          <CardHeader title={`Top ${modeLabel} Contacts`} />
+        <ExportableChartCard 
+          title={`Top ${modeLabel} Contacts`}
+          exportData={chartData.topContacts}
+          className="h-[480px] !bg-[#121212] !border-[#2e2e2e]"
+          contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
+        >
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
             <div className="flex flex-col gap-4 mt-4">
               {chartData.topContacts.map((c, i) => {
@@ -406,7 +427,7 @@ export const CallsChartsTab: React.FC<CallsChartsTabProps> = ({ records, mode })
               })}
             </div>
           </div>
-        </div>
+        </ExportableChartCard>
       </div>
     </div>
   );

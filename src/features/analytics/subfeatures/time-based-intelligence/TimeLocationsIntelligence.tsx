@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Sun, Moon, Download, Camera, Printer, Maximize2, Search } from 'lucide-react';
+import { Sun, Moon, Download, FileText, Map as MapIcon, Search } from 'lucide-react';
+import { ExportableChartCard } from '../../../../components/ui/ExportableChartCard';
 import { type CDRRecord } from '../../../../utils/db';
 import { TimeRangeFilter } from './TimeRangeFilter';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -37,7 +38,10 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
   });
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50;
 
+  // Filter records based on mode and time ranges
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
       if (mode === 'day') {
@@ -99,7 +103,6 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
     return result;
   }, [filteredRecords]);
 
-  const filteredLocStats = locStats.filter(s => s.location.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // Aggregate stats
   const stats = useMemo(() => {
@@ -114,12 +117,24 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
   const Icon = mode === 'day' ? Sun : Moon;
   const title = mode === 'day' ? 'Day Locations' : 'Night Locations';
   const subtitle = `Sirf ${mode} time window ke events dikhaye jate hain — Location Summary se kam hona normal hai. Neeche time range badal kar zyada data include kar sakte hain.`;
+  const filteredLocStats = useMemo(() => {
+    if (!searchTerm) return locStats;
+    const lower = searchTerm.toLowerCase();
+    return locStats.filter(s => s.location.toLowerCase().includes(lower));
+  }, [locStats, searchTerm]);
+
+  const totalPages = Math.ceil(filteredLocStats.length / pageSize);
+  const paginatedLocStats = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredLocStats.slice(start, start + pageSize);
+  }, [filteredLocStats, currentPage]);
+
   const primaryColor = mode === 'day' ? '#facc15' : '#60a5fa';
 
   return (
     <div className="w-full h-full flex flex-col gap-6 p-6 pb-10 bg-[#0a0a0a] custom-scrollbar overflow-y-auto">
       {/* Header Panel */}
-      <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 shadow-lg">
+      <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 shadow-lg shrink-0">
         <div className="flex items-center gap-3 mb-2">
           <Icon className={`w-5 h-5 ${mode === 'day' ? 'text-yellow-400' : 'text-blue-400'}`} />
           <h1 className="text-lg font-bold text-white">{title}</h1>
@@ -154,16 +169,12 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
       </div>
 
       {/* Location Frequency Chart */}
-      <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col h-[400px] shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-300">Location Frequency</h3>
-          <div className="flex gap-3 bg-[#1e1e1e] px-2 py-1.5 rounded border border-[#2e2e2e]">
-            <Download className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-            <Camera className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-            <Printer className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-            <Maximize2 className="w-3.5 h-3.5 text-gray-400 hover:text-white cursor-pointer" />
-          </div>
-        </div>
+      <ExportableChartCard 
+        title="Location Frequency"
+        exportData={locStats}
+        className="h-[400px] !bg-[#121212] !border-[#2e2e2e]"
+        contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
+      >
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={locStats.slice(0, 20)}>
@@ -178,7 +189,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </ExportableChartCard>
 
       {/* Location Table */}
       <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col shadow-lg overflow-hidden">
@@ -216,7 +227,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#2e2e2e]">
-              {filteredLocStats.map((s, i) => (
+              {paginatedLocStats.map((s, i) => (
                 <tr key={i} className="hover:bg-[#1e1e1e] transition-colors font-mono">
                   <td className="p-3 text-gray-200">{s.location}</td>
                   <td className="p-3 text-gray-300">{s.visits}</td>
@@ -230,7 +241,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
                   <td className="p-3 text-gray-400">{s.lastStr}</td>
                 </tr>
               ))}
-              {filteredLocStats.length === 0 && (
+              {paginatedLocStats.length === 0 && (
                 <tr>
                   <td colSpan={10} className="p-8 text-center text-gray-500 font-mono">
                     No locations found matching your criteria.
@@ -240,6 +251,34 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="p-3 border-t border-[#2e2e2e] bg-[#1a1a1a] flex items-center justify-between text-xs text-gray-400">
+            <div>
+              Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredLocStats.length)} of {filteredLocStats.length} entries
+            </div>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2 py-1 rounded bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <div className="px-3 py-1 font-mono">
+                {currentPage} / {totalPages}
+              </div>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 rounded bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
