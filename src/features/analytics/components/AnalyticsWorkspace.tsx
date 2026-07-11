@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Menu, Database, LayoutDashboard, 
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
-  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall
+  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
@@ -22,7 +22,8 @@ import { ServiceNumbers } from '../subfeatures/service-numbers/ServiceNumbers';
 import { ImeiPatterns } from '../subfeatures/imei-patterns/ImeiPatterns';
 import { ImsiPatterns } from '../subfeatures/imsi-patterns/ImsiPatterns';
 import { FirstLastCall } from '../subfeatures/first-last-call/FirstLastCall';
-
+import { TimeCallsIntelligence } from '../subfeatures/time-based-intelligence/TimeCallsIntelligence';
+import { TimeLocationsIntelligence } from '../subfeatures/time-based-intelligence/TimeLocationsIntelligence';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -71,8 +72,12 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'imei_patterns', name: 'IMEI Patterns', icon: Cpu },
     { id: 'imsi_patterns', name: 'IMSI Patterns', icon: Wifi },
     { id: 'first_last_call', name: 'First / Last Call', icon: PhoneCall },
+    { id: 'day_calls', name: 'Day Calls Intelligence', icon: Sun },
+    { id: 'night_calls', name: 'Night Calls Intelligence', icon: Moon },
     { id: 'locations', name: 'Location Summary', icon: MapPin },
-    { id: 'loc_intel', name: 'Location Intelligence', icon: Map }
+    { id: 'loc_intel', name: 'Location Intelligence', icon: Map },
+    { id: 'day_locations', name: 'Day Locations', icon: Sun },
+    { id: 'night_locations', name: 'Night Locations', icon: Moon }
   ];
 
   if (loading) {
@@ -311,6 +316,14 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <LocationSummary cdrFile={targetFile} records={targetRecords} />
           ) : activeAnalysisTab === 'loc_intel' ? (
             <LocationIntelligence cdrFile={targetFile} records={targetRecords} />
+          ) : activeAnalysisTab === 'day_calls' ? (
+            <TimeCallsIntelligence records={targetRecords} mode="day" />
+          ) : activeAnalysisTab === 'night_calls' ? (
+            <TimeCallsIntelligence records={targetRecords} mode="night" />
+          ) : activeAnalysisTab === 'day_locations' ? (
+            <TimeLocationsIntelligence records={targetRecords} mode="day" />
+          ) : activeAnalysisTab === 'night_locations' ? (
+            <TimeLocationsIntelligence records={targetRecords} mode="night" />
           ) : null}
         </main>
       </div>
