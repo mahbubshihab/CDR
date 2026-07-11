@@ -1,6 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
-import { Server, PhoneCall, MessageSquare, Clock, MapPin } from 'lucide-react';
+import type { BPartyStats } from './types';
+import { MfcMetricsSummary } from './components/MfcMetricsSummary';
+import { MfcFilterBar, type MfcFilterState } from './components/MfcFilterBar';
+import { MfcHighFrequency } from './components/MfcHighFrequency';
+import { MfcChartsRow } from './components/MfcChartsRow';
+import { MfcDataTable } from './components/MfcDataTable';
 
 interface MfcAnalysisProps {
   cdrFile: CDRFile;
@@ -8,206 +13,253 @@ interface MfcAnalysisProps {
 }
 
 export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) => {
-  // Aggregate tower frequency
-  const towerStats = useMemo(() => {
-    const map: { 
-      [key: string]: { 
-        address: string; 
-        lac: number; 
-        cellId: number; 
-        voiceCount: number; 
-        smsCount: number; 
-        total: number;
-        hours: { [hr: number]: number };
-      } 
-    } = {};
+  const [filters, setFilters] = useState<MfcFilterState>({
+    incomingOnly: false,
+    outgoingOnly: false,
+    smsOnly: false,
+    highFrequency: false,
+    minMin: 0,
+    minDays: 0,
+  });
+
+  // Aggregate stats
+  const { allStats, maxActivities, summaryTotals } = useMemo(() => {
+    const map = new Map<string, BPartyStats>();
+    let maxAct = 1;
+    
+    const totals = {
+      inCalls: 0,
+      outCalls: 0,
+      inSms: 0,
+      outSms: 0,
+      duration: 0,
+      communications: 0
+    };
 
     records.forEach(r => {
-      const addr = r.address || 'Unknown Cell Location';
-      const lac = r.lac || 0;
-      const cellId = r.cellId || 0;
-      const key = `${lac}-${cellId}-${addr}`;
-
-      if (!map[key]) {
-        map[key] = {
-          address: addr,
-          lac,
-          cellId,
-          voiceCount: 0,
-          smsCount: 0,
-          total: 0,
-          hours: Array(24).fill(0).reduce((acc, _, idx) => ({ ...acc, [idx]: 0 }), {})
+      if (!r.otherParty) return;
+      const bNumber = r.otherParty;
+      
+      let stat = map.get(bNumber);
+      if (!stat) {
+        stat = {
+          bNumber,
+          type: 'Pakistani Mobile', // Mocked, ideally from a lookup
+          operator: r.provider || 'Unknown',
+          country: 'Pakistan',
+          
+          inCalls: 0,
+          outCalls: 0,
+          inSms: 0,
+          outSms: 0,
+          totalActivities: 0,
+          
+          totalDurationSeconds: 0,
+          longestDurationSeconds: 0,
+          shortestDurationSeconds: Infinity,
+          
+          firstDate: '',
+          firstTime: '',
+          lastDate: '',
+          lastTime: '',
+          
+          firstTimestamp: Infinity,
+          lastTimestamp: 0,
+          
+          activeDays: 0,
+          uniqueDays: new Set<string>(),
+          
+          locations: 0,
+          uniqueLocations: new Set<string>(),
+          
+          imeis: 0,
+          uniqueImeis: new Set<string>(),
+          
+          hourlyActivity: Array(24).fill(0),
+          freqScore: 0
         };
+        map.set(bNumber, stat);
       }
 
-      // Check type
-      const type = r.usageType.toLowerCase();
-      if (type.includes('sms')) {
-        map[key].smsCount++;
+      // Usage type logic
+      const uType = r.usageType.toLowerCase();
+      let isIncoming = false;
+      let isOutgoing = false;
+      let isSms = false;
+      let isCall = false;
+      
+      if (uType.includes('mtc') || uType.includes('incoming call') || uType === 'incoming') {
+        isIncoming = true;
+        isCall = true;
+        stat.inCalls++;
+        totals.inCalls++;
+      } else if (uType.includes('moc') || uType.includes('outgoing call') || uType === 'outgoing' || uType === 'voice') {
+        isOutgoing = true;
+        isCall = true;
+        stat.outCalls++;
+        totals.outCalls++;
+      } else if (uType.includes('sms-mt') || uType.includes('incoming sms')) {
+        isIncoming = true;
+        isSms = true;
+        stat.inSms++;
+        totals.inSms++;
+      } else if (uType.includes('sms-mo') || uType.includes('outgoing sms') || uType === 'sms') {
+        isOutgoing = true;
+        isSms = true;
+        stat.outSms++;
+        totals.outSms++;
       } else {
-        map[key].voiceCount++;
+        // Fallback guess
+        stat.outCalls++;
+        totals.outCalls++;
       }
-      map[key].total++;
+      
+      stat.totalActivities++;
+      totals.communications++;
 
-      // Hour parsing
+      // Duration
+      if (r.duration) {
+        stat.totalDurationSeconds += r.duration;
+        totals.duration += r.duration;
+        if (r.duration > stat.longestDurationSeconds) stat.longestDurationSeconds = r.duration;
+        if (r.duration < stat.shortestDurationSeconds) stat.shortestDurationSeconds = r.duration;
+      }
+
+      // Time & Temporal
       if (r.timestamp) {
-        const timeStr = String(r.timestamp);
-        let hr = -1;
-        if (timeStr.length === 14) {
-          hr = parseInt(timeStr.substring(8, 10), 10);
-        } else {
-          try {
+        if (r.timestamp < stat.firstTimestamp) stat.firstTimestamp = r.timestamp;
+        if (r.timestamp > stat.lastTimestamp) stat.lastTimestamp = r.timestamp;
+        
+        try {
+          // CDRs often use exact 14 chars like 20260105000000
+          const timeStr = String(r.timestamp);
+          let dateStr = '';
+          let timeOfDayStr = '';
+          let hr = 0;
+          
+          if (timeStr.length === 14) {
+            dateStr = `${timeStr.substring(0,4)}-${timeStr.substring(4,6)}-${timeStr.substring(6,8)}`;
+            timeOfDayStr = `${timeStr.substring(8,10)}:${timeStr.substring(10,12)}:${timeStr.substring(12,14)}`;
+            hr = parseInt(timeStr.substring(8,10), 10);
+          } else {
             const d = new Date(r.timestamp);
             if (!isNaN(d.getTime())) {
+              dateStr = d.toISOString().split('T')[0];
+              timeOfDayStr = d.toTimeString().split(' ')[0];
               hr = d.getHours();
             }
-          } catch (_) {}
-        }
-        if (hr >= 0 && hr < 24) {
-          map[key].hours[hr] = (map[key].hours[hr] || 0) + 1;
-        }
+          }
+          
+          if (dateStr) stat.uniqueDays.add(dateStr);
+          if (hr >= 0 && hr < 24) stat.hourlyActivity[hr]++;
+        } catch(e) {}
+      }
+
+      // Location & IMEI
+      if (r.address || r.cellId) stat.uniqueLocations.add(`${r.lac}-${r.cellId}`);
+      if (r.imei) stat.uniqueImeis.add(r.imei);
+      
+      if (stat.totalActivities > maxAct) {
+        maxAct = stat.totalActivities;
       }
     });
 
-    const sorted = Object.values(map)
-      .sort((a, b) => b.total - a.total)
-      .map(item => {
-        // Find peak hour
-        let peakHr = 0;
-        let peakCount = 0;
-        Object.entries(item.hours).forEach(([hr, cnt]) => {
-          if (cnt > peakCount) {
-            peakCount = cnt;
-            peakHr = parseInt(hr, 10);
-          }
-        });
+    // Finalize stats (arrays -> sets -> counts)
+    const statsArray = Array.from(map.values()).map(stat => {
+      stat.activeDays = stat.uniqueDays.size;
+      stat.locations = stat.uniqueLocations.size;
+      stat.imeis = stat.uniqueImeis.size;
+      if (stat.shortestDurationSeconds === Infinity) stat.shortestDurationSeconds = 0;
+      
+      // format first/last
+      if (stat.firstTimestamp !== Infinity) {
+        const timeStr = String(stat.firstTimestamp);
+        if (timeStr.length === 14) {
+          stat.firstDate = `${timeStr.substring(0,4)}-${timeStr.substring(4,6)}-${timeStr.substring(6,8)}`;
+          stat.firstTime = `${timeStr.substring(8,10)}:${timeStr.substring(10,12)}:${timeStr.substring(12,14)}`;
+        } else {
+           const d = new Date(stat.firstTimestamp);
+           if(!isNaN(d.getTime())) {
+             stat.firstDate = d.toISOString().split('T')[0];
+             stat.firstTime = d.toTimeString().split(' ')[0];
+           }
+        }
+      }
+      
+      if (stat.lastTimestamp !== 0) {
+        const timeStr = String(stat.lastTimestamp);
+        if (timeStr.length === 14) {
+          stat.lastDate = `${timeStr.substring(0,4)}-${timeStr.substring(4,6)}-${timeStr.substring(6,8)}`;
+          stat.lastTime = `${timeStr.substring(8,10)}:${timeStr.substring(10,12)}:${timeStr.substring(12,14)}`;
+        } else {
+           const d = new Date(stat.lastTimestamp);
+           if(!isNaN(d.getTime())) {
+             stat.lastDate = d.toISOString().split('T')[0];
+             stat.lastTime = d.toTimeString().split(' ')[0];
+           }
+        }
+      }
+      
+      stat.freqScore = (stat.totalActivities / maxAct) * 100;
+      return stat;
+    });
 
-        return {
-          ...item,
-          peakHourStr: `${peakHr.toString().padStart(2, '0')}:00 - ${(peakHr + 1).toString().padStart(2, '0')}:00`
-        };
-      });
+    statsArray.sort((a, b) => b.totalActivities - a.totalActivities);
 
-    const totalRecords = records.length || 1;
-    return {
-      list: sorted,
-      totalTowers: sorted.length,
-      peakTower: sorted[0] || null,
-      peakPct: sorted[0] ? ((sorted[0].total / totalRecords) * 100).toFixed(1) : '0'
-    };
+    return { allStats: statsArray, maxActivities: maxAct, summaryTotals: totals };
   }, [records]);
 
-  return (
-    <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#121212] animate-in fade-in duration-300">
+  // Apply Filters
+  const filteredStats = useMemo(() => {
+    return allStats.filter(stat => {
+      if (filters.incomingOnly && (stat.inCalls + stat.inSms === 0)) return false;
+      if (filters.outgoingOnly && (stat.outCalls + stat.outSms === 0)) return false;
+      if (filters.smsOnly && (stat.inSms + stat.outSms === 0)) return false;
+      if (filters.highFrequency && stat.freqScore <= 50) return false;
       
-      {/* Title Header */}
-      <div className="border-b border-[#2e2e2e] pb-4">
-        <h2 className="text-sm font-semibold text-gray-200">MFC / IMF Cell Tower Analysis</h2>
-        <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-wider">
-          Pinpoint most frequent locations and coverage densities for suspect: <strong className="text-gray-300 font-mono font-bold">{cdrFile.phoneNumber}</strong>
-        </p>
-      </div>
+      if (filters.minMin > 0 && (stat.totalDurationSeconds / 60) < filters.minMin) return false;
+      if (filters.minDays > 0 && stat.activeDays < filters.minDays) return false;
+      
+      return true;
+    });
+  }, [allStats, filters]);
 
-      {/* KPI Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Unique Cell Towers Visited</span>
-          <span className="text-2xl font-bold text-gray-100 font-mono mt-2">{towerStats.totalTowers}</span>
-          <span className="text-[11px] text-gray-500 font-mono mt-1">Total physical cell IDs logged</span>
-        </div>
-        <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Most Visited Cell Tower</span>
-          <span className="text-sm font-semibold text-[#3ecf8e] mt-2 truncate" title={towerStats.peakTower?.address}>
-            {towerStats.peakTower?.address || '—'}
-          </span>
-          <span className="text-[11px] text-gray-500 font-mono mt-1">
-            {towerStats.peakTower ? `${towerStats.peakTower.total} connections logged` : '—'}
-          </span>
-        </div>
-        <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Peak Tower Density Ratio</span>
-          <span className="text-2xl font-bold text-gray-100 font-mono mt-2">{towerStats.peakPct}%</span>
-          <span className="text-[11px] text-gray-500 font-mono mt-1">Percentage of total target activities at most frequent tower</span>
-        </div>
-      </div>
+  const topContacts = filteredStats.slice(0, 10);
+  const highFreqContacts = allStats.filter(s => s.freqScore > 60).map(s => s.bNumber).slice(0, 5);
 
-      {/* Main Table */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-[#2e2e2e] bg-[#1a1a1a]/30">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Towers Frequency Ranking</h3>
-        </div>
-        
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full border-collapse text-left text-xs font-mono">
-            <thead>
-              <tr className="bg-[#171717] border-b border-[#2e2e2e] text-gray-400 uppercase font-semibold text-[10px] tracking-wider">
-                <th className="py-3 px-4 w-12 text-center">Rank</th>
-                <th className="py-3 px-4">Location Address</th>
-                <th className="py-3 px-4 text-center">LAC</th>
-                <th className="py-3 px-4 text-center">Cell ID</th>
-                <th className="py-3 px-4 text-right">Voice</th>
-                <th className="py-3 px-4 text-right">SMS</th>
-                <th className="py-3 px-4 text-center">Peak Hour Window</th>
-                <th className="py-3 px-4 text-right w-28">Total Count</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#2e2e2e]/40 text-gray-300">
-              {towerStats.list.length > 0 ? (
-                towerStats.list.map((item, idx) => {
-                  const maxTotal = towerStats.peakTower?.total || 1;
-                  const barWidth = ((item.total / maxTotal) * 100).toFixed(0);
-                  return (
-                    <tr key={idx} className="hover:bg-[#171717]/40 transition-colors">
-                      <td className="py-3 px-4 text-center text-gray-500 font-bold">#{idx + 1}</td>
-                      <td className="py-3 px-4 font-sans text-gray-200 font-medium">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-3.5 w-3.5 text-gray-500 shrink-0" />
-                          <span className="truncate max-w-[280px]" title={item.address}>{item.address}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-center">{item.lac}</td>
-                      <td className="py-3 px-4 text-center">{item.cellId}</td>
-                      <td className="py-3 px-4 text-right text-gray-400">
-                        <span className="flex items-center justify-end gap-1">
-                          <PhoneCall className="h-3 w-3 text-gray-500" />
-                          {item.voiceCount}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right text-gray-400">
-                        <span className="flex items-center justify-end gap-1">
-                          <MessageSquare className="h-3 w-3 text-gray-500" />
-                          {item.smsCount}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center text-[#3ecf8e] font-semibold">{item.peakHourStr}</td>
-                      <td className="py-3 px-4">
-                        <div className="space-y-1">
-                          <div className="flex justify-between font-bold text-gray-200">
-                            <span>{item.total}</span>
-                            <span className="text-gray-500 text-[10px]">
-                              {((item.total / (records.length || 1)) * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                          <div className="w-full h-1 bg-[#121212] rounded-full overflow-hidden">
-                            <div className="bg-[#3ecf8e] h-full" style={{ width: `${barWidth}%` }} />
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-gray-500">
-                    No cell tower information found in the active file records.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  const handleExport = (format: 'pdf' | 'excel' | 'csv') => {
+    console.log(`Exporting MFC Analysis as ${format}`);
+    // Trigger export logic (mocked for now)
+  };
 
+  return (
+    <div className="w-full h-full overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar text-left bg-[#121212] animate-in fade-in duration-300 flex flex-col">
+      <MfcMetricsSummary 
+        suspectNumber={cdrFile.phoneNumber}
+        totalContacts={allStats.length}
+        totalCommunications={summaryTotals.communications}
+        perPage={15}
+        inCalls={summaryTotals.inCalls}
+        outCalls={summaryTotals.outCalls}
+        inSms={summaryTotals.inSms}
+        outSms={summaryTotals.outSms}
+        totalMin={Math.round(summaryTotals.duration / 60)}
+        totalHrs={summaryTotals.duration / 3600}
+      />
+      
+      <MfcFilterBar 
+        filters={filters}
+        onChange={setFilters}
+        onExport={handleExport}
+      />
+
+      <MfcHighFrequency contacts={highFreqContacts} />
+
+      <MfcChartsRow topContacts={topContacts} />
+      
+      <div className="flex-1 min-h-[400px]">
+        <MfcDataTable data={filteredStats} />
+      </div>
     </div>
   );
 };
