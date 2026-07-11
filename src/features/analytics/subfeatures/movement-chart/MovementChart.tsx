@@ -453,7 +453,7 @@ function TimelineView({ records }: { records: CDRRecord[] }) {
   if (records.length === 0) return <EmptyState />;
 
   return (
-    <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl shadow-lg p-6 max-h-[600px] overflow-y-auto custom-scrollbar">
+    <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl shadow-lg p-6 min-h-[500px] w-full shrink-0">
       <div className="relative border-l-2 border-[#2e2e2e] ml-4 space-y-6">
         {records.map((r, idx) => (
           <div key={idx} className="relative pl-6">
