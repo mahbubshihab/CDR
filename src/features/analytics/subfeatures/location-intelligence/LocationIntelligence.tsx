@@ -199,11 +199,6 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
         networkInstance.current.setData(data);
       } else {
         networkInstance.current = new Network(networkRef.current, data, options);
-        networkInstance.current.on('zoom', function (params: any) {
-          if (params.scale < 0.5) {
-            networkInstance.current.moveTo({ scale: 0.55 });
-          }
-        });
       }
     }
   }, [activeData, topContactedNumbers]);
