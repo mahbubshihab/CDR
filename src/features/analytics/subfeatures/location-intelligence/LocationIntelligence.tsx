@@ -196,9 +196,33 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
         networkInstance.current.setData(data);
       } else {
         networkInstance.current = new Network(networkRef.current, data, options);
+        networkInstance.current.on('zoom', function (params: any) {
+          if (params.scale < 0.3) {
+            networkInstance.current.moveTo({ scale: 0.3 });
+          }
+        });
       }
     }
   }, [activeData, topContactedNumbers]);
+
+  const handleZoomIn = () => {
+    if (networkInstance.current) {
+      networkInstance.current.moveTo({ scale: networkInstance.current.getScale() * 1.5, animation: true });
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (networkInstance.current) {
+      const newScale = Math.max(0.3, networkInstance.current.getScale() / 1.5);
+      networkInstance.current.moveTo({ scale: newScale, animation: true });
+    }
+  };
+
+  const handleResetZoom = () => {
+    if (networkInstance.current) {
+      networkInstance.current.fit({ animation: true });
+    }
+  };
 
   const formatDateTime = (ts?: number) => {
     if (!ts) return 'N/A';
@@ -540,12 +564,12 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                 <span className="text-[10px] text-gray-500">Center = location • Connected nodes = phone numbers • Color = activity heat</span>
               </div>
               <div className="flex gap-2">
-                <button className="text-gray-400 hover:text-white p-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">+</button>
-                <button className="text-gray-400 hover:text-white p-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">-</button>
-                <button className="text-gray-400 hover:text-white p-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">↺</button>
+                <button onClick={handleZoomIn} className="text-gray-400 hover:text-white px-2 py-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">+</button>
+                <button onClick={handleZoomOut} className="text-gray-400 hover:text-white px-2 py-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">-</button>
+                <button onClick={handleResetZoom} className="text-gray-400 hover:text-white px-2 py-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">↺</button>
               </div>
             </div>
-            <div ref={networkRef} className="flex-1 bg-[#0a0a0a] rounded-lg min-h-[300px] border border-[#2e2e2e]"></div>
+            <div ref={networkRef} className="flex-1 bg-[#0a0a0a] rounded-lg min-h-[250px] max-h-[250px] border border-[#2e2e2e]"></div>
           </div>
 
           <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl overflow-hidden flex flex-col">
