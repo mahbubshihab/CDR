@@ -200,10 +200,15 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       }
       if (callTypeSel !== 'All') {
         const t = r.usageType.toLowerCase();
-        if (callTypeSel === 'Incoming Call' && t !== 'mtc') return false;
-        if (callTypeSel === 'Outgoing Call' && t !== 'moc') return false;
-        if (callTypeSel === 'SMS - Incoming' && t !== 'sms_mtc') return false;
-        if (callTypeSel === 'SMS - Outgoing' && t !== 'sms_moc') return false;
+        const isIncoming = t.includes('mtc') || t.includes('incoming call') || t === 'incoming';
+        const isOutgoing = t.includes('moc') || t.includes('outgoing call') || t === 'outgoing' || t === 'voice';
+        const isSmsIn = t.includes('sms-mt') || t.includes('sms_mtc') || t.includes('incoming sms');
+        const isSmsOut = t.includes('sms-mo') || t.includes('sms_moc') || t.includes('outgoing sms') || (t.includes('sms') && !isSmsIn);
+
+        if (callTypeSel === 'Incoming Call' && !isIncoming) return false;
+        if (callTypeSel === 'Outgoing Call' && !isOutgoing) return false;
+        if (callTypeSel === 'SMS - Incoming' && !isSmsIn) return false;
+        if (callTypeSel === 'SMS - Outgoing' && !isSmsOut) return false;
       }
       return true;
     });
@@ -212,10 +217,27 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   // Aggregate Metrics
   const metrics = useMemo(() => {
     const total = filteredRecords.length;
-    const incomingCalls = filteredRecords.filter(r => r.usageType.toLowerCase() === 'mtc').length;
-    const outgoingCalls = filteredRecords.filter(r => r.usageType.toLowerCase() === 'moc').length;
-    const incomingSMS = filteredRecords.filter(r => r.usageType.toLowerCase() === 'sms_mtc').length;
-    const outgoingSMS = filteredRecords.filter(r => r.usageType.toLowerCase() === 'sms_moc').length;
+    let incomingCalls = 0;
+    let outgoingCalls = 0;
+    let incomingSMS = 0;
+    let outgoingSMS = 0;
+
+    filteredRecords.forEach(r => {
+      const t = r.usageType.toLowerCase();
+      if (t.includes('sms-mt') || t.includes('sms_mtc') || t.includes('incoming sms')) {
+        incomingSMS++;
+      } else if (t.includes('sms-mo') || t.includes('sms_moc') || t.includes('outgoing sms') || t.includes('sms')) {
+        outgoingSMS++;
+      } else if (t.includes('mtc') || t.includes('incoming call') || t === 'incoming') {
+        incomingCalls++;
+      } else if (t.includes('moc') || t.includes('outgoing call') || t === 'outgoing' || t === 'voice') {
+        outgoingCalls++;
+      } else {
+        // Fallback to outgoing call if unknown type
+        outgoingCalls++;
+      }
+    });
+
     const totalSMS = incomingSMS + outgoingSMS;
     const totalCalls = incomingCalls + outgoingCalls;
 

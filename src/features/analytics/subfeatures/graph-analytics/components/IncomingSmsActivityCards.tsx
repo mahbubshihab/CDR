@@ -20,7 +20,11 @@ export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> =
         map[r.otherParty] = { incoming: 0, outgoing: 0, total: 0 };
       }
       const type = r.usageType.toLowerCase();
-      if (type.includes('mtc') || type.includes('incoming')) {
+      if (type.includes('sms')) {
+        // SMS logic handled elsewhere or ignore here if this is just for calls?
+        // Wait, map has incoming/outgoing. If this is just generic incoming/outgoing, should SMS be included?
+        // Let's assume they want calls.
+      } else if (type.includes('mtc') || type.includes('incoming call') || type === 'incoming') {
         map[r.otherParty].incoming++;
       } else {
         map[r.otherParty].outgoing++;
