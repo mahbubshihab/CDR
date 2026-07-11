@@ -25,7 +25,7 @@ export const MfcChartsRow: React.FC<MfcChartsRowProps> = ({ topContacts }) => {
       {/* Top 5 Contacts */}
       <div className="bg-[#171717] border border-[#2e2e2e] rounded-xl flex flex-col p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[13px] font-semibold text-gray-200">Top 5 Pakistani Contacts</h3>
+          <h3 className="text-[13px] font-semibold text-gray-200">Top 5 Bangladeshi Contacts</h3>
           <HeaderActions />
         </div>
         

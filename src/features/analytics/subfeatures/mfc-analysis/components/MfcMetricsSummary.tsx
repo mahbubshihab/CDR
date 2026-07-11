@@ -45,7 +45,7 @@ export const MfcMetricsSummary: React.FC<MfcMetricsSummaryProps> = ({
           {suspectNumber}
         </h2>
         <span className="text-[11px] text-gray-400 font-medium">
-          {totalContacts} Pakistani contacts · {totalCommunications} communications · {perPage} per page
+          {totalContacts} Bangladeshi contacts · {totalCommunications} communications · {perPage} per page
         </span>
       </div>
 

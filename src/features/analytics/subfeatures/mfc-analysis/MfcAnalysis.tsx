@@ -23,6 +23,23 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
     minDays: 0,
   });
 
+  const filteredRecords = useMemo(() => {
+    return records.filter(r => {
+      if (!r.usageType) return true;
+      const uType = r.usageType.toLowerCase();
+      
+      const isIncoming = uType.includes('mtc') || uType.includes('incoming') || uType.includes('sms-mt');
+      const isOutgoing = uType.includes('moc') || uType.includes('outgoing') || uType === 'voice' || uType.includes('sms-mo');
+      const isSms = uType.includes('sms');
+      
+      if (filters.incomingOnly && !isIncoming) return false;
+      if (filters.outgoingOnly && !isOutgoing) return false;
+      if (filters.smsOnly && !isSms) return false;
+      
+      return true;
+    });
+  }, [records, filters.incomingOnly, filters.outgoingOnly, filters.smsOnly]);
+
   // Aggregate stats
   const { allStats, maxActivities, summaryTotals } = useMemo(() => {
     const map = new Map<string, BPartyStats>();
@@ -37,7 +54,7 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
       communications: 0
     };
 
-    records.forEach(r => {
+    filteredRecords.forEach(r => {
       if (!r.otherParty) return;
       const bNumber = r.otherParty;
       
@@ -45,9 +62,9 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
       if (!stat) {
         stat = {
           bNumber,
-          type: 'Pakistani Mobile', // Mocked, ideally from a lookup
+          type: 'Bangladeshi Mobile', // Mocked, ideally from a lookup
           operator: r.provider || 'Unknown',
-          country: 'Pakistan',
+          country: 'Bangladesh',
           
           inCalls: 0,
           outCalls: 0,
@@ -84,29 +101,16 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
 
       // Usage type logic
       const uType = r.usageType.toLowerCase();
-      let isIncoming = false;
-      let isOutgoing = false;
-      let isSms = false;
-      let isCall = false;
-      
       if (uType.includes('mtc') || uType.includes('incoming call') || uType === 'incoming') {
-        isIncoming = true;
-        isCall = true;
         stat.inCalls++;
         totals.inCalls++;
       } else if (uType.includes('moc') || uType.includes('outgoing call') || uType === 'outgoing' || uType === 'voice') {
-        isOutgoing = true;
-        isCall = true;
         stat.outCalls++;
         totals.outCalls++;
       } else if (uType.includes('sms-mt') || uType.includes('incoming sms')) {
-        isIncoming = true;
-        isSms = true;
         stat.inSms++;
         totals.inSms++;
       } else if (uType.includes('sms-mo') || uType.includes('outgoing sms') || uType === 'sms') {
-        isOutgoing = true;
-        isSms = true;
         stat.outSms++;
         totals.outSms++;
       } else {
@@ -132,21 +136,17 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
         if (r.timestamp > stat.lastTimestamp) stat.lastTimestamp = r.timestamp;
         
         try {
-          // CDRs often use exact 14 chars like 20260105000000
           const timeStr = String(r.timestamp);
           let dateStr = '';
-          let timeOfDayStr = '';
           let hr = 0;
           
           if (timeStr.length === 14) {
             dateStr = `${timeStr.substring(0,4)}-${timeStr.substring(4,6)}-${timeStr.substring(6,8)}`;
-            timeOfDayStr = `${timeStr.substring(8,10)}:${timeStr.substring(10,12)}:${timeStr.substring(12,14)}`;
             hr = parseInt(timeStr.substring(8,10), 10);
           } else {
             const d = new Date(r.timestamp);
             if (!isNaN(d.getTime())) {
               dateStr = d.toISOString().split('T')[0];
-              timeOfDayStr = d.toTimeString().split(' ')[0];
               hr = d.getHours();
             }
           }
@@ -172,7 +172,6 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
       stat.imeis = stat.uniqueImeis.size;
       if (stat.shortestDurationSeconds === Infinity) stat.shortestDurationSeconds = 0;
       
-      // format first/last
       if (stat.firstTimestamp !== Infinity) {
         const timeStr = String(stat.firstTimestamp);
         if (timeStr.length === 14) {
@@ -208,22 +207,17 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
     statsArray.sort((a, b) => b.totalActivities - a.totalActivities);
 
     return { allStats: statsArray, maxActivities: maxAct, summaryTotals: totals };
-  }, [records]);
+  }, [filteredRecords]);
 
-  // Apply Filters
+  // Apply Remaining Filters (based on aggregated results)
   const filteredStats = useMemo(() => {
     return allStats.filter(stat => {
-      if (filters.incomingOnly && (stat.inCalls + stat.inSms === 0)) return false;
-      if (filters.outgoingOnly && (stat.outCalls + stat.outSms === 0)) return false;
-      if (filters.smsOnly && (stat.inSms + stat.outSms === 0)) return false;
       if (filters.highFrequency && stat.freqScore <= 50) return false;
-      
       if (filters.minMin > 0 && (stat.totalDurationSeconds / 60) < filters.minMin) return false;
       if (filters.minDays > 0 && stat.activeDays < filters.minDays) return false;
-      
       return true;
     });
-  }, [allStats, filters]);
+  }, [allStats, filters.highFrequency, filters.minMin, filters.minDays]);
 
   const topContacts = filteredStats.slice(0, 10);
   const highFreqContacts = allStats.filter(s => s.freqScore > 60).map(s => s.bNumber).slice(0, 5);
