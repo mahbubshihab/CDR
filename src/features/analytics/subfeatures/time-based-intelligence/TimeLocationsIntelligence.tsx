@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Sun, Moon, Download, Camera, Printer, Maximize2 } from 'lucide-react';
-import { CDRRecord } from '../../../../utils/db';
+import { type CDRRecord } from '../../../../utils/db';
 import { TimeRangeFilter } from './TimeRangeFilter';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
