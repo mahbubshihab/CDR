@@ -72,12 +72,12 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'imei_patterns', name: 'IMEI Patterns', icon: Cpu },
     { id: 'imsi_patterns', name: 'IMSI Patterns', icon: Wifi },
     { id: 'first_last_call', name: 'First / Last Call', icon: PhoneCall },
-    { id: 'day_calls', name: 'Day Calls Intelligence', icon: Sun },
-    { id: 'night_calls', name: 'Night Calls Intelligence', icon: Moon },
     { id: 'locations', name: 'Location Summary', icon: MapPin },
     { id: 'loc_intel', name: 'Location Intelligence', icon: Map },
     { id: 'day_locations', name: 'Day Locations', icon: Sun },
-    { id: 'night_locations', name: 'Night Locations', icon: Moon }
+    { id: 'day_calls', name: 'Day Calls', icon: Sun },
+    { id: 'night_locations', name: 'Night Locations', icon: Moon },
+    { id: 'night_calls', name: 'Night Calls', icon: Moon }
   ];
 
   if (loading) {

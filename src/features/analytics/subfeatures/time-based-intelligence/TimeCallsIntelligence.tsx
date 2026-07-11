@@ -27,6 +27,11 @@ const isTimeInRange = (timestamp: number | string | undefined, startHM: string, 
   }
 };
 
+import { CallsChartsTab } from './tabs/CallsChartsTab';
+import { CallsLinkTab } from './tabs/CallsLinkTab';
+import { CallsGeoTab } from './tabs/CallsGeoTab';
+import { CallsDayVsNightTab } from './tabs/CallsDayVsNightTab';
+
 export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ records, mode }) => {
   const [ranges, setRanges] = useState({
     dayStart: '06:00',
@@ -112,7 +117,7 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
 
       {/* Content Area */}
       {activeTab === 'Table' && (
-        <div className="flex-1 bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col overflow-hidden">
+        <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col">
           <div className="p-4 border-b border-[#2e2e2e] flex items-center justify-between">
             <input 
               type="text" 
@@ -125,7 +130,7 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
             </div>
           </div>
           
-          <div className="flex-1 overflow-auto custom-scrollbar">
+          <div className="w-full">
             <table className="w-full text-left border-collapse text-xs">
               <thead className="bg-[#1a1a1a] sticky top-0 z-10">
                 <tr>
@@ -185,18 +190,10 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
         </div>
       )}
 
-      {/* Placeholder for other tabs */}
-      {activeTab !== 'Table' && (
-        <div className="flex-1 bg-[#121212] border border-[#2e2e2e] rounded-xl flex items-center justify-center">
-          <div className="text-center text-gray-500 font-mono flex flex-col items-center">
-            {activeTab === 'Charts' && <BarChart3 className="w-8 h-8 mb-4 opacity-50" />}
-            {activeTab === 'Link' && <Link className="w-8 h-8 mb-4 opacity-50" />}
-            {activeTab === 'Geo' && <MapIcon className="w-8 h-8 mb-4 opacity-50" />}
-            {activeTab === 'Day Vs Night' && <Globe className="w-8 h-8 mb-4 opacity-50" />}
-            <p>The {activeTab} view is currently under construction.</p>
-          </div>
-        </div>
-      )}
+      {activeTab === 'Charts' && <CallsChartsTab records={filteredRecords} mode={mode} />}
+      {activeTab === 'Link' && <CallsLinkTab records={filteredRecords} />}
+      {activeTab === 'Geo' && <CallsGeoTab records={filteredRecords} />}
+      {activeTab === 'Day Vs Night' && <CallsDayVsNightTab records={records} />}
     </div>
   );
 };
