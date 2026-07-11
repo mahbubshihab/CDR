@@ -200,6 +200,14 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
       } else {
         networkInstance.current = new Network(networkRef.current, data, options);
       }
+
+      // Ensure the canvas is redrawn and centered after the container takes its 400px height
+      setTimeout(() => {
+        if (networkInstance.current) {
+          networkInstance.current.redraw();
+          networkInstance.current.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        }
+      }, 300);
     }
   }, [activeData, topContactedNumbers]);
 
