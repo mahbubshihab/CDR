@@ -176,34 +176,30 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#2e2e2e]">
-                {filteredRecords.slice(0, 100).map((r, i) => {
+                {paginatedRecords.map((r, i) => {
                   const d = new Date(r.timestamp);
                   const dateStr = d.toISOString().split('T')[0];
                   const timeStr = d.toTimeString().split(' ')[0].substring(0, 5);
                   
                   return (
                     <tr key={i} className="hover:bg-[#1e1e1e] transition-colors font-mono">
-                      <td className="p-3 text-gray-200">{r.aparty || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">N/A</td>
-                      <td className="p-3 text-gray-200">{r.otherParty || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">N/A</td>
-                      <td className="p-3 text-gray-400">{r.usageType.toLowerCase()}</td>
-                      <td className="p-3 text-gray-400">{r.usageType}</td>
                       <td className="p-3 text-gray-300">{dateStr}</td>
                       <td className="p-3 text-gray-300">{timeStr}</td>
+                      <td className="p-3 text-gray-200">{r.usageType || 'N/A'}</td>
+                      <td className="p-3 text-gray-200">{r.aparty || 'N/A'}</td>
+                      <td className="p-3 text-gray-200">{r.otherParty || 'N/A'}</td>
                       <td className="p-3 text-gray-400">{Math.floor((r.duration || 0) / 60)}</td>
-                      <td className="p-3 text-gray-400">{r.imei || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">{r.imsi || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">{r.cellId || 'N/A'}</td>
+                      <td className="p-3 text-gray-400 font-mono text-[10px]">{r.imei || 'N/A'}</td>
+                      <td className="p-3 text-gray-400 font-mono text-[10px]">{r.imsi || 'N/A'}</td>
+                      <td className="p-3 text-gray-400">{r.cellId ?? 'N/A'}</td>
                       <td className="p-3 text-gray-400 truncate max-w-[150px]" title={r.address}>{r.address || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">N/A</td>
                       <td className="p-3 text-gray-400">N/A</td>
                     </tr>
                   );
                 })}
-                {filteredRecords.length === 0 && (
+                {paginatedRecords.length === 0 && (
                   <tr>
-                    <td colSpan={15} className="p-8 text-center text-gray-500 font-mono">
+                    <td colSpan={11} className="p-8 text-center text-gray-500 font-mono">
                       No records found in this time range.
                     </td>
                   </tr>
@@ -211,6 +207,34 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-3 border-t border-[#2e2e2e] bg-[#1a1a1a] flex items-center justify-between text-xs font-mono text-gray-400 shrink-0">
+              <div>
+                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredRecords.length)} of {filteredRecords.length} entries
+              </div>
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-[#1e1e1e] border border-[#2e2e2e] rounded hover:bg-[#2e2e2e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center px-3 font-semibold text-gray-300">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 bg-[#1e1e1e] border border-[#2e2e2e] rounded hover:bg-[#2e2e2e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
