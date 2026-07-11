@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { Smartphone } from 'lucide-react';
 import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
@@ -81,7 +81,7 @@ export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records 
   return (
     <>
       {/* 5. Day of Week Analysis */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Day of Week Analysis"
         exportData={dayOfWeekData}
       >
@@ -130,10 +130,10 @@ export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records 
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 6. IMEI Usage Pattern */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="IMEI Usage Pattern"
         exportData={imeiUsage}
       >
@@ -173,7 +173,7 @@ export const DayOfWeekImeiCards: React.FC<DayOfWeekImeiCardsProps> = ({ records 
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };

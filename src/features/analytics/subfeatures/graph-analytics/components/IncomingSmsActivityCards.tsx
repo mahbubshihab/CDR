@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { Users, MessageSquare } from 'lucide-react';
 
 interface IncomingSmsActivityCardsProps {
@@ -60,7 +60,7 @@ export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> =
   return (
     <>
       {/* 13. Incoming vs Outgoing for Top Contacts */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Incoming vs Outgoing"
         exportData={incomingOutgoingContacts}
       >
@@ -103,10 +103,10 @@ export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> =
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 14. SMS Activity */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="SMS Activity"
         exportData={smsActivity}
       >
@@ -146,7 +146,7 @@ export const IncomingSmsActivityCards: React.FC<IncomingSmsActivityCardsProps> =
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };

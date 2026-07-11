@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { PhoneCall, MapPin } from 'lucide-react';
 
 interface FrequencyLocationCardsProps {
@@ -52,7 +52,7 @@ export const FrequencyLocationCards: React.FC<FrequencyLocationCardsProps> = ({ 
   return (
     <>
       {/* 9. Contact Frequency */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Contact Frequency"
         exportData={contactFrequency}
       >
@@ -86,10 +86,10 @@ export const FrequencyLocationCards: React.FC<FrequencyLocationCardsProps> = ({ 
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 10. Top Location Activity */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Top Location Activity"
         exportData={locationActivity}
       >
@@ -129,7 +129,7 @@ export const FrequencyLocationCards: React.FC<FrequencyLocationCardsProps> = ({ 
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };

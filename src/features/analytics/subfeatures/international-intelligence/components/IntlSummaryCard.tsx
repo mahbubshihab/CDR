@@ -9,6 +9,8 @@ interface IntlSummaryCardProps {
   activeDays: number;
   dayComms: number;
   nightComms: number;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
 export const IntlSummaryCard: React.FC<IntlSummaryCardProps> = ({ 
@@ -17,7 +19,9 @@ export const IntlSummaryCard: React.FC<IntlSummaryCardProps> = ({
   totalComms,
   activeDays,
   dayComms,
-  nightComms
+  nightComms,
+  activeTab,
+  setActiveTab
 }) => {
   const topCountries = countries.slice(0, 3);
   const topCountriesText = topCountries.map(c => `${c.country} (${c.totalComms} comms)`).join(', ');
@@ -65,11 +69,12 @@ export const IntlSummaryCard: React.FC<IntlSummaryCardProps> = ({
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-[#334155] pb-0">
-        {['Overview', 'Contacts', 'Timeline', 'Correlations', 'Link Graph', 'Alerts (2)'].map((tab, idx) => (
+        {['Overview', 'Contacts', 'Timeline', 'Correlations', 'Link Graph', 'Alerts'].map((tab) => (
           <button
             key={tab}
+            onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-              idx === 0
+              activeTab === tab
                 ? 'border-[#38bdf8] text-white bg-[#0f172a]'
                 : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#1e293b]/50'
             } rounded-t-md`}

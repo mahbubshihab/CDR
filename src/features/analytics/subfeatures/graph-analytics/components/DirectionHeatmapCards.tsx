@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
 interface DirectionHeatmapCardsProps {
@@ -81,7 +81,7 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
   return (
     <>
       {/* 7. Call Direction Analysis */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Call Direction Analysis"
         exportData={callDirection}
       >
@@ -122,10 +122,10 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 8. Call Activity Heatmap */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Call Activity Heatmap"
         exportData={heatmapData.grid}
         subdetails={
@@ -193,7 +193,7 @@ export const DirectionHeatmapCards: React.FC<DirectionHeatmapCardsProps> = ({ re
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };

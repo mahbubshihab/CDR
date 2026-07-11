@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
 interface TimelinePatternCardsProps {
@@ -134,7 +134,7 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
   return (
     <>
       {/* 1. Communication Timeline */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Communication Timeline"
         exportData={timelineData.list}
         subdetails={
@@ -264,10 +264,10 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
             </div>
           </div>
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 2. Hourly Call Pattern */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Hourly Call Pattern"
         exportData={hourlyData.hours}
         subdetails={
@@ -346,7 +346,7 @@ export const TimelinePatternCards: React.FC<TimelinePatternCardsProps> = ({ reco
             </table>
           </div>
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { Globe } from 'lucide-react';
 import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
@@ -101,7 +101,7 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
   return (
     <>
       {/* 15. Monthly Activity Graph */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Monthly Activity Graph"
         exportData={monthlyData.list}
         subdetails={
@@ -176,10 +176,10 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
             </table>
           </div>
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 16. International Activity Graph */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="International Activity"
         exportData={internationalData}
       >
@@ -219,7 +219,7 @@ export const MonthlyInternationalCards: React.FC<MonthlyInternationalCardsProps>
             </div>
           )}
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };

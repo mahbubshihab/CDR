@@ -1,6 +1,6 @@
 import React from 'react';
 import type { BPartyStats } from '../types';
-import { MfcChartCardWrapper } from './MfcChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 
 interface MfcChartsRowProps {
   topContacts: BPartyStats[];
@@ -27,10 +27,10 @@ export const MfcChartsRow: React.FC<MfcChartsRowProps> = ({ topContacts }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Top 5 Contacts */}
-      <MfcChartCardWrapper
+      <ExportableChartCard
+        id="mfc-top5"
         title="Top 5 Bangladeshi Contacts"
         exportData={top5ExportData}
-        chartType="top5"
       >
         <div className="flex flex-col gap-4 flex-1 justify-center mt-2">
           {topContacts.slice(0, 5).map((contact, idx) => {
@@ -61,13 +61,13 @@ export const MfcChartsRow: React.FC<MfcChartsRowProps> = ({ topContacts }) => {
             <div className="text-center text-gray-500 text-xs py-10">No contacts available.</div>
           )}
         </div>
-      </MfcChartCardWrapper>
+      </ExportableChartCard>
 
       {/* Heatmap */}
-      <MfcChartCardWrapper
+      <ExportableChartCard
+        id="mfc-heatmap"
         title="Contact Activity Heatmap (Hourly)"
         exportData={heatmapExportData}
-        chartType="heatmap"
       >
         <div className="flex-1 overflow-x-auto custom-scrollbar mt-2">
           <div className="min-w-[400px]">
@@ -134,7 +134,7 @@ export const MfcChartsRow: React.FC<MfcChartsRowProps> = ({ topContacts }) => {
             )}
           </div>
         </div>
-      </MfcChartCardWrapper>
+      </ExportableChartCard>
     </div>
   );
 };

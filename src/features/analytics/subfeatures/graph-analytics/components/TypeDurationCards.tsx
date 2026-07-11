@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 
 interface TypeDurationCardsProps {
   records: CDRRecord[];
@@ -64,7 +64,7 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
   return (
     <>
       {/* 3. Call Type Distribution */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Call Type Distribution"
         exportData={callTypeDistribution}
       >
@@ -158,10 +158,10 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
             </div>
           </div>
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 4. Call Duration Distribution */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Call Duration Distribution"
         exportData={durationDistribution}
       >
@@ -217,7 +217,7 @@ export const TypeDurationCards: React.FC<TypeDurationCardsProps> = ({ records })
         <div className="text-[10px] text-gray-400 font-mono text-center mt-3">
           Note: SMS events excluded from duration aggregates.
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };

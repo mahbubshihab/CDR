@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { type CDRRecord } from '../../../../../utils/db';
-import { ChartCardWrapper } from './ChartCardWrapper';
+import { ExportableChartCard } from '../../../../../components/ui/ExportableChartCard';
 import { parseCDRTimestamp } from '../../advanced-analysis/AdvancedCDRAnalysis';
 
 interface DayNightSmsCardsProps {
@@ -66,7 +66,7 @@ export const DayNightSmsCards: React.FC<DayNightSmsCardsProps> = ({ records }) =
   return (
     <>
       {/* 11. Day vs Night Activity */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Day vs Night Activity"
         exportData={dayNightActivity}
       >
@@ -141,10 +141,10 @@ export const DayNightSmsCards: React.FC<DayNightSmsCardsProps> = ({ records }) =
             </div>
           </div>
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
 
       {/* 12. Call vs SMS Distribution */}
-      <ChartCardWrapper
+      <ExportableChartCard
         title="Call vs SMS Distribution"
         exportData={callSmsDistribution}
       >
@@ -219,7 +219,7 @@ export const DayNightSmsCards: React.FC<DayNightSmsCardsProps> = ({ records }) =
             </div>
           </div>
         </div>
-      </ChartCardWrapper>
+      </ExportableChartCard>
     </>
   );
 };
