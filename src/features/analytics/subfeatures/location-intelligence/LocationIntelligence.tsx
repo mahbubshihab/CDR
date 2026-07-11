@@ -25,6 +25,9 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLocation, setActiveLocation] = useState<string | null>(null);
 
+  const [topContactSearchTerm, setTopContactSearchTerm] = useState('');
+  const [activitySearchTerm, setActivitySearchTerm] = useState('');
+
   // Pagination for Activity Records table
   const [activityPage, setActivityPage] = useState(1);
   const rowsPerPage = 300;
@@ -197,8 +200,8 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
       } else {
         networkInstance.current = new Network(networkRef.current, data, options);
         networkInstance.current.on('zoom', function (params: any) {
-          if (params.scale < 0.3) {
-            networkInstance.current.moveTo({ scale: 0.3 });
+          if (params.scale < 0.6) {
+            networkInstance.current.moveTo({ scale: 0.6 });
           }
         });
       }
@@ -213,7 +216,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
 
   const handleZoomOut = () => {
     if (networkInstance.current) {
-      const newScale = Math.max(0.3, networkInstance.current.getScale() / 1.5);
+      const newScale = Math.max(0.6, networkInstance.current.getScale() / 1.5);
       networkInstance.current.moveTo({ scale: newScale, animation: true });
     }
   };
@@ -242,8 +245,24 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
     );
   }
 
-  const paginatedActivity = activeData.records.slice((activityPage - 1) * rowsPerPage, activityPage * rowsPerPage);
-  const totalActivityPages = Math.ceil(activeData.records.length / rowsPerPage);
+  const filteredTopContactedNumbers = useMemo(() => {
+    if (!topContactSearchTerm) return topContactedNumbers;
+    const term = topContactSearchTerm.toLowerCase();
+    return topContactedNumbers.filter(c => c.number.toLowerCase().includes(term));
+  }, [topContactedNumbers, topContactSearchTerm]);
+
+  const filteredActivityRecords = useMemo(() => {
+    if (!activeData) return [];
+    if (!activitySearchTerm) return activeData.records;
+    const term = activitySearchTerm.toLowerCase();
+    return activeData.records.filter(r => 
+      (r.otherParty && r.otherParty.toLowerCase().includes(term)) ||
+      (r.usageType && r.usageType.toLowerCase().includes(term))
+    );
+  }, [activeData, activitySearchTerm]);
+
+  const paginatedActivity = filteredActivityRecords.slice((activityPage - 1) * rowsPerPage, activityPage * rowsPerPage);
+  const totalActivityPages = Math.ceil(filteredActivityRecords.length / rowsPerPage);
 
   return (
     <div className="w-full h-full bg-[#0a0a0a] text-left flex animate-in fade-in duration-300">
@@ -569,7 +588,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                 <button onClick={handleResetZoom} className="text-gray-400 hover:text-white px-2 py-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">↺</button>
               </div>
             </div>
-            <div ref={networkRef} className="flex-1 bg-[#0a0a0a] rounded-lg min-h-[250px] max-h-[250px] border border-[#2e2e2e]"></div>
+            <div ref={networkRef} className="flex-1 bg-[#0a0a0a] rounded-lg h-[400px] min-h-[400px] border border-[#2e2e2e] relative overflow-hidden"></div>
           </div>
 
           <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl overflow-hidden flex flex-col">
@@ -581,12 +600,14 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                   <input
                     type="text"
                     placeholder="Search..."
+                    value={topContactSearchTerm}
+                    onChange={(e) => setTopContactSearchTerm(e.target.value)}
                     className="w-full bg-[#1e1e1e] border border-[#2e2e2e] rounded pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#3ecf8e]"
                   />
                 </div>
                 <div className="flex gap-2 items-center">
                   <button className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white hover:bg-[#2e2e2e]">Columns</button>
-                  <span className="text-[10px] text-gray-500">{topContactedNumbers.length} rows</span>
+                  <span className="text-[10px] text-gray-500">{filteredTopContactedNumbers.length} rows</span>
                 </div>
               </div>
             </div>
@@ -603,8 +624,8 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#2e2e2e]">
-                  {topContactedNumbers.slice(0, 50).map((row, idx) => {
-                    const maxTotal = topContactedNumbers.length > 0 ? topContactedNumbers[0].total : 1;
+                  {filteredTopContactedNumbers.slice(0, 50).map((row, idx) => {
+                    const maxTotal = filteredTopContactedNumbers.length > 0 ? filteredTopContactedNumbers[0].total : 1;
                     const barWidth = Math.max(2, (row.total / maxTotal) * 100);
                     return (
                       <tr key={idx} className="hover:bg-[#1a1a1a]">
@@ -633,9 +654,18 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
         {/* Activity Records Table */}
         <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl overflow-hidden flex flex-col">
           <div className="p-4 border-b border-[#2e2e2e] flex justify-between items-center">
-            <h3 className="text-sm font-semibold text-gray-300">Activity Records ({activeData.events})</h3>
+            <h3 className="text-sm font-semibold text-gray-300">Activity Records ({filteredActivityRecords.length})</h3>
             <div className="flex gap-2">
-              <input type="text" placeholder="Search..." className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-3 py-1 text-xs text-white" />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={activitySearchTerm}
+                onChange={(e) => {
+                  setActivitySearchTerm(e.target.value);
+                  setActivityPage(1);
+                }}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-3 py-1 text-xs text-white" 
+              />
               <button className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-3 py-1 text-xs text-white">Columns</button>
             </div>
           </div>
