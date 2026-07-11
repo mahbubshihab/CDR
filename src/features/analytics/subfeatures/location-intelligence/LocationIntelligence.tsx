@@ -384,9 +384,9 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
               </ResponsiveContainer>
             </div>
             
-            <div className="overflow-x-auto custom-scrollbar bg-[#0a0a0a] rounded border border-[#2e2e2e] mt-2">
-              <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className="bg-[#1e1e1e]">
+            <div className="overflow-y-auto custom-scrollbar bg-[#0a0a0a] rounded border border-[#2e2e2e] mt-2 max-h-[250px] flex flex-col">
+              <table className="w-full text-left text-xs whitespace-nowrap flex-1">
+                <thead className="bg-[#1e1e1e] sticky top-0 z-10 shadow-[0_1px_0_#2e2e2e]">
                   <tr>
                     <th className="p-2 text-gray-400 font-semibold">Hour</th>
                     <th className="p-2 text-gray-400 font-semibold text-right">Events</th>
@@ -403,7 +403,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                   ))}
                 </tbody>
               </table>
-              <div className="p-2 text-[10px] text-gray-500 text-right border-t border-[#2e2e2e]">
+              <div className="p-2 text-[10px] text-gray-500 text-right border-t border-[#2e2e2e] sticky bottom-0 bg-[#0a0a0a] z-10">
                 Total: 100.0%
               </div>
             </div>
@@ -459,9 +459,9 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
               </div>
             </div>
             
-            <div className="overflow-x-auto custom-scrollbar bg-[#0a0a0a] rounded border border-[#2e2e2e] mt-2">
-              <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className="bg-[#1e1e1e]">
+            <div className="overflow-y-auto custom-scrollbar bg-[#0a0a0a] rounded border border-[#2e2e2e] mt-2 max-h-[250px] flex flex-col">
+              <table className="w-full text-left text-xs whitespace-nowrap flex-1">
+                <thead className="bg-[#1e1e1e] sticky top-0 z-10 shadow-[0_1px_0_#2e2e2e]">
                   <tr>
                     <th className="p-2 text-gray-400 font-semibold">Period</th>
                     <th className="p-2 text-gray-400 font-semibold text-right">Events</th>
@@ -478,7 +478,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                   ))}
                 </tbody>
               </table>
-              <div className="p-2 text-[10px] text-gray-500 text-right border-t border-[#2e2e2e]">
+              <div className="p-2 text-[10px] text-gray-500 text-right border-t border-[#2e2e2e] sticky bottom-0 bg-[#0a0a0a] z-10">
                 Total: 100.0%
               </div>
             </div>
@@ -509,9 +509,9 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
             </ResponsiveContainer>
           </div>
           
-          <div className="overflow-x-auto custom-scrollbar bg-[#0a0a0a] rounded border border-[#2e2e2e] mt-2">
+          <div className="overflow-y-auto custom-scrollbar bg-[#0a0a0a] rounded border border-[#2e2e2e] mt-2 max-h-[250px]">
             <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className="bg-[#1e1e1e]">
+              <thead className="bg-[#1e1e1e] sticky top-0 z-10 shadow-[0_1px_0_#2e2e2e]">
                 <tr>
                   <th className="p-2 text-gray-400 font-semibold">Date</th>
                   <th className="p-2 text-gray-400 font-semibold text-right">Events</th>
@@ -532,7 +532,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
         </div>
 
         {/* Network Graph & Top Contacted */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
           <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <div className="flex flex-col">
@@ -545,7 +545,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                 <button className="text-gray-400 hover:text-white p-1 rounded bg-[#1e1e1e] border border-[#2e2e2e]">↺</button>
               </div>
             </div>
-            <div ref={networkRef} className="flex-1 bg-[#0a0a0a] rounded-lg min-h-[200px] h-[250px] border border-[#2e2e2e]"></div>
+            <div ref={networkRef} className="flex-1 bg-[#0a0a0a] rounded-lg min-h-[300px] border border-[#2e2e2e]"></div>
           </div>
 
           <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl overflow-hidden flex flex-col">
@@ -566,9 +566,9 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
                 </div>
               </div>
             </div>
-            <div className="overflow-auto flex-1 custom-scrollbar min-h-[300px]">
+            <div className="overflow-y-auto flex-1 custom-scrollbar min-h-[300px] max-h-[300px]">
               <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className="bg-[#1e1e1e] sticky top-0">
+                <thead className="bg-[#1e1e1e] sticky top-0 z-10 shadow-[0_1px_0_#2e2e2e]">
                   <tr>
                     <th className="p-3 text-gray-400 font-semibold">Number</th>
                     <th className="p-3 text-gray-400 font-semibold text-center">In Calls</th>
