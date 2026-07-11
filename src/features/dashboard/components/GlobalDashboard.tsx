@@ -287,7 +287,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
           onClick={onAddNewCase}
           className="bg-[#0a0e24]/40 hover:bg-[#0a0e24]/60 border border-[#2e2e2e] hover:border-[#2e2e2e] rounded-2xl p-5 flex items-center gap-4 transition-all duration-200 group relative cursor-pointer"
         >
-          <div className="h-10 w-10 bg-[#3ecf8e] text-gray-950 font-semibold/15 border border-brand-blue/25 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+          <div className="h-10 w-10 bg-[#3ecf8e]/15 border border-[#3ecf8e]/25 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
             <PlusCircle className="h-5 w-5 text-[#3ecf8e]" />
           </div>
           <div className="flex-1 min-w-0 pr-6 text-left">
@@ -304,7 +304,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
           onClick={onViewCases}
           className="bg-[#0a0e24]/40 hover:bg-[#0a0e24]/60 border border-[#2e2e2e] hover:border-[#2e2e2e] rounded-2xl p-5 flex items-center gap-4 transition-all duration-200 group relative cursor-pointer"
         >
-          <div className="h-10 w-10 bg-[#3ecf8e] text-gray-950 font-semibold/15 border border-brand-blue/25 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+          <div className="h-10 w-10 bg-[#3ecf8e]/15 border border-[#3ecf8e]/25 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
             <Folder className="h-5 w-5 text-[#3ecf8e]" />
           </div>
           <div className="flex-1 min-w-0 pr-6 text-left">
