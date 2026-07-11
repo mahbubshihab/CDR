@@ -554,6 +554,27 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
     
     const cardHtml = containerRef.current.innerHTML;
     
+    // Convert dark mode classes to light mode for printing
+    const printHtml = cardHtml
+      .replace(/bg-\[\#171717\]/g, 'bg-white')
+      .replace(/bg-\[\#1e1e1e\]/g, 'bg-white')
+      .replace(/bg-\[\#121212\]/g, 'bg-gray-100')
+      .replace(/bg-\[\#1a1a1a\]/g, 'bg-white')
+      .replace(/border-\[\#2e2e2e\]/g, 'border-gray-300')
+      .replace(/text-white/g, 'text-black')
+      .replace(/text-gray-100/g, 'text-black')
+      .replace(/text-gray-200/g, 'text-gray-900')
+      .replace(/text-gray-300/g, 'text-gray-800')
+      .replace(/text-gray-400/g, 'text-gray-600')
+      .replace(/text-gray-500/g, 'text-gray-500')
+      // Inline styles for heatmap colors (dark to light)
+      .replace(/background-color: rgb\(18, 18, 18\)/g, 'background-color: #f3f4f6')
+      .replace(/background-color: #121212/g, 'background-color: #f3f4f6')
+      .replace(/background-color: rgb\(15, 23, 42\)/g, 'background-color: #bae6fd')
+      .replace(/background-color: #0f172a/g, 'background-color: #bae6fd')
+      // Legend gradient
+      .replace(/from-\[\#0f172a\]/g, 'from-gray-200');
+    
     // Dynamically clone all active stylesheets and script tags of the host application
     const styleElements = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
       .map(el => el.outerHTML)
@@ -599,9 +620,6 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
             div, span, h2, h3, strong, p {
               color: #000000 !important;
             }
-            .text-white, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400 {
-              color: #000000 !important;
-            }
             .max-h-36, .overflow-y-auto, .custom-scrollbar {
               max-height: none !important;
               overflow: visible !important;
@@ -609,8 +627,8 @@ export const ChartCardWrapper: React.FC<ChartCardWrapperProps> = ({
           </style>
         </head>
         <body>
-          <h2 class="text-lg font-bold border-b border-gray-350 pb-3 mb-6">${title}</h2>
-          ${cardHtml}
+          <h2 class="text-lg font-bold border-b border-gray-300 text-black pb-3 mb-6">${title}</h2>
+          ${printHtml}
         </body>
       </html>
     `);
