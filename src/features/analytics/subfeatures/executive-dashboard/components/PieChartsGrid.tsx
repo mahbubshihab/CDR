@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart3 } from 'lucide-react';
 
 interface PieChartsGridProps {
+  totalCallsSms: number;
   callTypeBreakdown: Array<{
     name: string;
     count: number;
@@ -23,16 +24,34 @@ interface PieChartsGridProps {
 }
 
 export const PieChartsGrid: React.FC<PieChartsGridProps> = ({ 
-  callTypeBreakdown, bPartyTypeBreakdown, countryBreakdown 
+  totalCallsSms, callTypeBreakdown, bPartyTypeBreakdown, countryBreakdown 
 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 text-left">
-      {/* 1. Call Type Donut Card */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 text-left">
+      {/* 1. Total Calls / SMS Card */}
+      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between font-mono">
+        <div className="w-full flex items-center gap-2 mb-4 border-b border-[#2e2e2e]/55 pb-2">
+          <BarChart3 className="h-4.5 w-4.5 text-[#ffc107]" />
+          <h3 className="text-xs font-semibold text-gray-255 uppercase tracking-wider text-left">
+            TOTAL CALLS / SMS
+          </h3>
+        </div>
+        <div className="flex-1 flex flex-col justify-center items-center py-6">
+          <div className="bg-[#ffc107] text-[#081025] font-bold text-5xl py-4 px-6 rounded-lg w-full text-center tracking-tight">
+            {totalCallsSms.toLocaleString()}
+          </div>
+          <span className="text-[10px] text-gray-500 mt-4 uppercase tracking-wider block font-bold">
+            Total Activity Records
+          </span>
+        </div>
+      </div>
+
+      {/* 2. Call Type Donut Card */}
       <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col items-center">
         <div className="w-full flex items-center gap-2 mb-4 border-b border-[#2e2e2e]/55 pb-2">
           <BarChart3 className="h-4.5 w-4.5 text-[#3ecf8e]" />
-          <h3 className="text-xs font-semibold text-gray-250 uppercase tracking-wider text-left">
-            Activity Type Share
+          <h3 className="text-xs font-semibold text-gray-255 uppercase tracking-wider text-left">
+            CALL TYPE
           </h3>
         </div>
         
@@ -84,12 +103,12 @@ export const PieChartsGrid: React.FC<PieChartsGridProps> = ({
         </div>
       </div>
 
-      {/* 2. B-Party Type Donut Card */}
+      {/* 3. B-Party Type Donut Card */}
       <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col items-center">
         <div className="w-full flex items-center gap-2 mb-4 border-b border-[#2e2e2e]/55 pb-2">
           <BarChart3 className="h-4.5 w-4.5 text-[#a855f7]" />
-          <h3 className="text-xs font-semibold text-gray-250 uppercase tracking-wider text-left">
-            B-Party Type Share
+          <h3 className="text-xs font-semibold text-gray-255 uppercase tracking-wider text-left">
+            B PARTY TYPE
           </h3>
         </div>
 
@@ -141,12 +160,12 @@ export const PieChartsGrid: React.FC<PieChartsGridProps> = ({
         </div>
       </div>
 
-      {/* 3. B-Party Country Donut Card */}
+      {/* 4. B-Party Country Donut Card */}
       <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col items-center">
         <div className="w-full flex items-center gap-2 mb-4 border-b border-[#2e2e2e]/55 pb-2">
           <BarChart3 className="h-4.5 w-4.5 text-[#3b82f6]" />
-          <h3 className="text-xs font-semibold text-gray-250 uppercase tracking-wider text-left">
-            Geographic Call Share
+          <h3 className="text-xs font-semibold text-gray-255 uppercase tracking-wider text-left">
+            B PARTY COUNTRY
           </h3>
         </div>
 

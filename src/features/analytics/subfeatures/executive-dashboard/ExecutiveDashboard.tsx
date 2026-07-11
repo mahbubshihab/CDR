@@ -396,8 +396,9 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         {/* Row 2: Daily Activity Trendline */}
         <ActivityTrendline metrics={metrics} />
 
-        {/* Row 3: Pie charts block (3 columns) */}
+        {/* Row 3: Pie charts block (4 columns: Total Calls + 3 Donut charts) */}
         <PieChartsGrid 
+          totalCallsSms={filteredRecords.length}
           callTypeBreakdown={callTypeBreakdown} 
           bPartyTypeBreakdown={bPartyTypeBreakdown}
           countryBreakdown={countryBreakdown} 
@@ -405,23 +406,26 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
         {/* Row 4: Row of small metric cards */}
         <MetricsSummaryRow 
+          incoming={metrics.incomingCalls}
+          outgoing={metrics.outgoingCalls}
+          sms={metrics.totalSMS}
           bParties={metrics.bPartiesCount}
           locations={metrics.locationsCount}
           calls={metrics.totalCalls}
         />
 
-        {/* Row 5: Dynamic Network distribution and Top Locations side-by-side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <NetworkDistribution 
-            records={filteredRecords}
-            onOpenNetwork={() => onNavigateToTab('network')}
-          />
-          <TopLocationsList 
-            locations={metrics.sortedLocations}
-            totalRecords={metrics.total}
-            onOpenLocations={() => onNavigateToTab('locations')}
-          />
-        </div>
+        {/* Row 5: Dynamic Network distribution */}
+        <NetworkDistribution 
+          records={filteredRecords}
+          onOpenNetwork={() => onNavigateToTab('network')}
+        />
+
+        {/* Row 6: Top Locations */}
+        <TopLocationsList 
+          locations={metrics.sortedLocations}
+          totalRecords={metrics.total}
+          onOpenLocations={() => onNavigateToTab('locations')}
+        />
 
       </section>
 
