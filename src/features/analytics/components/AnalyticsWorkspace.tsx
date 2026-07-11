@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Menu, Database, LayoutDashboard, 
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
-  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon
+  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
@@ -24,6 +24,7 @@ import { ImsiPatterns } from '../subfeatures/imsi-patterns/ImsiPatterns';
 import { FirstLastCall } from '../subfeatures/first-last-call/FirstLastCall';
 import { TimeCallsIntelligence } from '../subfeatures/time-based-intelligence/TimeCallsIntelligence';
 import { TimeLocationsIntelligence } from '../subfeatures/time-based-intelligence/TimeLocationsIntelligence';
+import { MovementChart } from '../subfeatures/movement-chart/MovementChart';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -77,7 +78,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'day_locations', name: 'Day Locations', icon: Sun },
     { id: 'day_calls', name: 'Day Calls', icon: Sun },
     { id: 'night_locations', name: 'Night Locations', icon: Moon },
-    { id: 'night_calls', name: 'Night Calls', icon: Moon }
+    { id: 'night_calls', name: 'Night Calls', icon: Moon },
+    { id: 'movement_chart', name: 'Movement Chart', icon: Route }
   ];
 
   if (loading) {
@@ -324,6 +326,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <TimeLocationsIntelligence records={targetRecords} mode="day" />
           ) : activeAnalysisTab === 'night_locations' ? (
             <TimeLocationsIntelligence records={targetRecords} mode="night" />
+          ) : activeAnalysisTab === 'movement_chart' ? (
+            <MovementChart cdrFile={targetFile} records={targetRecords} />
           ) : null}
         </main>
       </div>

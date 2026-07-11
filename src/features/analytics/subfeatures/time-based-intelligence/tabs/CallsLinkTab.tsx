@@ -114,32 +114,39 @@ export const CallsLinkTab: React.FC<CallsLinkTabProps> = ({ records }) => {
     const options = {
       nodes: {
         shape: 'dot',
-        font: { color: '#ffffff', size: 12, strokeWidth: 2, strokeColor: '#121212' },
-        scaling: { min: 10, max: 40 },
-        shadow: { enabled: true, color: 'rgba(0,0,0,0.5)', size: 10, x: 2, y: 2 }
+        font: { color: '#ffffff', size: 11, strokeWidth: 2, strokeColor: '#121212' },
+        scaling: { min: 8, max: 25 },
+        shadow: { enabled: true, color: 'rgba(0,0,0,0.4)', size: 8, x: 1, y: 1 }
       },
       edges: {
-        color: { color: '#4b5563', highlight: '#3ecf8e', hover: '#60a5fa' },
+        color: { color: '#334155', highlight: '#3ecf8e', hover: '#60a5fa' },
         width: 1,
-        smooth: { enabled: true, type: 'continuous', roundness: 0.5 },
-        hoverWidth: 2,
-        selectionWidth: 3
+        smooth: { enabled: true, type: 'continuous', roundness: 0.3 },
+        hoverWidth: 1.5,
+        selectionWidth: 2
       },
       physics: {
         forceAtlas2Based: {
-          gravitationalConstant: -100,
-          centralGravity: 0.005,
-          springLength: 150,
-          springConstant: 0.05
+          gravitationalConstant: -200,
+          centralGravity: 0.015,
+          springLength: 200,
+          springConstant: 0.04,
+          damping: 0.8
         },
         maxVelocity: 50,
+        minVelocity: 0.5,
         solver: 'forceAtlas2Based',
         timestep: 0.35,
-        stabilization: { iterations: 200 }
+        stabilization: { iterations: 200, fit: true }
       },
       groups: {
-        target: { color: { background: '#facc15', border: '#eab308', highlight: { background: '#fef08a', border: '#facc15' } } },
-        contact: { color: { background: '#3b82f6', border: '#2563eb', highlight: { background: '#93c5fd', border: '#3b82f6' } } }
+        target: { 
+          color: { background: '#fbbf24', border: '#f59e0b', highlight: { background: '#fcd34d', border: '#fbbf24' } },
+          size: 35
+        },
+        contact: { 
+          color: { background: '#3b82f6', border: '#2563eb', highlight: { background: '#93c5fd', border: '#3b82f6' } } 
+        }
       },
       interaction: {
         hover: true,
@@ -155,9 +162,10 @@ export const CallsLinkTab: React.FC<CallsLinkTabProps> = ({ records }) => {
     });
 
     networkRef.current.on('blurNode', () => {
-      if (!selectedNodeId) setHoverData(null);
+      const selectedNodes = networkRef.current?.getSelectedNodes() || [];
+      if (selectedNodes.length === 0) setHoverData(null);
       else {
-        const node = graphData.nodes.find(n => n.id === selectedNodeId);
+        const node = graphData.nodes.find(n => n.id === selectedNodes[0]);
         if (node) setHoverData({ type: 'node', data: node });
       }
     });
@@ -168,9 +176,10 @@ export const CallsLinkTab: React.FC<CallsLinkTabProps> = ({ records }) => {
     });
 
     networkRef.current.on('blurEdge', () => {
-      if (!selectedNodeId) setHoverData(null);
+      const selectedNodes = networkRef.current?.getSelectedNodes() || [];
+      if (selectedNodes.length === 0) setHoverData(null);
       else {
-        const node = graphData.nodes.find(n => n.id === selectedNodeId);
+        const node = graphData.nodes.find(n => n.id === selectedNodes[0]);
         if (node) setHoverData({ type: 'node', data: node });
       }
     });
@@ -193,7 +202,7 @@ export const CallsLinkTab: React.FC<CallsLinkTabProps> = ({ records }) => {
         networkRef.current = null;
       }
     };
-  }, [graphData, selectedNodeId]);
+  }, [graphData]);
 
   // Handlers
   const handleHighlight = () => {
