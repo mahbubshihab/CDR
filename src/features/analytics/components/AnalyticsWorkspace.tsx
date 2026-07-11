@@ -269,7 +269,7 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
         </div>
 
         {/* Tab Panel switcher */}
-        <main className="flex-1 overflow-hidden relative">
+        <main className="flex-1 overflow-hidden relative flex flex-col">
           {activeAnalysisTab === 'dashboard' ? (
             <ExecutiveDashboard 
               cdrFile={targetFile}

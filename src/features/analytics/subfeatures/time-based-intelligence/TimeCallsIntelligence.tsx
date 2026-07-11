@@ -92,7 +92,7 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
   const title = mode === 'day' ? 'Day Calls Intelligence' : 'Night Calls Intelligence';
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#0a0a0a] p-6 custom-scrollbar overflow-y-auto">
+    <div className="w-full flex-1 min-h-0 flex flex-col bg-[#0a0a0a] p-6 custom-scrollbar overflow-y-auto">
       {/* Header */}
       <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 mb-6">
         <div className="flex items-center justify-between mb-6">

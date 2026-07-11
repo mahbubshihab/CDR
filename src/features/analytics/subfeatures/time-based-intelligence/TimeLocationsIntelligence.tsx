@@ -132,7 +132,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
   const primaryColor = mode === 'day' ? '#facc15' : '#60a5fa';
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 p-6 pb-10 bg-[#0a0a0a] custom-scrollbar overflow-y-auto">
+    <div className="w-full flex-1 min-h-0 flex flex-col gap-6 p-6 pb-10 bg-[#0a0a0a] custom-scrollbar overflow-y-auto">
       {/* Header Panel */}
       <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 shadow-lg shrink-0">
         <div className="flex items-center gap-3 mb-2">
@@ -192,7 +192,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
       </ExportableChartCard>
 
       {/* Location Table */}
-      <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col shadow-lg overflow-hidden">
+      <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col flex-1 min-h-0 shadow-lg overflow-hidden">
         <div className="p-4 border-b border-[#2e2e2e] flex items-center justify-between bg-[#1a1a1a]">
           <div className="relative">
             <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -210,7 +210,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
           </div>
         </div>
         
-        <div className="w-full overflow-x-auto">
+        <div className="flex-1 overflow-auto custom-scrollbar relative">
           <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
             <thead className="bg-[#1a1a1a] sticky top-0 z-10">
               <tr>

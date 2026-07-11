@@ -266,7 +266,7 @@ export const ExportableChartCard: React.FC<ExportableChartCardProps> = ({
               <X className="h-4 w-4" />
             </button>
             
-            <div className="flex-1 p-6 flex flex-col relative">
+            <div className={`flex-1 p-6 flex flex-col relative ${contentClassName || ''}`}>
               {children}
             </div>
           </div>
