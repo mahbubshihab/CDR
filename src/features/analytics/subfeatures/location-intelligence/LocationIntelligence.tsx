@@ -200,8 +200,8 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
       } else {
         networkInstance.current = new Network(networkRef.current, data, options);
         networkInstance.current.on('zoom', function (params: any) {
-          if (params.scale < 0.6) {
-            networkInstance.current.moveTo({ scale: 0.6 });
+          if (params.scale < 0.5) {
+            networkInstance.current.moveTo({ scale: 0.55 });
           }
         });
       }
@@ -216,7 +216,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
 
   const handleZoomOut = () => {
     if (networkInstance.current) {
-      const newScale = Math.max(0.6, networkInstance.current.getScale() / 1.5);
+      const newScale = Math.max(0.55, networkInstance.current.getScale() / 1.5);
       networkInstance.current.moveTo({ scale: newScale, animation: true });
     }
   };
