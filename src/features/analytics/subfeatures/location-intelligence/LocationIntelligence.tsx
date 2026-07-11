@@ -232,14 +232,6 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
     }
   };
 
-  if (!activeData) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-gray-500 font-mono text-xs bg-[#121212]">
-        No location data available.
-      </div>
-    );
-  }
-
   const filteredTopContactedNumbers = useMemo(() => {
     if (!topContactSearchTerm) return topContactedNumbers;
     const term = topContactSearchTerm.toLowerCase();
@@ -255,6 +247,14 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
       (r.usageType && r.usageType.toLowerCase().includes(term))
     );
   }, [activeData, activitySearchTerm]);
+
+  if (!activeData) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-500 font-mono text-xs bg-[#121212]">
+        No location data available.
+      </div>
+    );
+  }
 
   const paginatedActivity = filteredActivityRecords.slice((activityPage - 1) * rowsPerPage, activityPage * rowsPerPage);
   const totalActivityPages = Math.ceil(filteredActivityRecords.length / rowsPerPage);
