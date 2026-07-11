@@ -9,7 +9,23 @@ interface MfcDataTableProps {
 export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [showColumnsMenu, setShowColumnsMenu] = useState(false);
   const itemsPerPage = 15;
+
+  const allColumns = [
+    'Rank', 'B-Party Number', 'Type', 'Operator', 'Country', 'Total',
+    'In Calls', 'Out Calls', 'In SMS', 'Out SMS', 'Total Min', 'Total Hrs',
+    'Avg Dur', 'Longest', 'Shortest', 'First Date', 'First Time', 'Last Date',
+    'Last Time', 'Active Days', 'Locations', 'IMEIs', 'Freq Score'
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>(
+    allColumns.reduce((acc, col) => ({ ...acc, [col]: true }), {})
+  );
+
+  const toggleColumn = (col: string) => {
+    setVisibleColumns(prev => ({ ...prev, [col]: !prev[col] }));
+  };
 
   const filteredData = React.useMemo(() => {
     if (!searchTerm) return data;
@@ -33,17 +49,23 @@ export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const Th = ({ children, align = 'left', w }: { children: React.ReactNode, align?: 'left'|'center'|'right', w?: string }) => (
-    <th className={`py-3 px-3 border-b border-[#2e2e2e] font-semibold text-[10px] tracking-wider uppercase ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'} ${w ? w : ''}`}>
-      {children}
-    </th>
-  );
+  const Th = ({ children, align = 'left', w, colName }: { children: React.ReactNode, align?: 'left'|'center'|'right', w?: string, colName: string }) => {
+    if (!visibleColumns[colName]) return null;
+    return (
+      <th className={`py-3 px-3 border-b border-[#2e2e2e] font-semibold text-[10px] tracking-wider uppercase ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'} ${w ? w : ''}`}>
+        {children}
+      </th>
+    );
+  };
 
-  const Td = ({ children, align = 'left', bold = false, color = 'text-gray-300' }: { children: React.ReactNode, align?: 'left'|'center'|'right', bold?: boolean, color?: string }) => (
-    <td className={`py-3 px-3 whitespace-nowrap ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'} ${bold ? 'font-bold' : 'font-medium'} ${color}`}>
-      {children}
-    </td>
-  );
+  const Td = ({ children, align = 'left', bold = false, color = 'text-gray-300', colName }: { children: React.ReactNode, align?: 'left'|'center'|'right', bold?: boolean, color?: string, colName: string }) => {
+    if (!visibleColumns[colName]) return null;
+    return (
+      <td className={`py-3 px-3 whitespace-nowrap ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'} ${bold ? 'font-bold' : 'font-medium'} ${color}`}>
+        {children}
+      </td>
+    );
+  };
 
   return (
     <div className="bg-[#171717] border border-[#2e2e2e] rounded-xl flex flex-col font-mono text-[11px] overflow-hidden">
@@ -59,9 +81,31 @@ export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
             onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
           />
         </div>
-        <button className="flex items-center gap-2 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] transition-colors rounded text-gray-300">
-          Columns <ChevronDown className="h-3.5 w-3.5" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowColumnsMenu(!showColumnsMenu)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] transition-colors rounded text-gray-300"
+          >
+            Columns <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+          
+          {showColumnsMenu && (
+            <div className="absolute right-0 top-full mt-2 w-48 max-h-64 overflow-y-auto custom-scrollbar bg-[#1a1a1a] border border-[#2e2e2e] rounded-lg shadow-xl z-50 p-2">
+              <div className="text-xs font-semibold text-gray-400 mb-2 px-2 uppercase tracking-wider">Toggle Columns</div>
+              {allColumns.map(col => (
+                <label key={col} className="flex items-center gap-2 px-2 py-1.5 hover:bg-[#2e2e2e] rounded cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={visibleColumns[col]}
+                    onChange={() => toggleColumn(col)}
+                    className="w-3.5 h-3.5 rounded border-[#3e3e3e] bg-[#121212] text-[#3ecf8e] focus:ring-[#3ecf8e]/50 focus:ring-offset-[#171717]"
+                  />
+                  <span className="text-gray-200">{col}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Table Container */}
@@ -69,29 +113,29 @@ export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-[#121212] text-gray-400">
-              <Th align="center" w="w-12">Rank</Th>
-              <Th>B-Party Number</Th>
-              <Th>Type</Th>
-              <Th>Operator</Th>
-              <Th align="center">Country</Th>
-              <Th align="right">Total</Th>
-              <Th align="right">In Calls</Th>
-              <Th align="right">Out Calls</Th>
-              <Th align="right">In SMS</Th>
-              <Th align="right">Out SMS</Th>
-              <Th align="right">Total Min</Th>
-              <Th align="right">Total Hrs</Th>
-              <Th align="right">Avg Dur</Th>
-              <Th align="right">Longest</Th>
-              <Th align="right">Shortest</Th>
-              <Th align="center">First Date</Th>
-              <Th align="center">First Time</Th>
-              <Th align="center">Last Date</Th>
-              <Th align="center">Last Time</Th>
-              <Th align="center">Active Days</Th>
-              <Th align="center">Locations</Th>
-              <Th align="center">IMEIs</Th>
-              <Th align="right">Freq Score</Th>
+              <Th align="center" w="w-12" colName="Rank">Rank</Th>
+              <Th colName="B-Party Number">B-Party Number</Th>
+              <Th colName="Type">Type</Th>
+              <Th colName="Operator">Operator</Th>
+              <Th align="center" colName="Country">Country</Th>
+              <Th align="right" colName="Total">Total</Th>
+              <Th align="right" colName="In Calls">In Calls</Th>
+              <Th align="right" colName="Out Calls">Out Calls</Th>
+              <Th align="right" colName="In SMS">In SMS</Th>
+              <Th align="right" colName="Out SMS">Out SMS</Th>
+              <Th align="right" colName="Total Min">Total Min</Th>
+              <Th align="right" colName="Total Hrs">Total Hrs</Th>
+              <Th align="right" colName="Avg Dur">Avg Dur</Th>
+              <Th align="right" colName="Longest">Longest</Th>
+              <Th align="right" colName="Shortest">Shortest</Th>
+              <Th align="center" colName="First Date">First Date</Th>
+              <Th align="center" colName="First Time">First Time</Th>
+              <Th align="center" colName="Last Date">Last Date</Th>
+              <Th align="center" colName="Last Time">Last Time</Th>
+              <Th align="center" colName="Active Days">Active Days</Th>
+              <Th align="center" colName="Locations">Locations</Th>
+              <Th align="center" colName="IMEIs">IMEIs</Th>
+              <Th align="right" colName="Freq Score">Freq Score</Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#2e2e2e]/40">
@@ -101,56 +145,56 @@ export const MfcDataTable: React.FC<MfcDataTableProps> = ({ data }) => {
               
               return (
                 <tr key={row.bNumber} className="hover:bg-[#1a1a1a] transition-colors group">
-                  <Td align="center" color="text-gray-500">{rank}</Td>
-                  <Td color="text-[#3b82f6]" bold>{row.bNumber}</Td>
-                  <Td color="text-gray-400">{row.type}</Td>
-                  <Td color="text-gray-300">{row.operator}</Td>
-                  <Td align="center" color="text-gray-400">{row.country}</Td>
+                  <Td align="center" color="text-gray-500" colName="Rank">{rank}</Td>
+                  <Td color="text-[#3b82f6]" bold colName="B-Party Number">{row.bNumber}</Td>
+                  <Td color="text-gray-400" colName="Type">{row.type}</Td>
+                  <Td color="text-gray-300" colName="Operator">{row.operator}</Td>
+                  <Td align="center" color="text-gray-400" colName="Country">{row.country}</Td>
                   
-                  <Td align="right" bold color="text-white">{row.totalActivities}</Td>
+                  <Td align="right" bold color="text-white" colName="Total">{row.totalActivities}</Td>
                   
-                  <Td align="right" color="text-gray-400">
+                  <Td align="right" color="text-gray-400" colName="In Calls">
                     <span className="flex items-center justify-end gap-1.5">
                       <PhoneCall className="h-3 w-3 text-green-500" />
                       {row.inCalls}
                     </span>
                   </Td>
-                  <Td align="right" color="text-gray-400">
+                  <Td align="right" color="text-gray-400" colName="Out Calls">
                     <span className="flex items-center justify-end gap-1.5">
                       <PhoneForwarded className="h-3 w-3 text-blue-500" />
                       {row.outCalls}
                     </span>
                   </Td>
-                  <Td align="right" color="text-gray-400">
+                  <Td align="right" color="text-gray-400" colName="In SMS">
                     <span className="flex items-center justify-end gap-1.5">
                       <MessageSquare className="h-3 w-3 text-emerald-500" />
                       {row.inSms}
                     </span>
                   </Td>
-                  <Td align="right" color="text-gray-400">
+                  <Td align="right" color="text-gray-400" colName="Out SMS">
                     <span className="flex items-center justify-end gap-1.5">
                       <ArrowRightSquare className="h-3 w-3 text-indigo-500" />
                       {row.outSms}
                     </span>
                   </Td>
                   
-                  <Td align="right">{Math.round(row.totalDurationSeconds / 60)}</Td>
-                  <Td align="right" color="text-gray-400">{(row.totalDurationSeconds / 3600).toFixed(2)}</Td>
+                  <Td align="right" colName="Total Min">{Math.round(row.totalDurationSeconds / 60)}</Td>
+                  <Td align="right" color="text-gray-400" colName="Total Hrs">{(row.totalDurationSeconds / 3600).toFixed(2)}</Td>
                   
-                  <Td align="right">{formatDuration(Math.round(row.totalDurationSeconds / Math.max(row.inCalls + row.outCalls, 1)))}</Td>
-                  <Td align="right" color="text-gray-400">{formatDuration(row.longestDurationSeconds)}</Td>
-                  <Td align="right" color="text-gray-400">{formatDuration(row.shortestDurationSeconds)}</Td>
+                  <Td align="right" colName="Avg Dur">{formatDuration(Math.round(row.totalDurationSeconds / Math.max(row.inCalls + row.outCalls, 1)))}</Td>
+                  <Td align="right" color="text-gray-400" colName="Longest">{formatDuration(row.longestDurationSeconds)}</Td>
+                  <Td align="right" color="text-gray-400" colName="Shortest">{formatDuration(row.shortestDurationSeconds)}</Td>
                   
-                  <Td align="center" color="text-gray-400">{row.firstDate}</Td>
-                  <Td align="center" color="text-gray-500">{row.firstTime}</Td>
-                  <Td align="center" color="text-gray-400">{row.lastDate}</Td>
-                  <Td align="center" color="text-gray-500">{row.lastTime}</Td>
+                  <Td align="center" color="text-gray-400" colName="First Date">{row.firstDate}</Td>
+                  <Td align="center" color="text-gray-500" colName="First Time">{row.firstTime}</Td>
+                  <Td align="center" color="text-gray-400" colName="Last Date">{row.lastDate}</Td>
+                  <Td align="center" color="text-gray-500" colName="Last Time">{row.lastTime}</Td>
                   
-                  <Td align="center">{row.activeDays}</Td>
-                  <Td align="center">{row.locations}</Td>
-                  <Td align="center">{row.imeis}</Td>
+                  <Td align="center" colName="Active Days">{row.activeDays}</Td>
+                  <Td align="center" colName="Locations">{row.locations}</Td>
+                  <Td align="center" colName="IMEIs">{row.imeis}</Td>
                   
-                  <Td align="right" bold color={isHighFreq ? 'text-red-500' : 'text-gray-300'}>
+                  <Td align="right" bold color={isHighFreq ? 'text-red-500' : 'text-gray-300'} colName="Freq Score">
                     {row.freqScore.toFixed(0)}%
                   </Td>
                 </tr>

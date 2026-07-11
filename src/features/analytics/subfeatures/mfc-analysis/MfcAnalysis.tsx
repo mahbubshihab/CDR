@@ -6,6 +6,7 @@ import { MfcFilterBar, type MfcFilterState } from './components/MfcFilterBar';
 import { MfcHighFrequency } from './components/MfcHighFrequency';
 import { MfcChartsRow } from './components/MfcChartsRow';
 import { MfcDataTable } from './components/MfcDataTable';
+import * as XLSX from 'xlsx';
 
 interface MfcAnalysisProps {
   cdrFile: CDRFile;
@@ -228,8 +229,43 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
   const highFreqContacts = allStats.filter(s => s.freqScore > 60).map(s => s.bNumber).slice(0, 5);
 
   const handleExport = (format: 'pdf' | 'excel' | 'csv') => {
-    console.log(`Exporting MFC Analysis as ${format}`);
-    // Trigger export logic (mocked for now)
+    if (format === 'pdf') {
+      window.print();
+      return;
+    }
+
+    const exportData = filteredStats.map((row, idx) => ({
+      Rank: idx + 1,
+      'B-Party Number': row.bNumber,
+      Type: row.type,
+      Operator: row.operator,
+      Country: row.country,
+      Total: row.totalActivities,
+      'In Calls': row.inCalls,
+      'Out Calls': row.outCalls,
+      'In SMS': row.inSms,
+      'Out SMS': row.outSms,
+      'Total Min': Math.round(row.totalDurationSeconds / 60),
+      'Total Hrs': (row.totalDurationSeconds / 3600).toFixed(2),
+      'First Date': row.firstDate,
+      'First Time': row.firstTime,
+      'Last Date': row.lastDate,
+      'Last Time': row.lastTime,
+      'Active Days': row.activeDays,
+      Locations: row.locations,
+      IMEIs: row.imeis,
+      'Freq Score': row.freqScore.toFixed(0) + '%'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'MFC Analysis');
+
+    if (format === 'excel') {
+      XLSX.writeFile(workbook, `MFC_Analysis_${cdrFile.phoneNumber}.xlsx`);
+    } else if (format === 'csv') {
+      XLSX.writeFile(workbook, `MFC_Analysis_${cdrFile.phoneNumber}.csv`);
+    }
   };
 
   return (
