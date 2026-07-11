@@ -45,8 +45,9 @@ export const CaseList: React.FC<CaseListProps> = ({
     if (!window.confirm('Are you sure you want to delete this case? This action will permanently remove all associated records.')) return;
     try {
       await db.cases.delete(id);
-      // Clean up records associated with this case
+      // Clean up records and files associated with this case
       await db.cdrRecords.where('caseId').equals(id).delete();
+      await db.cdrFiles.where('caseId').equals(id).delete();
       onTriggerRefresh();
       fetchCases();
     } catch (err) {
