@@ -99,18 +99,15 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
 
       // Usage type logic
       const uType = r.usageType.toLowerCase();
-      if (uType.includes('mtc') || uType.includes('incoming call') || uType === 'incoming') {
+      if (uType.includes('sms')) {
+        stat.totalSms++;
+        totals.totalSms++;
+      } else if (uType.includes('mtc') || uType.includes('incoming call') || uType === 'incoming') {
         stat.inCalls++;
         totals.inCalls++;
-      } else if (uType.includes('moc') || uType.includes('outgoing call') || uType === 'outgoing' || uType === 'voice') {
+      } else if (uType.includes('moc') || uType.includes('outgoing call') || uType === 'outgoing' || uType === 'voice' || uType === 'call') {
         stat.outCalls++;
         totals.outCalls++;
-      } else if (uType.includes('sms-mt') || uType.includes('incoming sms')) {
-        stat.totalSms++;
-        totals.totalSms++;
-      } else if (uType.includes('sms-mo') || uType.includes('outgoing sms') || uType === 'sms') {
-        stat.totalSms++;
-        totals.totalSms++;
       } else {
         // Fallback guess
         stat.outCalls++;
