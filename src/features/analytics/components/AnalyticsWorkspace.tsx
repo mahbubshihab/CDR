@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Menu, Database, LayoutDashboard, 
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
-  Phone, Cpu, Wifi, ChevronLeft, ChevronRight
+  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
@@ -21,6 +21,7 @@ import { LocationIntelligence } from '../subfeatures/location-intelligence/Locat
 import { ServiceNumbers } from '../subfeatures/service-numbers/ServiceNumbers';
 import { ImeiPatterns } from '../subfeatures/imei-patterns/ImeiPatterns';
 import { ImsiPatterns } from '../subfeatures/imsi-patterns/ImsiPatterns';
+import { FirstLastCall } from '../subfeatures/first-last-call/FirstLastCall';
 
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
@@ -68,7 +69,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'imei', name: 'IMEI Summary', icon: Smartphone },
     { id: 'imsi', name: 'IMSI Summary', icon: Radio },
     { id: 'imei_patterns', name: 'IMEI Patterns', icon: Cpu },
-    { id: 'imsi_patterns', name: 'IMSI Patterns', icon: Wifi }
+    { id: 'imsi_patterns', name: 'IMSI Patterns', icon: Wifi },
+    { id: 'first_last_call', name: 'First / Last Call', icon: PhoneCall }
   ];
 
   if (loading) {
@@ -301,6 +303,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <ImeiPatterns cdrFile={targetFile} records={targetRecords} />
           ) : activeAnalysisTab === 'imsi_patterns' ? (
             <ImsiPatterns cdrFile={targetFile} records={targetRecords} />
+          ) : activeAnalysisTab === 'first_last_call' ? (
+            <FirstLastCall cdrFile={targetFile} records={targetRecords} />
           ) : activeAnalysisTab === 'locations' ? (
             <LocationSummary cdrFile={targetFile} records={targetRecords} />
           ) : activeAnalysisTab === 'loc_intel' ? (
