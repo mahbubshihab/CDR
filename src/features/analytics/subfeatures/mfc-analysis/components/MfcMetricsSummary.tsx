@@ -8,7 +8,8 @@ interface MfcMetricsSummaryProps {
   perPage: number;
   inCalls: number;
   outCalls: number;
-  totalSms: number;
+  inSms: number;
+  outSms: number;
   totalMin: number;
   totalHrs: number;
 }
@@ -20,7 +21,8 @@ export const MfcMetricsSummary: React.FC<MfcMetricsSummaryProps> = ({
   perPage,
   inCalls,
   outCalls,
-  totalSms,
+  inSms,
+  outSms,
   totalMin,
   totalHrs,
 }) => {
@@ -51,7 +53,8 @@ export const MfcMetricsSummary: React.FC<MfcMetricsSummaryProps> = ({
       <div className="flex flex-wrap gap-2 md:justify-end">
         <KpiBox value={inCalls} label="In Calls" />
         <KpiBox value={outCalls} label="Out Calls" />
-        <KpiBox value={totalSms} label="Total SMS" />
+        <KpiBox value={inSms} label="In SMS" />
+        <KpiBox value={outSms} label="Out SMS" />
         <KpiBox value={totalMin.toLocaleString()} label="Total Min" />
         <KpiBox value={totalHrs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} label="Total Hrs" />
       </div>

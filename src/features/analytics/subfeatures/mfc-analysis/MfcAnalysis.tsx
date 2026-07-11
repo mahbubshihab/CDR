@@ -48,7 +48,8 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
     const totals = {
       inCalls: 0,
       outCalls: 0,
-      totalSms: 0,
+      inSms: 0,
+      outSms: 0,
       duration: 0,
       communications: 0
     };
@@ -67,7 +68,8 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
           
           inCalls: 0,
           outCalls: 0,
-          totalSms: 0,
+          inSms: 0,
+          outSms: 0,
           totalActivities: 0,
           
           totalDurationSeconds: 0,
@@ -99,9 +101,12 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
 
       // Usage type logic
       const uType = r.usageType.toLowerCase();
-      if (uType.includes('sms')) {
-        stat.totalSms++;
-        totals.totalSms++;
+      if (uType.includes('sms-mt') || uType.includes('incoming sms') || uType === 'smsmt') {
+        stat.inSms++;
+        totals.inSms++;
+      } else if (uType.includes('sms-mo') || uType.includes('outgoing sms') || uType === 'smsmo' || uType.includes('sms')) {
+        stat.outSms++;
+        totals.outSms++;
       } else if (uType.includes('mtc') || uType.includes('incoming call') || uType === 'incoming') {
         stat.inCalls++;
         totals.inCalls++;
@@ -232,7 +237,8 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
       Total: row.totalActivities,
       'In Calls': row.inCalls,
       'Out Calls': row.outCalls,
-      'Total SMS': row.totalSms,
+      'In SMS': row.inSms,
+      'Out SMS': row.outSms,
       'Total Min': Math.round(row.totalDurationSeconds / 60),
       'Total Hrs': (row.totalDurationSeconds / 3600).toFixed(2),
       'First Date': row.firstDate,
@@ -265,7 +271,8 @@ export const MfcAnalysis: React.FC<MfcAnalysisProps> = ({ cdrFile, records }) =>
         perPage={15}
         inCalls={summaryTotals.inCalls}
         outCalls={summaryTotals.outCalls}
-        totalSms={summaryTotals.totalSms}
+        inSms={summaryTotals.inSms}
+        outSms={summaryTotals.outSms}
         totalMin={Math.round(summaryTotals.duration / 60)}
         totalHrs={summaryTotals.duration / 3600}
       />

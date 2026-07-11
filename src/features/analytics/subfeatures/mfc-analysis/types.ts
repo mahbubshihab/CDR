@@ -6,7 +6,8 @@ export interface BPartyStats {
   
   inCalls: number;
   outCalls: number;
-  totalSms: number;
+  inSms: number;
+  outSms: number;
   totalActivities: number;
   
   totalDurationSeconds: number;
