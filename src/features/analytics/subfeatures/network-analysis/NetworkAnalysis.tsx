@@ -1,180 +1,157 @@
-import React, { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
-import { Server, Phone, MessageSquare, ShieldAlert, Cpu } from 'lucide-react';
+import { NetworkSummaryCard } from './components/NetworkSummaryCard';
+import { NetworkFilters } from './components/NetworkFilters';
+import { NetworkDataTable } from './components/NetworkDataTable';
+import type { NetworkRecord, NetworkStats } from './types';
+import * as XLSX from 'xlsx';
 
 interface NetworkAnalysisProps {
   cdrFile: CDRFile;
   records: CDRRecord[];
 }
 
+const getOperatorFromPrefix = (num: string): string => {
+  if (!num) return 'Unknown';
+  let clean = num.replace(/[^0-9]/g, '');
+  if (clean.startsWith('880')) clean = clean.substring(3);
+  if (clean.startsWith('0')) clean = clean.substring(1);
+  
+  if (clean.startsWith('17') || clean.startsWith('13')) return 'Grameenphone';
+  if (clean.startsWith('19') || clean.startsWith('14')) return 'Banglalink';
+  if (clean.startsWith('18') || clean.startsWith('16')) return 'Robi';
+  if (clean.startsWith('15')) return 'Teletalk';
+  // Note: Airtel is merged with Robi technically, but usually uses 16 prefix. We'll map 16 to Robi as done above, but if you want explicit Airtel:
+  // if (clean.startsWith('16')) return 'Airtel'; 
+  return 'Unknown';
+};
+
 export const NetworkAnalysis: React.FC<NetworkAnalysisProps> = ({ cdrFile, records }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [operatorFilter, setOperatorFilter] = useState('All');
 
-  // Aggregate network carrier stats
-  const carrierStats = useMemo(() => {
-    const map: { 
-      [key: string]: { 
-        name: string; 
-        voiceCount: number; 
-        smsCount: number; 
-        total: number;
-        duration: number;
-      } 
-    } = {};
-
+  // Compute unique B-Party numbers
+  const { allRecords, stats } = useMemo(() => {
+    const uniqueNumbers = new Set<string>();
+    
     records.forEach(r => {
-      const name = r.provider || 'Unknown Operator';
-      if (!map[name]) {
-        map[name] = { name, voiceCount: 0, smsCount: 0, total: 0, duration: 0 };
+      if (r.otherParty) {
+        uniqueNumbers.add(r.otherParty);
       }
-      
-      const type = r.usageType.toLowerCase();
-      if (type.includes('sms')) {
-        map[name].smsCount++;
-      } else {
-        map[name].voiceCount++;
-        map[name].duration += r.duration || 0;
-      }
-      map[name].total++;
     });
 
-    const sorted = Object.values(map).sort((a, b) => b.total - a.total);
-    const total = records.length || 1;
-
-    return sorted.map(item => ({
-      ...item,
-      pct: ((item.total / total) * 100).toFixed(1)
+    const parsedRecords: NetworkRecord[] = Array.from(uniqueNumbers).map(num => ({
+      number: num,
+      operator: getOperatorFromPrefix(num),
+      party: 'B-Party'
     }));
+
+    const opCounts: Record<string, number> = {};
+    parsedRecords.forEach(r => {
+      opCounts[r.operator] = (opCounts[r.operator] || 0) + 1;
+    });
+
+    const totalUnique = parsedRecords.length;
+    const opPercentages: Record<string, string> = {};
+    
+    Object.keys(opCounts).forEach(op => {
+      opPercentages[op] = totalUnique > 0 ? ((opCounts[op] / totalUnique) * 100).toFixed(1) : '0.0';
+    });
+
+    return {
+      allRecords: parsedRecords,
+      stats: {
+        totalUnique,
+        operatorCounts: opCounts,
+        operatorPercentages: opPercentages
+      }
+    };
   }, [records]);
 
-  const filteredStats = useMemo(() => {
-    if (!searchTerm.trim()) return carrierStats;
-    const lower = searchTerm.toLowerCase();
-    return carrierStats.filter(op => {
-      const avgDur = op.voiceCount > 0 ? (op.duration / op.voiceCount).toFixed(0) : '—';
-      return (
-        op.name.toLowerCase().includes(lower) ||
-        String(op.voiceCount).includes(lower) ||
-        String(op.smsCount).includes(lower) ||
-        String(op.duration).includes(lower) ||
-        String(avgDur).includes(lower) ||
-        String(op.pct).includes(lower)
-      );
+  // Filter records
+  const filteredRecords = useMemo(() => {
+    return allRecords.filter(r => {
+      if (operatorFilter !== 'All' && r.operator !== operatorFilter) return false;
+      if (searchQuery) {
+        const lowerSearch = searchQuery.toLowerCase();
+        return (
+          r.number.toLowerCase().includes(lowerSearch) ||
+          r.operator.toLowerCase().includes(lowerSearch) ||
+          r.party.toLowerCase().includes(lowerSearch)
+        );
+      }
+      return true;
     });
-  }, [carrierStats, searchTerm]);
+  }, [allRecords, operatorFilter, searchQuery]);
+
+  const handleExport = (format: 'excel' | 'csv') => {
+    const exportData = filteredRecords.map(r => ({
+      Number: r.number,
+      Operator: r.operator,
+      Party: r.party
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Network Analysis');
+    
+    if (format === 'excel') {
+      XLSX.writeFile(workbook, `Network_Analysis_${cdrFile.phoneNumber}.xlsx`);
+    } else {
+      XLSX.writeFile(workbook, `Network_Analysis_${cdrFile.phoneNumber}.csv`);
+    }
+  };
 
   return (
-    <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#121212] animate-in fade-in duration-300">
+    <div className="w-full h-full overflow-y-auto p-6 space-y-4 custom-scrollbar text-left bg-[#0f141e] animate-in fade-in duration-300 font-sans">
       
       {/* Title Header */}
-      <div className="border-b border-[#2e2e2e] pb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
         <div>
-          <h2 className="text-sm font-semibold text-gray-200">Network / Carrier Analysis</h2>
-          <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-wider">
-            Cellular provider shares, durations, and SMS-voice splits for target: <strong className="text-gray-300 font-mono font-bold">{cdrFile.phoneNumber}</strong>
+          <h2 className="text-[10px] font-semibold text-blue-400 tracking-widest uppercase flex items-center gap-2">
+            <span className="w-4 h-4 rounded bg-blue-500/20 flex items-center justify-center">
+              <svg className="w-3 h-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </span>
+            NETWORK ANALYSIS
+          </h2>
+          <div className="mt-1 flex items-baseline gap-3">
+            <h1 className="text-2xl font-bold text-gray-200">{cdrFile.phoneNumber}</h1>
+          </div>
+          <p className="text-[11px] text-gray-400 font-mono mt-1">
+            {stats.totalUnique} unique Bangladeshi mobile numbers
           </p>
         </div>
-        <div className="relative shrink-0">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-500" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search network stats..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full sm:w-64 bg-[#1a1a1a] border border-[#2e2e2e] text-gray-200 text-xs rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#3ecf8e]/50 focus:ring-1 focus:ring-[#3ecf8e]/50 transition-colors font-mono"
-          />
+
+        <div className="flex gap-2">
+          <button 
+            onClick={() => handleExport('excel')}
+            className="bg-[#1a1f2e] border border-[#2a3441] hover:bg-[#20273a] hover:border-blue-500/50 text-gray-300 text-xs font-semibold px-4 py-2 rounded-lg transition-colors font-mono"
+          >
+            Excel
+          </button>
+          <button 
+            onClick={() => handleExport('csv')}
+            className="bg-[#1a1f2e] border border-[#2a3441] hover:bg-[#20273a] hover:border-blue-500/50 text-gray-300 text-xs font-semibold px-4 py-2 rounded-lg transition-colors font-mono"
+          >
+            CSV
+          </button>
         </div>
       </div>
 
-      {/* Grid of Operators */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {carrierStats.map((op, idx) => (
-          <div key={idx} className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-gray-300">{op.name}</span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#3ecf8e]/10 text-[#3ecf8e] border border-[#3ecf8e]/20 rounded">
-                  {op.pct}%
-                </span>
-              </div>
-              <span className="text-3xl font-bold text-gray-100 font-mono mt-3 block">{op.total}</span>
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider block mt-1 font-semibold">Total Interactions</span>
-            </div>
+      <NetworkSummaryCard stats={stats} />
 
-            <div className="mt-5 space-y-2 border-t border-[#2e2e2e]/55 pt-3.5 text-xs font-mono">
-              <div className="flex justify-between text-gray-400">
-                <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-gray-500" /> Calls</span>
-                <strong>{op.voiceCount}</strong>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-gray-500" /> SMS</span>
-                <strong>{op.smsCount}</strong>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <span className="flex items-center gap-1.5"><Cpu className="h-3.5 w-3.5 text-gray-500" /> Duration</span>
-                <strong>{(op.duration / 60).toFixed(0)}m</strong>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div>
+        <NetworkFilters 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          operatorFilter={operatorFilter}
+          setOperatorFilter={setOperatorFilter}
+          filteredCount={filteredRecords.length}
+        />
+        <NetworkDataTable records={filteredRecords} />
       </div>
-
-      {/* Detailed Carrier List Table */}
-      <div className="bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-[#2e2e2e] bg-[#1a1a1a]/30">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Inter-Network Operator Analysis</h3>
-        </div>
-
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full border-collapse text-left text-xs font-mono">
-            <thead>
-              <tr className="bg-[#171717] border-b border-[#2e2e2e] text-gray-400 uppercase font-semibold text-[10px] tracking-wider">
-                <th className="py-3 px-4">Operator Name</th>
-                <th className="py-3 px-4 text-right">Voice Counts</th>
-                <th className="py-3 px-4 text-right">SMS Counts</th>
-                <th className="py-3 px-4 text-right">Total Duration</th>
-                <th className="py-3 px-4 text-right">Avg Duration</th>
-                <th className="py-3 px-4 text-right w-36">Volume Share</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#2e2e2e]/40 text-gray-300">
-              {filteredStats.length > 0 ? (
-                filteredStats.map((op, idx) => (
-                  <tr key={idx} className="hover:bg-[#171717]/40 transition-colors">
-                    <td className="py-3.5 px-4 font-sans text-gray-200 font-semibold">{op.name}</td>
-                    <td className="py-3.5 px-4 text-right font-semibold text-gray-300">{op.voiceCount}</td>
-                    <td className="py-3.5 px-4 text-right font-semibold text-gray-300">{op.smsCount}</td>
-                    <td className="py-3.5 px-4 text-right text-gray-400">{op.duration}s</td>
-                    <td className="py-3.5 px-4 text-right text-gray-400">
-                      {op.voiceCount > 0 ? `${(op.duration / op.voiceCount).toFixed(0)}s` : '—'}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-1">
-                        <div className="flex justify-between font-bold text-gray-200">
-                          <span>{op.pct}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-[#121212] rounded-full overflow-hidden">
-                          <div className="bg-[#3ecf8e] h-full" style={{ width: `${op.pct}%` }} />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500">
-                    No operator records detected.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
     </div>
   );
 };
