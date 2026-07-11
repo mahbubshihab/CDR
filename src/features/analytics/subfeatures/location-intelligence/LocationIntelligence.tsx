@@ -32,6 +32,27 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
   const [activityPage, setActivityPage] = useState(1);
   const rowsPerPage = 300;
 
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterStartTime, setFilterStartTime] = useState('');
+  const [filterEndTime, setFilterEndTime] = useState('');
+  const [filterCaller, setFilterCaller] = useState('');
+  const [filterReceiver, setFilterReceiver] = useState('');
+  const [filterType, setFilterType] = useState('All Types');
+  const [filterMinSec, setFilterMinSec] = useState('');
+  const [filterMaxSec, setFilterMaxSec] = useState('');
+
+  const [appliedFilters, setAppliedFilters] = useState({
+    startDate: '', endDate: '', startTime: '', endTime: '', caller: '', receiver: '', type: 'All Types', minSec: '', maxSec: ''
+  });
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      startDate: filterStartDate, endDate: filterEndDate, startTime: filterStartTime, endTime: filterEndTime,
+      caller: filterCaller, receiver: filterReceiver, type: filterType, minSec: filterMinSec, maxSec: filterMaxSec
+    });
+  };
+
   // Group records by location
   const locationsMap = useMemo(() => {
     const map = new Map<string, LocationData>();
@@ -85,7 +106,80 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
     }
   }, [filteredLocations, activeLocation]);
 
-  const activeData = activeLocation ? locationsMap.get(activeLocation) : null;
+  const rawActiveData = activeLocation ? locationsMap.get(activeLocation) : null;
+
+  const activeData = useMemo(() => {
+    if (!rawActiveData) return null;
+    let records = rawActiveData.records;
+
+    if (appliedFilters.startDate) {
+      const start = new Date(appliedFilters.startDate).getTime();
+      records = records.filter(r => (r.timestamp || 0) >= start);
+    }
+    if (appliedFilters.endDate) {
+      const end = new Date(appliedFilters.endDate).getTime() + 86400000;
+      records = records.filter(r => (r.timestamp || 0) <= end);
+    }
+    if (appliedFilters.startTime || appliedFilters.endTime) {
+      records = records.filter(r => {
+        if (!r.timestamp) return false;
+        const d = new Date(r.timestamp);
+        const hm = d.getHours() * 60 + d.getMinutes();
+        let pass = true;
+        if (appliedFilters.startTime) {
+          const [h, m] = appliedFilters.startTime.split(':').map(Number);
+          pass = pass && hm >= h * 60 + m;
+        }
+        if (appliedFilters.endTime) {
+          const [h, m] = appliedFilters.endTime.split(':').map(Number);
+          pass = pass && hm <= h * 60 + m;
+        }
+        return pass;
+      });
+    }
+    if (appliedFilters.caller) {
+      const term = appliedFilters.caller.toLowerCase();
+      records = records.filter(r => r.otherParty && r.otherParty.toLowerCase().includes(term));
+    }
+    if (appliedFilters.receiver) {
+      const term = appliedFilters.receiver.toLowerCase();
+      records = records.filter(r => r.otherParty && r.otherParty.toLowerCase().includes(term));
+    }
+    if (appliedFilters.type !== 'All Types') {
+      records = records.filter(r => r.usageType === appliedFilters.type);
+    }
+    if (appliedFilters.minSec) {
+      records = records.filter(r => (r.duration || 0) >= parseInt(appliedFilters.minSec));
+    }
+    if (appliedFilters.maxSec) {
+      records = records.filter(r => (r.duration || 0) <= parseInt(appliedFilters.maxSec));
+    }
+
+    const uniqueNumbers = new Set<string>();
+    let inCalls = 0;
+    let outCalls = 0;
+    let sms = 0;
+    let durationSec = 0;
+
+    records.forEach(r => {
+      if (r.otherParty) uniqueNumbers.add(r.otherParty);
+      if (r.usageType === 'Incoming') inCalls++;
+      if (r.usageType === 'Outgoing') outCalls++;
+      if (r.usageType === 'SMS') sms++;
+      durationSec += (r.duration || 0);
+    });
+
+    return {
+      ...rawActiveData,
+      records,
+      events: records.length,
+      uniqueNumbers,
+      inCalls,
+      outCalls,
+      sms,
+      durationSec
+    };
+  }, [rawActiveData, appliedFilters]);
 
   // Process data for charts
   const hourlyData = useMemo(() => {
@@ -350,34 +444,80 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
           </div>
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-4 gap-4">
-              <div className="relative">
-                <input type="text" placeholder="dd/mm/yyyy" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 pr-8 text-xs text-white w-full" />
-                <Calendar className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2" />
-              </div>
-              <div className="relative">
-                <input type="text" placeholder="dd/mm/yyyy" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 pr-8 text-xs text-white w-full" />
-                <Calendar className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2" />
-              </div>
-              <div className="relative">
-                <input type="text" placeholder="--:-- --" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 pr-8 text-xs text-white w-full" />
-                <Clock className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2" />
-              </div>
-              <div className="relative">
-                <input type="text" placeholder="--:-- --" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 pr-8 text-xs text-white w-full" />
-                <Clock className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2" />
-              </div>
+              <input 
+                type="date" 
+                value={filterStartDate}
+                onChange={(e) => setFilterStartDate(e.target.value)}
+                style={{ colorScheme: 'dark' }}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
+              <input 
+                type="date" 
+                value={filterEndDate}
+                onChange={(e) => setFilterEndDate(e.target.value)}
+                style={{ colorScheme: 'dark' }}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
+              <input 
+                type="time" 
+                value={filterStartTime}
+                onChange={(e) => setFilterStartTime(e.target.value)}
+                style={{ colorScheme: 'dark' }}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
+              <input 
+                type="time" 
+                value={filterEndTime}
+                onChange={(e) => setFilterEndTime(e.target.value)}
+                style={{ colorScheme: 'dark' }}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
             </div>
             <div className="grid grid-cols-5 gap-4">
-              <input type="text" placeholder="Caller / Number" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" />
-              <input type="text" placeholder="Receiver" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" />
-              <select className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full">
-                <option>All Types</option>
+              <input 
+                type="text" 
+                placeholder="Caller / Number" 
+                value={filterCaller}
+                onChange={(e) => setFilterCaller(e.target.value)}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
+              <input 
+                type="text" 
+                placeholder="Receiver" 
+                value={filterReceiver}
+                onChange={(e) => setFilterReceiver(e.target.value)}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
+              <select 
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full"
+              >
+                <option value="All Types">All Types</option>
+                <option value="Incoming">Incoming</option>
+                <option value="Outgoing">Outgoing</option>
+                <option value="SMS">SMS</option>
               </select>
-              <input type="text" placeholder="Min sec" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" />
-              <input type="text" placeholder="Max sec" className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" />
+              <input 
+                type="number" 
+                placeholder="Min sec" 
+                value={filterMinSec}
+                onChange={(e) => setFilterMinSec(e.target.value)}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
+              <input 
+                type="number" 
+                placeholder="Max sec" 
+                value={filterMaxSec}
+                onChange={(e) => setFilterMaxSec(e.target.value)}
+                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+              />
             </div>
             <div>
-              <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded px-6 py-2 text-xs font-semibold">
+              <button 
+                onClick={handleApplyFilters}
+                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded px-6 py-2 text-xs font-semibold"
+              >
                 Apply Filters
               </button>
             </div>
