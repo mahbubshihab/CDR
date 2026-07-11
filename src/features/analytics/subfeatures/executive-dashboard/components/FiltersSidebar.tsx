@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, FileSpreadsheet, FileText, Printer, Map, Shield, ArrowLeft } from 'lucide-react';
 
 interface FiltersSidebarProps {
   searchInput: string;
@@ -39,6 +39,13 @@ interface FiltersSidebarProps {
   };
   onApply: () => void;
   onClear: () => void;
+  onExportExcel?: () => void;
+  onExportPDF?: () => void;
+  onPrint?: () => void;
+  onExportKml?: () => void;
+  onExportKmz?: () => void;
+  onEvidence?: () => void;
+  onBack?: () => void;
 }
 
 export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
@@ -55,8 +62,19 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   countrySel, setCountrySel,
   operatorSel, setOperatorSel,
   filterOptions,
-  onApply, onClear
+  onApply, onClear,
+  onExportExcel, onExportPDF, onPrint, onExportKml, onExportKmz, onEvidence, onBack
 }) => {
+  const handlePrint = () => {
+    if (onPrint) onPrint();
+    else window.print();
+  };
+
+  const handleBack = () => {
+    if (onBack) onBack();
+    else window.history.back();
+  };
+
   return (
     <aside className="w-full lg:w-60 shrink-0 bg-[#171717] border-r border-[#2e2e2e] p-4 flex flex-col gap-4.5 h-full overflow-y-auto custom-scrollbar overscroll-contain text-left">
       {/* Apply / Clear Actions */}
@@ -93,7 +111,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
       </div>
 
       {/* Dynamic filters list */}
-      <div className="space-y-4 font-mono text-xs">
+      <div className="space-y-4 font-mono text-xs flex-1">
         
         {/* YEAR FILTER */}
         <div className="space-y-1.5">
@@ -294,6 +312,61 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
           </div>
         </div>
 
+      </div>
+
+      {/* Export Actions Sidebar Section (Matches Bottom of image copy.png) */}
+      <div className="border-t border-[#2e2e2e]/65 pt-4 mt-2 space-y-2 font-sans text-xs">
+        <button 
+          onClick={onExportExcel}
+          className="w-full flex items-center gap-2 px-3 py-2 bg-[#0b1c15] border border-emerald-900/40 hover:border-emerald-600/35 text-emerald-450 rounded-lg text-left transition-colors cursor-pointer"
+        >
+          <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
+          <span>Excel</span>
+        </button>
+        <button 
+          onClick={onExportPDF}
+          className="w-full flex items-center gap-2 px-3 py-2 bg-[#1c0f0f] border border-red-900/40 hover:border-red-600/35 text-red-450 rounded-lg text-left transition-colors cursor-pointer"
+        >
+          <FileText className="h-3.5 w-3.5 text-red-500" />
+          <span>PDF Report</span>
+        </button>
+        <button 
+          onClick={handlePrint}
+          className="w-full flex items-center gap-2 px-3 py-2 bg-[#0f151c] border border-blue-900/40 hover:border-blue-600/35 text-blue-450 rounded-lg text-left transition-colors cursor-pointer"
+        >
+          <Printer className="h-3.5 w-3.5 text-blue-500" />
+          <span>Print</span>
+        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button 
+            onClick={onExportKml}
+            className="flex items-center justify-center gap-1.5 py-1.5 bg-[#171717] border border-[#2e2e2e] text-gray-400 hover:text-white rounded-lg text-[10px] font-mono cursor-pointer transition-colors"
+          >
+            <Map className="h-3 w-3 text-gray-500" />
+            <span>KML</span>
+          </button>
+          <button 
+            onClick={onExportKmz}
+            className="flex items-center justify-center gap-1.5 py-1.5 bg-[#171717] border border-[#2e2e2e] text-gray-400 hover:text-white rounded-lg text-[10px] font-mono cursor-pointer transition-colors"
+          >
+            <Map className="h-3 w-3 text-gray-500" />
+            <span>KMZ</span>
+          </button>
+        </div>
+        <button 
+          onClick={onEvidence}
+          className="w-full flex items-center gap-2 px-3 py-2 bg-[#1c170f] border border-amber-900/40 hover:border-amber-600/35 text-amber-450 rounded-lg text-left transition-colors cursor-pointer"
+        >
+          <Shield className="h-3.5 w-3.5 text-amber-500" />
+          <span>Evidence</span>
+        </button>
+        <button 
+          onClick={handleBack}
+          className="w-full flex items-center gap-2 px-3 py-2 border border-[#2e2e2e] hover:border-gray-500 hover:bg-[#1a1a1a] text-gray-400 hover:text-white rounded-lg text-left transition-all cursor-pointer mt-2"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back</span>
+        </button>
       </div>
     </aside>
   );

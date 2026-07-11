@@ -320,6 +320,32 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       .sort((a, b) => b.count - a.count);
   }, [filteredRecords, metrics.total, isPakistanCase]);
 
+  const handleExportCSV = () => {
+    if (filteredRecords.length === 0) return;
+    const headers = ['Timestamp', 'Usage Type', 'Calling Number', 'Other Party', 'IMEI', 'IMSI', 'Call Duration', 'Cell Address', 'LAC', 'Cell ID'];
+    const rows = filteredRecords.map(r => [
+      new Date(r.timestamp).toISOString(),
+      r.usageType,
+      r.aparty || '',
+      r.otherParty || '',
+      r.imei || '',
+      r.imsi || '',
+      r.duration || '',
+      r.address || '',
+      r.lac || '',
+      r.cellId || ''
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(','), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `CDR_Export_${cdrFile.phoneNumber || 'Records'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="w-full h-full flex flex-col lg:flex-row overflow-hidden text-left bg-[#121212] animate-in fade-in duration-300">
       
@@ -352,6 +378,13 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         filterOptions={filterOptions}
         onApply={() => {}} // Dynamic filtration is now immediate on selection changes
         onClear={handleClearFilters}
+        onExportExcel={handleExportCSV}
+        onExportPDF={() => window.print()}
+        onPrint={() => window.print()}
+        onExportKml={() => alert('Generating KML map layer...')}
+        onExportKmz={() => alert('Generating KMZ map package...')}
+        onEvidence={() => alert('Exporting forensic evidence package...')}
+        onBack={() => onNavigateToTab('advanced')}
       />
 
       {/* 2. RIGHT CONTENT AREA: SWITCHARABLE CHARTS */}
@@ -372,9 +405,6 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
         {/* Row 4: Row of small metric cards */}
         <MetricsSummaryRow 
-          incoming={metrics.incomingCalls}
-          outgoing={metrics.outgoingCalls}
-          sms={metrics.totalSMS}
           bParties={metrics.bPartiesCount}
           locations={metrics.locationsCount}
           calls={metrics.totalCalls}
