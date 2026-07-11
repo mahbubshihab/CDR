@@ -56,9 +56,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <h3 className="font-semibold text-gray-200 text-sm mt-0.5 truncate">
               {activeCase.title}
             </h3>
-            <span className="text-[11px] text-[#3ecf8e] font-mono block mt-1 truncate max-w-full opacity-80 select-all">
-              https://{activeCase.id || 'case'}.supabase.co
-            </span>
           </div>
 
           {/* Sub menu list */}
