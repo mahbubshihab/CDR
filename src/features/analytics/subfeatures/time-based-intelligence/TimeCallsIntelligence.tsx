@@ -8,7 +8,7 @@ interface TimeCallsIntelligenceProps {
   mode: 'day' | 'night';
 }
 
-const isTimeInRange = (timestamp: string | undefined, startHM: string, endHM: string) => {
+const isTimeInRange = (timestamp: number | string | undefined, startHM: string, endHM: string) => {
   if (!timestamp) return false;
   const d = new Date(timestamp);
   const m = d.getHours() * 60 + d.getMinutes();
@@ -154,7 +154,7 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
                   
                   return (
                     <tr key={i} className="hover:bg-[#1e1e1e] transition-colors font-mono">
-                      <td className="p-3 text-gray-200">{r.caller}</td>
+                      <td className="p-3 text-gray-200">{r.aparty || 'N/A'}</td>
                       <td className="p-3 text-gray-400">N/A</td>
                       <td className="p-3 text-gray-200">{r.otherParty || 'N/A'}</td>
                       <td className="p-3 text-gray-400">N/A</td>
@@ -165,10 +165,10 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
                       <td className="p-3 text-gray-400">{Math.floor((r.duration || 0) / 60)}</td>
                       <td className="p-3 text-gray-400">{r.imei || 'N/A'}</td>
                       <td className="p-3 text-gray-400">{r.imsi || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">{r.siteId || 'N/A'}</td>
+                      <td className="p-3 text-gray-400">{r.cellId || 'N/A'}</td>
                       <td className="p-3 text-gray-400 truncate max-w-[150px]" title={r.address}>{r.address || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">{r.latitude || 'N/A'}</td>
-                      <td className="p-3 text-gray-400">{r.longitude || 'N/A'}</td>
+                      <td className="p-3 text-gray-400">N/A</td>
+                      <td className="p-3 text-gray-400">N/A</td>
                     </tr>
                   );
                 })}

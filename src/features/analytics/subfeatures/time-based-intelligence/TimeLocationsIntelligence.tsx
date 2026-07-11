@@ -9,7 +9,7 @@ interface TimeLocationsIntelligenceProps {
   mode: 'day' | 'night';
 }
 
-const isTimeInRange = (timestamp: string | undefined, startHM: string, endHM: string) => {
+const isTimeInRange = (timestamp: number | string | undefined, startHM: string, endHM: string) => {
   if (!timestamp) return false;
   const d = new Date(timestamp);
   const m = d.getHours() * 60 + d.getMinutes();
