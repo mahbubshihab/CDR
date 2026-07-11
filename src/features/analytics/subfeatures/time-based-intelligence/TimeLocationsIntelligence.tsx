@@ -132,7 +132,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
   const primaryColor = mode === 'day' ? '#facc15' : '#60a5fa';
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div className="w-full flex-1 min-h-0 flex flex-col gap-6 p-6 pb-10 bg-[#0a0a0a] overflow-y-auto custom-scrollbar">
       {/* Header Panel */}
       <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 shadow-lg shrink-0">
         <div className="flex items-center gap-3 mb-2">
@@ -172,7 +172,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
       <ExportableChartCard 
         title="Location Frequency"
         exportData={locStats}
-        className="h-[400px] !bg-[#121212] !border-[#2e2e2e]"
+        className="h-[400px] !bg-[#121212] !border-[#2e2e2e] shrink-0"
         contentClassName="!bg-[#121212] flex flex-col p-5 min-h-0"
       >
         <div className="flex-1 w-full min-h-0">
