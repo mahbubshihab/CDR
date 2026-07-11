@@ -1,6 +1,11 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
-import { Radio, Cpu, Clock, ArrowRightLeft } from 'lucide-react';
+import { useImsiAnalysis } from './hooks/useImsiAnalysis';
+import { ImsiSummaryStats } from './components/ImsiSummaryStats';
+import { ImsiAlerts } from './components/ImsiAlerts';
+import { ImsiCharts } from './components/ImsiCharts';
+import { ImsiSwitchingEvents } from './components/ImsiSwitchingEvents';
+import { ImsiTable } from './components/ImsiTable';
 
 interface ImsiSummaryProps {
   cdrFile: CDRFile;
@@ -8,160 +13,24 @@ interface ImsiSummaryProps {
 }
 
 export const ImsiSummary: React.FC<ImsiSummaryProps> = ({ cdrFile, records }) => {
-  // Aggregate IMSI information
-  const imsiStats = useMemo(() => {
-    const map: { 
-      [imsi: string]: { 
-        imsi: string; 
-        count: number; 
-        firstTime: string;
-        lastTime: string;
-        firstEpoch: number;
-        operator: string;
-        serial: string;
-      } 
-    } = {};
-
-    records.forEach(r => {
-      if (!r.imsi) return;
-      const imsi = r.imsi;
-
-      if (!map[imsi]) {
-        const hash = imsi.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const serial = `89921000${hash * 28913}K`;
-
-        map[imsi] = {
-          imsi,
-          count: 0,
-          firstTime: '',
-          lastTime: '',
-          firstEpoch: r.timestamp || 0,
-          operator: r.provider || 'Grameenphone',
-          serial
-        };
-      }
-
-      map[imsi].count++;
-
-      // Timestamp range formatting
-      const timeStr = String(r.timestamp);
-      let dateStr = timeStr;
-      if (timeStr.length === 14) {
-        const y = timeStr.substring(0, 4);
-        const m = timeStr.substring(4, 6);
-        const d = timeStr.substring(6, 8);
-        const hr = timeStr.substring(8, 10);
-        const min = timeStr.substring(10, 12);
-        dateStr = `${d}/${m}/${y} ${hr}:${min}`;
-      } else {
-        try {
-          const d = new Date(r.timestamp);
-          if (!isNaN(d.getTime())) {
-            dateStr = d.toLocaleString();
-          }
-        } catch (_) {}
-      }
-
-      if (!map[imsi].firstTime) map[imsi].firstTime = dateStr;
-      map[imsi].lastTime = dateStr;
-    });
-
-    const list = Object.values(map).sort((a, b) => b.firstEpoch - a.firstEpoch);
-    return list;
-  }, [records]);
+  const { tableData, stats, chartData, switchEvents } = useImsiAnalysis(records);
 
   return (
     <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#121212] animate-in fade-in duration-300">
       
-      {/* Title Header */}
-      <div className="border-b border-[#2e2e2e] pb-4">
-        <h2 className="text-sm font-semibold text-gray-200">IMSI SIM Card Summary</h2>
-        <p className="text-xs text-gray-500 mt-1 font-mono uppercase tracking-wider">
-          Physical SIM card swaps and IMSI carrier timeline tracking for suspect: <strong className="text-gray-300 font-mono font-bold">{cdrFile.phoneNumber}</strong>
-        </p>
-      </div>
+      <ImsiSummaryStats phoneNumber={cdrFile.phoneNumber} stats={stats} />
+      
+      <ImsiAlerts stats={stats} />
+      
+      {chartData.length > 0 && (
+        <ImsiCharts data={chartData} />
+      )}
 
-      {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        
-        {/* SIM Cards List (Col 7) */}
-        <div className="lg:col-span-7 bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl overflow-hidden flex flex-col justify-between">
-          <div className="p-4 border-b border-[#2e2e2e] bg-[#1a1a1a]/30">
-            <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">Detected SIM Cards</h3>
-          </div>
+      {switchEvents.length > 0 && (
+        <ImsiSwitchingEvents events={switchEvents} />
+      )}
 
-          <div className="overflow-x-auto custom-scrollbar flex-1">
-            <table className="w-full border-collapse text-left text-xs font-mono">
-              <thead>
-                <tr className="bg-[#171717] border-b border-[#2e2e2e] text-gray-400 uppercase font-semibold text-[10px] tracking-wider">
-                  <th className="py-3 px-4">IMSI Identifier</th>
-                  <th className="py-3 px-4">Operator / Carrier</th>
-                  <th className="py-3 px-4 text-right">Interactions</th>
-                  <th className="py-3 px-4 text-center">First Usage Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#2e2e2e]/40 text-gray-300">
-                {imsiStats.length > 0 ? (
-                  imsiStats.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-[#171717]/40 transition-colors">
-                      <td className="py-3 px-4 font-bold text-[#3ecf8e] select-all">{item.imsi}</td>
-                      <td className="py-3 px-4 font-sans text-gray-200 font-medium">
-                        <div className="flex items-center gap-2">
-                          <Radio className="h-3.5 w-3.5 text-gray-500 shrink-0" />
-                          <span>{item.operator}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-bold text-gray-300">{item.count}</td>
-                      <td className="py-3 px-4 text-center text-gray-400">{item.firstTime}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-gray-500">
-                      No IMSI SIM records logged in the active records.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* SIM Swap Timeline (Col 5) */}
-        <div className="lg:col-span-5 bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl p-5 flex flex-col">
-          <div className="flex items-center gap-2 border-b border-[#2e2e2e]/55 pb-3 mb-5 shrink-0">
-            <ArrowRightLeft className="h-4.5 w-4.5 text-[#3ecf8e]" />
-            <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">SIM Swap Timeline</h3>
-          </div>
-
-          <div className="flex-1 overflow-y-auto max-h-[350px] custom-scrollbar pl-2.5 relative space-y-6">
-            {/* Timeline line */}
-            <div className="absolute top-2.5 bottom-2.5 left-4.5 w-0.5 bg-[#2e2e2e]" />
-
-            {imsiStats.length > 0 ? (
-              imsiStats.map((item, idx) => (
-                <div key={idx} className="relative pl-7 flex flex-col text-left">
-                  {/* Bullet */}
-                  <div className="absolute left-1.5 top-1 h-3.5 w-3.5 rounded-full bg-[#1e1e1e] border-2 border-[#3ecf8e] flex items-center justify-center z-10" />
-                  
-                  <span className="text-[10px] text-gray-500 font-mono font-semibold flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> {item.firstTime}
-                  </span>
-                  <strong className="text-xs text-gray-200 mt-1 font-sans">{item.operator} SIM swap</strong>
-                  <span className="text-[10px] text-gray-400 font-mono mt-0.5 select-all">{item.imsi}</span>
-                  <span className="text-[10px] text-gray-550 font-mono mt-0.5">Serial: {item.serial}</span>
-                  <span className="text-[10px] text-gray-500 font-mono mt-1">Total {item.count} sessions active</span>
-                </div>
-              ))
-            ) : (
-              <div className="text-center text-gray-500 py-12 text-xs">
-                No SIM card transitions recorded.
-              </div>
-            )}
-          </div>
-        </div>
-
-      </div>
+      <ImsiTable data={tableData} />
 
     </div>
   );
