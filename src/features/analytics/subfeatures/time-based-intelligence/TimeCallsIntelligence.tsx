@@ -92,7 +92,7 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
   const title = mode === 'day' ? 'Day Calls Intelligence' : 'Night Calls Intelligence';
 
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col bg-[#0a0a0a] p-6 custom-scrollbar overflow-y-auto">
+    <div className="w-full flex flex-col gap-6">
       {/* Header */}
       <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 mb-6">
         <div className="flex items-center justify-between mb-6">
@@ -158,7 +158,7 @@ export const TimeCallsIntelligence: React.FC<TimeCallsIntelligenceProps> = ({ re
             </div>
           </div>
           
-          <div className="flex-1 overflow-auto custom-scrollbar relative">
+          <div className="overflow-x-auto custom-scrollbar relative">
             <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
               <thead className="bg-[#1a1a1a] sticky top-0 z-10 shadow-sm">
                 <tr>

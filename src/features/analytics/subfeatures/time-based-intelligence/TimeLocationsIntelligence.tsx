@@ -132,7 +132,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
   const primaryColor = mode === 'day' ? '#facc15' : '#60a5fa';
 
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col gap-6 p-6 pb-10 bg-[#0a0a0a] custom-scrollbar overflow-y-auto">
+    <div className="w-full flex flex-col gap-6">
       {/* Header Panel */}
       <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-5 shadow-lg shrink-0">
         <div className="flex items-center gap-3 mb-2">
@@ -177,12 +177,12 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
       >
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={locStats.slice(0, 20)}>
+            <BarChart data={locStats.slice(0, 50)}>
               <XAxis dataKey="location" stroke="#4b5563" fontSize={10} tickFormatter={(val) => val.substring(0, 10) + '...'} />
               <YAxis stroke="#4b5563" fontSize={10} />
               <Tooltip cursor={{fill: '#1e1e1e'}} contentStyle={{ backgroundColor: '#121212', borderColor: '#2e2e2e', color: '#fff', fontSize: '12px' }} />
               <Bar dataKey="visits" radius={[2, 2, 0, 0]}>
-                {locStats.slice(0, 20).map((entry, index) => (
+                {locStats.slice(0, 50).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={primaryColor} />
                 ))}
               </Bar>
@@ -192,7 +192,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
       </ExportableChartCard>
 
       {/* Location Table */}
-      <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col flex-1 min-h-0 shadow-lg overflow-hidden">
+      <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl flex flex-col shadow-lg overflow-hidden">
         <div className="p-4 border-b border-[#2e2e2e] flex items-center justify-between bg-[#1a1a1a]">
           <div className="relative">
             <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -210,7 +210,7 @@ export const TimeLocationsIntelligence: React.FC<TimeLocationsIntelligenceProps>
           </div>
         </div>
         
-        <div className="flex-1 overflow-auto custom-scrollbar relative">
+        <div className="overflow-x-auto custom-scrollbar relative">
           <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
             <thead className="bg-[#1a1a1a] sticky top-0 z-10">
               <tr>
