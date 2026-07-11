@@ -21,7 +21,7 @@ import { IntelligenceDatabase } from './features/intelligence-database/Intellige
 import { UsefulLinks } from './features/useful-links/UsefulLinks';
 import { Settings as SettingsTab } from './features/settings/Settings';
 import { About } from './features/about/About';
-import { db, seedMockDataIfEmpty, type Case } from './utils/db';
+import { db, type Case } from './utils/db';
 
 function App() {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -52,7 +52,7 @@ function App() {
   // Auto-seed mock data on mount
   useEffect(() => {
     const initDb = async () => {
-      await seedMockDataIfEmpty();
+      // Initialize logic if needed
       handleCaseSaved();
     };
     initDb();

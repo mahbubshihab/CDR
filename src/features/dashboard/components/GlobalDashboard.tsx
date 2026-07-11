@@ -4,6 +4,7 @@ import {
   Phone, Users, MapPin, Smartphone, PlusCircle, ArrowRight 
 } from 'lucide-react';
 import { db, type Case } from '../../../utils/db';
+import { AreaChart, Area, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface GlobalDashboardProps {
   onAddNewCase: () => void;
@@ -21,6 +22,8 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
   const [locationsCount, setLocationsCount] = useState(0);
   const [frequentLocations, setFrequentLocations] = useState<{ name: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dailyData, setDailyData] = useState<{ date: string; volume: number }[]>([]);
+  const [hourlyData, setHourlyData] = useState<{ hour: string; volume: number }[]>([]);
 
   const fetchDashboardStats = async () => {
     setLoading(true);
@@ -65,6 +68,38 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
         .slice(0, 6)
         .map(([name, count]) => ({ name, count }));
       setFrequentLocations(sortedLocs);
+
+
+      // Calculate Daily and Hourly stats from records
+      const dailyMap: { [dateStr: string]: number } = {};
+      const hourlyMap: { [hour: string]: number } = {};
+
+      const now = new Date();
+      // Initialize dailyMap for the last 30 days
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 24 * 3600 * 1000);
+        dailyMap[d.toISOString().split('T')[0]] = 0;
+      }
+      // Initialize hourlyMap for 0-23
+      for (let i = 0; i < 24; i++) {
+        hourlyMap[i.toString().padStart(2, '0') + ':00'] = 0;
+      }
+
+      records.forEach(r => {
+        const date = new Date(r.timestamp);
+        const dateStr = date.toISOString().split('T')[0];
+        const hourStr = date.getHours().toString().padStart(2, '0') + ':00';
+        
+        if (dailyMap[dateStr] !== undefined) {
+          dailyMap[dateStr]++;
+        }
+        if (hourlyMap[hourStr] !== undefined) {
+          hourlyMap[hourStr]++;
+        }
+      });
+
+      setDailyData(Object.entries(dailyMap).map(([date, volume]) => ({ date, volume })));
+      setHourlyData(Object.entries(hourlyMap).map(([hour, volume]) => ({ hour, volume })));
 
     } catch (err) {
       console.error('Failed to load dashboard statistics:', err);
@@ -393,15 +428,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                 );
               })
             ) : (
-              [40, 60, 30, 80, 50, 70].map((h, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                  <div 
-                    className="w-full bg-brand-emerald/20 border-t border-brand-emerald rounded-t-sm"
-                    style={{ height: `${h}%` }}
-                  />
-                  <span className="text-sm text-gray-600 font-bold font-mono">T{idx + 1}</span>
-                </div>
-              ))
+              <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-medium pb-8">No location data available</div>
             )}
           </div>
         </div>
@@ -411,59 +438,31 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Software Usage (Daily) */}
         <div className="bg-[#171717]/40 border border-[#2e2e2e] rounded-2xl p-5 backdrop-blur-xl text-left">
-          <div>
+                              <div>
             <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block">
-              Software Usage (Daily)
+              CDR Activity (Hourly)
             </h4>
             <p className="text-sm text-gray-400 block mt-0.5">
-              When you opened this application (last 30 days, Pakistan time PKT)
+              Aggregated call frequency by hour of day
             </p>
           </div>
 
-          <div className="h-36 w-full flex items-end justify-center pt-6 relative">
-            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <path 
-                d="M 0 90 Q 20 90 40 90 T 55 30 T 70 65 T 85 45 T 100 35" 
-                fill="none" 
-                stroke="#3b82f6" 
-                strokeWidth="2" 
-                className="drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
-              />
-              {/* Highlight points */}
-              <circle cx="55" cy="30" r="1.5" fill="#3b82f6" />
-              <circle cx="70" cy="65" r="1.5" fill="#3b82f6" />
-              <circle cx="85" cy="45" r="1.5" fill="#3b82f6" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Software Open Times (Hourly) */}
-        <div className="bg-[#171717]/40 border border-[#2e2e2e] rounded-2xl p-5 backdrop-blur-xl text-left">
-          <div>
-            <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block">
-              Software Open Times (Hourly)
-            </h4>
-            <p className="text-sm text-gray-400 block mt-0.5">
-              Which hours you usually open the app (Pakistan time PKT)
-            </p>
-          </div>
-
-          <div className="h-36 w-full flex items-end justify-center pt-6 relative">
-            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {/* Area filled path */}
-              <path 
-                d="M 0 90 Q 10 70 15 85 T 45 90 T 60 90 T 75 35 T 82 80 T 90 60 T 96 90 L 100 90 L 100 100 L 0 100 Z" 
-                fill="url(#purpleGlow)" 
-                stroke="#a855f7" 
-                strokeWidth="1.5"
-              />
-              <defs>
-                <linearGradient id="purpleGlow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a855f7" stopOpacity="0.25"/>
-                  <stop offset="100%" stopColor="#a855f7" stopOpacity="0"/>
-                </linearGradient>
-              </defs>
-            </svg>
+          <div className="h-36 w-full pt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={hourlyData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorPurple" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#171717', borderColor: '#2e2e2e', color: '#fff', fontSize: '12px' }}
+                  labelStyle={{ color: '#9ca3af' }}
+                />
+                <Area type="monotone" dataKey="volume" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#colorPurple)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
