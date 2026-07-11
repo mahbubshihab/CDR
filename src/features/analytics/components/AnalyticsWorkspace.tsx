@@ -70,7 +70,9 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'imsi', name: 'IMSI Summary', icon: Radio },
     { id: 'imei_patterns', name: 'IMEI Patterns', icon: Cpu },
     { id: 'imsi_patterns', name: 'IMSI Patterns', icon: Wifi },
-    { id: 'first_last_call', name: 'First / Last Call', icon: PhoneCall }
+    { id: 'first_last_call', name: 'First / Last Call', icon: PhoneCall },
+    { id: 'locations', name: 'Location Summary', icon: MapPin },
+    { id: 'loc_intel', name: 'Location Intelligence', icon: Map }
   ];
 
   if (loading) {
