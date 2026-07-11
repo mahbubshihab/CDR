@@ -186,6 +186,8 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
       };
       
       const options = {
+        height: '400px',
+        width: '100%',
         nodes: { borderWidth: 0 },
         edges: { smooth: true },
         physics: { 
