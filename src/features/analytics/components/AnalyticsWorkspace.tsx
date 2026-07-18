@@ -4,7 +4,7 @@ import {
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
   Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route, ArrowRightLeft,
-  CalendarDays
+  CalendarDays, Clock
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
@@ -29,6 +29,7 @@ import { MovementChart } from '../subfeatures/movement-chart/MovementChart';
 import { CellIdChangesModule } from '../subfeatures/cell-id-changes/CellIdChangesModule';
 import { LocationChangesModule } from '../subfeatures/location-changes/LocationChangesModule';
 import { MissingDatesModule } from '../subfeatures/missing-dates/MissingDatesModule';
+import { InteractiveTimelineModule } from '../subfeatures/interactive-timeline/InteractiveTimelineModule';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -86,7 +87,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'movement_chart', name: 'Movement Chart', icon: Route },
     { id: 'cell_id_changes', name: 'Cell ID Changes', icon: ArrowRightLeft },
     { id: 'location_changes', name: 'Location Changes', icon: MapPin },
-    { id: 'missing_dates', name: 'Missing Dates', icon: CalendarDays }
+    { id: 'missing_dates', name: 'Missing Dates', icon: CalendarDays },
+    { id: 'interactive_timeline', name: 'Interactive Timeline', icon: Clock }
   ];
 
   if (loading) {
@@ -341,6 +343,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <LocationChangesModule cdrFile={targetFile} records={targetRecords} />
           ) : activeAnalysisTab === 'missing_dates' ? (
             <MissingDatesModule cdrFile={targetFile} records={targetRecords} />
+          ) : activeAnalysisTab === 'interactive_timeline' ? (
+            <InteractiveTimelineModule cdrFile={targetFile} records={targetRecords} />
           ) : null}
         </main>
       </div>
