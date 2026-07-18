@@ -3,7 +3,8 @@ import {
   ArrowLeft, Download, Menu, Database, LayoutDashboard, 
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
-  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route, ArrowRightLeft
+  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route, ArrowRightLeft,
+  CalendarDays
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
@@ -27,6 +28,7 @@ import { TimeLocationsIntelligence } from '../subfeatures/time-based-intelligenc
 import { MovementChart } from '../subfeatures/movement-chart/MovementChart';
 import { CellIdChangesModule } from '../subfeatures/cell-id-changes/CellIdChangesModule';
 import { LocationChangesModule } from '../subfeatures/location-changes/LocationChangesModule';
+import { MissingDatesModule } from '../subfeatures/missing-dates/MissingDatesModule';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -83,7 +85,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'night_calls', name: 'Night Calls', icon: Moon },
     { id: 'movement_chart', name: 'Movement Chart', icon: Route },
     { id: 'cell_id_changes', name: 'Cell ID Changes', icon: ArrowRightLeft },
-    { id: 'location_changes', name: 'Location Changes', icon: MapPin }
+    { id: 'location_changes', name: 'Location Changes', icon: MapPin },
+    { id: 'missing_dates', name: 'Missing Dates', icon: CalendarDays }
   ];
 
   if (loading) {
@@ -336,6 +339,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <CellIdChangesModule cdrFile={targetFile} records={targetRecords} />
           ) : activeAnalysisTab === 'location_changes' ? (
             <LocationChangesModule cdrFile={targetFile} records={targetRecords} />
+          ) : activeAnalysisTab === 'missing_dates' ? (
+            <MissingDatesModule cdrFile={targetFile} records={targetRecords} />
           ) : null}
         </main>
       </div>
