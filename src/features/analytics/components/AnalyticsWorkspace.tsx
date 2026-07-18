@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Menu, Database, LayoutDashboard, 
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
-  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route
+  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route, ArrowRightLeft
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
@@ -25,6 +25,8 @@ import { FirstLastCall } from '../subfeatures/first-last-call/FirstLastCall';
 import { TimeCallsIntelligence } from '../subfeatures/time-based-intelligence/TimeCallsIntelligence';
 import { TimeLocationsIntelligence } from '../subfeatures/time-based-intelligence/TimeLocationsIntelligence';
 import { MovementChart } from '../subfeatures/movement-chart/MovementChart';
+import { CellIdChangesModule } from '../subfeatures/cell-id-changes/CellIdChangesModule';
+import { LocationChangesModule } from '../subfeatures/location-changes/LocationChangesModule';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -79,7 +81,9 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'day_calls', name: 'Day Calls', icon: Sun },
     { id: 'night_locations', name: 'Night Locations', icon: Moon },
     { id: 'night_calls', name: 'Night Calls', icon: Moon },
-    { id: 'movement_chart', name: 'Movement Chart', icon: Route }
+    { id: 'movement_chart', name: 'Movement Chart', icon: Route },
+    { id: 'cell_id_changes', name: 'Cell ID Changes', icon: ArrowRightLeft },
+    { id: 'location_changes', name: 'Location Changes', icon: MapPin }
   ];
 
   if (loading) {
@@ -328,6 +332,10 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <TimeLocationsIntelligence records={targetRecords} mode="night" />
           ) : activeAnalysisTab === 'movement_chart' ? (
             <MovementChart cdrFile={targetFile} records={targetRecords} />
+          ) : activeAnalysisTab === 'cell_id_changes' ? (
+            <CellIdChangesModule cdrFile={targetFile} records={targetRecords} />
+          ) : activeAnalysisTab === 'location_changes' ? (
+            <LocationChangesModule cdrFile={targetFile} records={targetRecords} />
           ) : null}
         </main>
       </div>
