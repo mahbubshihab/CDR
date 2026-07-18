@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, Upload, Search, Smartphone, MapPin, 
-  LayoutDashboard, Menu
+  LayoutDashboard, Menu, ArrowRightLeft
 } from 'lucide-react';
 import { type Case } from '../../../utils/db';
 import { CaseOverview } from '../subfeatures/case-overview/CaseOverview';
@@ -9,6 +9,7 @@ import { UploadCDRModal } from './UploadCDRModal';
 import { SearchCDRLogs } from '../subfeatures/search-cdr-logs/SearchCDRLogs';
 import { MfcCellTowerMapping } from '../subfeatures/mfc-cell-tower/MfcCellTowerMapping';
 import { ImeiImsiSummary } from '../subfeatures/imei-imsi-summary/ImeiImsiSummary';
+import { CellIdChanges } from '../subfeatures/cell-id-changes/CellIdChanges';
 
 interface WorkspaceProps {
   activeCase: Case;
@@ -21,7 +22,7 @@ interface WorkspaceProps {
 export const Workspace: React.FC<WorkspaceProps> = ({ 
   activeCase, onBack, onTriggerRefresh, onOpenEditModal, onOpenTargetFileId 
 }) => {
-  const [activeCaseTab, setActiveCaseTab] = useState<'overview' | 'add-cdr' | 'search' | 'mfc' | 'imei'>('overview');
+  const [activeCaseTab, setActiveCaseTab] = useState<'overview' | 'add-cdr' | 'search' | 'mfc' | 'imei' | 'cell-id'>('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
@@ -31,6 +32,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     { id: 'add-cdr', name: 'Add CDR Spreadsheet', icon: Upload, action: () => setIsUploadOpen(true) },
     { id: 'search', name: 'Search CDR Logs', icon: Search },
     { id: 'mfc', name: 'MFC Cell Tower Mapping', icon: MapPin },
+    { id: 'cell-id', name: 'Cell ID Changes', icon: ArrowRightLeft },
     { id: 'imei', name: 'IMEI / IMSI Summary', icon: Smartphone }
   ];
 
@@ -118,6 +120,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <SearchCDRLogs activeCase={activeCase} />
           ) : activeCaseTab === 'mfc' ? (
             <MfcCellTowerMapping activeCase={activeCase} />
+          ) : activeCaseTab === 'cell-id' ? (
+            <CellIdChanges activeCase={activeCase} />
           ) : activeCaseTab === 'imei' ? (
             <ImeiImsiSummary activeCase={activeCase} />
           ) : null}
