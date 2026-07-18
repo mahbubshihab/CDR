@@ -1,7 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar as CalendarIcon, Filter, Info, AlertTriangle, Download, Printer, Clock, AlertCircle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { Calendar as CalendarIcon, Filter, Info, AlertTriangle, Printer, Clock, AlertCircle } from 'lucide-react';
+import { BarChart as BarChartIcon } from 'lucide-react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
+import { MonthlyView } from './components/MonthlyView';
+import { OverallStatistics } from './components/OverallStatistics';
+import { MissingDatesDetails } from './components/MissingDatesDetails';
+import { TimelineAnalysis } from './components/TimelineAnalysis';
+import { HeatmapAnalysis } from './components/HeatmapAnalysis';
+import { ReportsView } from './components/ReportsView';
 
 interface MissingDatesModuleProps {
   cdrFile: CDRFile | null;
@@ -48,6 +54,8 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
   });
 
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [selectedYear, setSelectedYear] = useState('All years');
+  const [selectedMonth, setSelectedMonth] = useState('All months');
 
   useEffect(() => {
     if (!records || records.length === 0) {
@@ -198,412 +206,6 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
 
   const tabs = ['Monthly view', 'Overall statistics', 'Missing dates details', 'Timeline analysis', 'Heatmap', 'Reports'];
 
-  const formatDateLabel = (d: Date) => `${String(d.getDate()).padStart(2, '0')}-${d.toLocaleString('default', { month: 'short' })}-${d.getFullYear()} (${d.toLocaleString('default', { weekday: 'long' })})`;
-  const formatShortDate = (d: Date) => `${String(d.getDate()).padStart(2, '0')} ${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
-
-  // Helper for rendering monthly view calendar
-  const renderMonthlyView = () => {
-    // Group stats by month
-    const monthsMap = new Map<string, DateStats[]>();
-    dateStats.forEach(stat => {
-      const k = `${stat.date.getFullYear()}-${String(stat.date.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthsMap.has(k)) monthsMap.set(k, []);
-      monthsMap.get(k)!.push(stat);
-    });
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Array.from(monthsMap.entries()).map(([monthKey, days]) => {
-          const firstDay = new Date(days[0].date.getFullYear(), days[0].date.getMonth(), 1).getDay();
-          const blanks = Array.from({ length: firstDay }, (_, i) => i);
-          const monthName = days[0].date.toLocaleString('default', { month: 'long', year: 'numeric' });
-          
-          const missingCount = days.filter(d => !d.isActive).length;
-          const activeCount = days.filter(d => d.isActive).length;
-
-          return (
-            <div key={monthKey} className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-semibold text-white">{monthName}</h3>
-                <div className="flex gap-2 text-xs">
-                  <span className="text-teal-400">{activeCount} active</span>
-                  <span className="text-red-400">{missingCount} missing</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs text-gray-500 font-medium">
-                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                {blanks.map(b => (
-                  <div key={`blank-${b}`} className="aspect-square rounded-sm"></div>
-                ))}
-                {days.map((d, i) => (
-                  <div 
-                    key={i} 
-                    title={`${d.dateStr}: ${d.isActive ? 'Active' : 'Missing'}`}
-                    className={`aspect-square rounded-sm flex items-center justify-center text-xs cursor-pointer hover:opacity-80 transition-opacity ${
-                      d.isActive ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                    }`}
-                  >
-                    {d.date.getDate()}
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderOverallStats = () => (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-8">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-bold text-white mb-1">{globalStats.totalDays}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">TOTAL DAYS IN RANGE</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-bold text-teal-400 mb-1">{globalStats.activeDays}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">ACTIVE DAYS</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-bold text-red-400 mb-1">{globalStats.missingDays}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">MISSING DAYS</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-bold text-teal-400 mb-1">{globalStats.activityPercentage}%</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">ACTIVITY %</span>
-        </div>
-        
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-bold text-red-400 mb-1">{globalStats.missingPercentage}%</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">MISSING %</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-lg font-medium text-white mb-1">{globalStats.firstRecord}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">FIRST CDR RECORD</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-lg font-medium text-white mb-1">{globalStats.lastRecord}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LAST CDR RECORD</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-2xl font-bold text-red-400 mb-1">{globalStats.longestMissingGap} days</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LONGEST MISSING GAP</span>
-        </div>
-        
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center col-start-2">
-          <span className="text-2xl font-bold text-teal-400 mb-1">{globalStats.longestActivePeriod} days</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LONGEST ACTIVE PERIOD</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">Monthly active vs missing</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" vertical={false} />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1c1c1c', borderColor: '#2e2e2e', color: '#e5e7eb' }}
-                  itemStyle={{ color: '#e5e7eb' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="missing" name="Missing days" fill="#f97316" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="active" name="Active days" fill="#14b8a6" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">Coverage trend</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" vertical={false} />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1c1c1c', borderColor: '#2e2e2e', color: '#e5e7eb' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                <Line type="monotone" dataKey="missing" name="Missing days" stroke="#f97316" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="active" name="Active days" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg overflow-hidden mt-4">
-        <h3 className="text-sm font-semibold text-white p-4 border-b border-[#2e2e2e]">Monthly statistics</h3>
-        <table className="min-w-full divide-y divide-[#2e2e2e]">
-          <thead className="bg-[#171717]">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Month / Year</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Total days</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Active</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Missing</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Activity %</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Missing %</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#2e2e2e] bg-[#121212]">
-            {monthlyStats.map((ms, idx) => (
-              <tr key={idx} className="hover:bg-[#1c1c1c]/80 transition-colors">
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-300">{ms.name}</td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-300">{ms.total}</td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-teal-400">{ms.active}</td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-red-400">{ms.missing}</td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-300">
-                  {ms.total > 0 ? ((ms.active / ms.total) * 100).toFixed(2) : '0.00'}%
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-300">
-                  {ms.total > 0 ? ((ms.missing / ms.total) * 100).toFixed(2) : '0.00'}%
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="grid grid-cols-4 gap-4 mt-4">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-2xl font-bold text-red-400 mb-1">{globalStats.missingGapsCount}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">MISSING GAPS</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-lg font-medium text-orange-400 mb-1">{globalStats.firstMissing}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">FIRST MISSING</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-lg font-medium text-orange-400 mb-1">{globalStats.lastMissing}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LAST MISSING</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-2xl font-bold text-white mb-1">{globalStats.activePeriodCount}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">ACTIVE PERIOD COUNT</span>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMissingDetails = () => (
-    <div className="flex flex-col gap-4 pb-8">
-      <div className="mb-2">
-        <h3 className="text-lg font-semibold text-white mb-1">Missing dates details</h3>
-        <p className="text-sm text-gray-400">All missing dates within the detected CDR range ({globalStats.firstRecord} — {globalStats.lastRecord}), in chronological order.</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {dateStats.filter(d => !d.isActive).map((d, i) => (
-          <div key={i} className="bg-[#1c1c1c] border border-[#2e2e2e] rounded px-4 py-3 flex items-center gap-3">
-            <Clock className="w-4 h-4 text-red-400 shrink-0" />
-            <span className="text-sm font-medium text-gray-300">{formatDateLabel(d.date)}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderTimelineAnalysis = () => (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-8 w-full">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-          <h3 className="text-teal-400 font-semibold text-sm mb-4">Continuous active periods</h3>
-          <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
-            {activePeriods.map((p, i) => (
-              <div key={i} className="bg-[#121212] border border-teal-500/20 rounded p-3 text-sm text-gray-300 flex items-center gap-2">
-                <span>{formatShortDate(p.start)}</span>
-                <span className="text-gray-500">→</span>
-                <span>{formatShortDate(p.end)}</span>
-                <span className="text-teal-500 ml-auto font-medium">({p.days} day{p.days > 1 ? 's' : ''})</span>
-              </div>
-            ))}
-            {activePeriods.length === 0 && <div className="text-gray-500 text-sm italic">No continuous active periods found.</div>}
-          </div>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-          <h3 className="text-red-400 font-semibold text-sm mb-4">Continuous missing periods</h3>
-          <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
-            {missingPeriods.map((p, i) => (
-              <div key={i} className="bg-[#121212] border border-red-500/20 rounded p-3 text-sm text-gray-300 flex items-center gap-2">
-                <span>{formatShortDate(p.start)}</span>
-                <span className="text-gray-500">→</span>
-                <span>{formatShortDate(p.end)}</span>
-                <span className="text-red-500 ml-auto font-medium">({p.days} day{p.days > 1 ? 's' : ''})</span>
-              </div>
-            ))}
-            {missingPeriods.length === 0 && <div className="text-gray-500 text-sm italic">No missing periods found.</div>}
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-4 gap-4 mt-2">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-2xl font-bold text-red-400 mb-1">{globalStats.longestMissingGap} days</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LONGEST MISSING GAP</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-2xl font-bold text-teal-400 mb-1">{globalStats.longestActivePeriod} days</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LONGEST ACTIVE PERIOD</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-lg font-medium text-orange-400 mb-1">{globalStats.lastMissing}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LAST MISSING</span>
-        </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-2xl font-bold text-white mb-1">{globalStats.activePeriodCount}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">ACTIVE PERIOD COUNT</span>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderHeatmap = () => (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-8 w-full">
-      <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-white mb-2">Monthly activity heatmap</h3>
-        <p className="text-xs text-gray-500 mb-6">Darker red = missing day • Teal/green = active CDR day</p>
-        
-        <div className="space-y-4">
-          {monthlyStats.map(ms => {
-            const mDays = dateStats.filter(ds => {
-              const k = `${ds.date.getFullYear()}-${String(ds.date.getMonth() + 1).padStart(2, '0')}`;
-              return k === ms.name || ds.date.toLocaleString('default', { month: 'short', year: 'numeric' }) === ms.name;
-            });
-            return (
-              <div key={ms.name} className="flex items-center gap-4">
-                <div className="w-20 text-xs text-gray-400">{ms.name.split(' ')[0]}</div>
-                <div className="flex flex-wrap gap-1">
-                  {mDays.map((d, i) => (
-                    <div 
-                      key={i} 
-                      title={`${d.dateStr}: ${d.isActive ? 'Active' : 'Missing'}`}
-                      className={`w-3 h-3 rounded-sm ${d.isActive ? 'bg-teal-500' : 'bg-red-500'}`}
-                    ></div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-white mb-4">Missing by weekday</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={weekdayStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" vertical={false} />
-              <XAxis dataKey="name" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1c1c1c', borderColor: '#2e2e2e', color: '#e5e7eb' }}
-                cursor={{ fill: '#2e2e2e' }}
-              />
-              <Bar dataKey="missing" name="Missing days" fill="#f97316" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderReports = () => {
-    const missingDaysList = dateStats.filter(d => !d.isActive).map(d => formatDateLabel(d.date)).join(', ');
-    const truncatedMissingList = missingDaysList.length > 150 ? missingDaysList.substring(0, 150) + '... (+' + (globalStats.missingDays - 10) + ' more)' : missingDaysList;
-    
-    return (
-      <div className="flex flex-col gap-6 pb-8">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">Export missing dates</h3>
-          <div className="flex flex-wrap gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-[#3e3e3e] hover:bg-[#2e2e2e] text-sm text-gray-200 rounded transition-colors">
-              <Download className="w-4 h-4 text-gray-400" /> Missing dates table (CSV)
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-[#3e3e3e] hover:bg-[#2e2e2e] text-sm text-gray-200 rounded transition-colors">
-              <Download className="w-4 h-4 text-gray-400" /> Missing dates (Excel)
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-[#3e3e3e] hover:bg-[#2e2e2e] text-sm text-gray-200 rounded transition-colors">
-              <Printer className="w-4 h-4 text-gray-400" /> Full report (PDF)
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-[#3e3e3e] hover:bg-[#2e2e2e] text-sm text-gray-200 rounded transition-colors">
-              <Printer className="w-4 h-4 text-gray-400" /> Print dashboard (PDF)
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-[#3e3e3e] hover:bg-[#2e2e2e] text-sm text-gray-200 rounded transition-colors">
-              <Printer className="w-4 h-4 text-gray-400" /> Print calendars (PDF)
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-3">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] text-xs text-gray-300 rounded transition-colors"><Download className="w-3 h-3" /> CSV (All)</button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] text-xs text-gray-300 rounded transition-colors"><Download className="w-3 h-3" /> Excel</button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] text-xs text-gray-300 rounded transition-colors"><Printer className="w-3 h-3" /> PDF Report</button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] text-xs text-gray-300 rounded transition-colors"><Printer className="w-3 h-3" /> Print</button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] text-xs text-gray-300 rounded transition-colors"><Download className="w-3 h-3" /> KML</button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121212] border border-[#2e2e2e] hover:bg-[#2e2e2e] text-xs text-gray-300 rounded transition-colors"><Download className="w-3 h-3" /> KMZ</button>
-          </div>
-          <p className="text-xs text-gray-500 mt-4">Excel and PDF exports use server-side cached analysis. Print calendars for month-wise PDF views.</p>
-        </div>
-
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-[#2e2e2e]">
-            <h3 className="text-sm font-semibold text-white mb-1">Missing dates audit (CDR coverage)</h3>
-            <p className="text-xs text-gray-400">Row-wise coverage gaps per dataset segment</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-[#2e2e2e]">
-              <thead className="bg-[#171717]">
-                <tr>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Record ID</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Group Type</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Primary Number</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Start Date</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">End Date</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Total Span Days</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Available Dates</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Missing Dates Count</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Severity</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Missing Dates List</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Missing Dates Summary</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#2e2e2e] bg-[#121212]">
-                <tr className="hover:bg-[#1c1c1c]/80 transition-colors">
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">DATASET-001</td>
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">CDR Dataset<br/>(Overall)</td>
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">{cdrFile?.phoneNumber || 'N/A'}</td>
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">{dateRange.start}</td>
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">{dateRange.end}</td>
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">{globalStats.totalDays}</td>
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">{globalStats.activeDays}</td>
-                  <td className="px-4 py-3 text-xs text-gray-300 align-top">{globalStats.missingDays}</td>
-                  <td className="px-4 py-3 align-top">
-                    {globalStats.missingPercentage > 50 ? (
-                      <span className="px-2 py-1 bg-red-900/50 text-red-400 text-[10px] font-bold rounded border border-red-800">HIGH</span>
-                    ) : globalStats.missingPercentage > 20 ? (
-                      <span className="px-2 py-1 bg-orange-900/50 text-orange-400 text-[10px] font-bold rounded border border-orange-800">MEDIUM</span>
-                    ) : (
-                      <span className="px-2 py-1 bg-teal-900/50 text-teal-400 text-[10px] font-bold rounded border border-teal-800">LOW</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-400 max-w-xs truncate align-top">{truncatedMissingList}</td>
-                  <td className="px-4 py-3 text-xs text-gray-400 max-w-xs align-top">
-                    {globalStats.missingDays} dates missing: {truncatedMissingList}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col h-full w-full bg-[#0a0a0a] text-gray-200 overflow-hidden">
       {/* Date Range & Filters Header */}
@@ -661,7 +263,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
                 activeTab === tab 
                   ? 'border-blue-500 text-blue-400 bg-blue-500/10' 
                   : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#1c1c1c]'
@@ -671,7 +273,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
               {tab === 'Overall statistics' && <Info className="w-4 h-4" />}
               {tab === 'Missing dates details' && <AlertCircle className="w-4 h-4" />}
               {tab === 'Timeline analysis' && <Clock className="w-4 h-4" />}
-              {tab === 'Heatmap' && <BarChart className="w-4 h-4" />}
+              {tab === 'Heatmap' && <BarChartIcon className="w-4 h-4" />}
               {tab === 'Reports' && <Printer className="w-4 h-4" />}
               {tab}
             </button>
@@ -688,12 +290,12 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
           </div>
         ) : (
           <div className="h-full">
-            {activeTab === 'Monthly view' && renderMonthlyView()}
-            {activeTab === 'Overall statistics' && renderOverallStats()}
-            {activeTab === 'Missing dates details' && renderMissingDetails()}
-            {activeTab === 'Timeline analysis' && renderTimelineAnalysis()}
-            {activeTab === 'Heatmap' && renderHeatmap()}
-            {activeTab === 'Reports' && renderReports()}
+            {activeTab === 'Monthly view' && <MonthlyView dateStats={dateStats} />}
+            {activeTab === 'Overall statistics' && <OverallStatistics globalStats={globalStats} monthlyStats={monthlyStats} />}
+            {activeTab === 'Missing dates details' && <MissingDatesDetails dateStats={dateStats} firstRecord={globalStats.firstRecord} lastRecord={globalStats.lastRecord} />}
+            {activeTab === 'Timeline analysis' && <TimelineAnalysis activePeriods={activePeriods} missingPeriods={missingPeriods} globalStats={globalStats} />}
+            {activeTab === 'Heatmap' && <HeatmapAnalysis monthlyStats={monthlyStats} dateStats={dateStats} weekdayStats={weekdayStats} />}
+            {activeTab === 'Reports' && <ReportsView cdrFile={cdrFile} dateStats={dateStats} globalStats={globalStats} dateRange={dateRange} />}
           </div>
         )}
       </div>
