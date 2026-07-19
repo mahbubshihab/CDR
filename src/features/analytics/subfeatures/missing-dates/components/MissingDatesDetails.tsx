@@ -1,35 +1,46 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { type DateStats } from '../MissingDatesModule';
+import { AlertTriangle, Clock } from 'lucide-react';
 
-interface DateStats {
-  dateStr: string;
-  date: Date;
-  isActive: boolean;
-  count: number;
-}
+export const MissingDatesDetails: React.FC<{ dateStats: DateStats[] }> = ({ dateStats }) => {
+  const missingStats = dateStats.filter(s => !s.isActive);
 
-interface MissingDatesDetailsProps {
-  dateStats: DateStats[];
-  firstRecord: string;
-  lastRecord: string;
-}
-
-export const MissingDatesDetails: React.FC<MissingDatesDetailsProps> = ({ dateStats, firstRecord, lastRecord }) => {
-  const formatDateLabel = (d: Date) => `${String(d.getDate()).padStart(2, '0')}-${d.toLocaleString('default', { month: 'short' })}-${d.getFullYear()} (${d.toLocaleString('default', { weekday: 'long' })})`;
+  if (missingStats.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+        <Clock className="w-12 h-12 mb-4 text-gray-600" />
+        <p>No missing dates found in the CDR record range.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-4 pb-8">
-      <div className="mb-2">
-        <h3 className="text-lg font-semibold text-white mb-1">Missing dates details</h3>
-        <p className="text-sm text-gray-400">All missing dates within the detected CDR range ({firstRecord} — {lastRecord}), in chronological order.</p>
+    <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5">
+      <div className="mb-4">
+        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-500" />
+          Missing dates details ({missingStats.length})
+        </h3>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {dateStats.filter(d => !d.isActive).map((d, i) => (
-          <div key={i} className="bg-[#1c1c1c] border border-[#2e2e2e] rounded px-4 py-3 flex items-center gap-3">
-            <Clock className="w-4 h-4 text-red-400 shrink-0" />
-            <span className="text-sm font-medium text-gray-300">{formatDateLabel(d.date)}</span>
-          </div>
-        ))}
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        {missingStats.map((stat) => {
+          const formattedDate = `${String(stat.date.getDate()).padStart(2, '0')}-${stat.date.toLocaleString('default', { month: 'short' })}-${stat.date.getFullYear()}`;
+          const dayOfWeek = stat.date.toLocaleString('default', { weekday: 'long' });
+          
+          return (
+            <div 
+              key={stat.dateStr} 
+              className="bg-red-900/10 border border-red-900/50 rounded-md p-3 flex items-start gap-3 hover:bg-red-900/20 transition-colors"
+            >
+              <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-red-400 font-medium text-sm">{formattedDate}</div>
+                <div className="text-gray-500 text-xs mt-0.5">({dayOfWeek})</div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

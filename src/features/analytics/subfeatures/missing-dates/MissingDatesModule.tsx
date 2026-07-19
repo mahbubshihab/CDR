@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Filter, Info, AlertTriangle, Printer, Clock, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Info, AlertCircle, Printer, Clock } from 'lucide-react';
 import { BarChart as BarChartIcon } from 'lucide-react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
 import { MonthlyView } from './components/MonthlyView';
@@ -8,20 +8,21 @@ import { MissingDatesDetails } from './components/MissingDatesDetails';
 import { TimelineAnalysis } from './components/TimelineAnalysis';
 import { HeatmapAnalysis } from './components/HeatmapAnalysis';
 import { ReportsView } from './components/ReportsView';
+import { MissingDatesFilters } from './components/MissingDatesFilters';
 
 interface MissingDatesModuleProps {
   cdrFile: CDRFile | null;
   records: CDRRecord[];
 }
 
-interface DateStats {
+export interface DateStats {
   dateStr: string; // YYYY-MM-DD
   date: Date;
   isActive: boolean;
   count: number;
 }
 
-interface Period {
+export interface Period {
   start: Date;
   end: Date;
   days: number;
@@ -204,100 +205,94 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
     return () => clearTimeout(timer);
   }, [records]);
 
-  const tabs = ['Monthly view', 'Overall statistics', 'Missing dates details', 'Timeline analysis', 'Heatmap', 'Reports'];
+  const tabs = [
+    { id: 'Monthly view', icon: CalendarIcon },
+    { id: 'Overall statistics', icon: Info },
+    { id: 'Missing dates details', icon: AlertCircle },
+    { id: 'Timeline analysis', icon: Clock },
+    { id: 'Heatmap', icon: BarChartIcon },
+    { id: 'Reports', icon: Printer }
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-[#0a1120]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <p className="text-gray-400 mt-4 text-sm font-mono">Analyzing dates...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0a0a0a] text-gray-200 overflow-hidden">
-      {/* Date Range & Filters Header */}
-      <div className="p-4 bg-[#121212] flex flex-col gap-4 border-b border-[#2e2e2e]">
-        <div className="flex items-center gap-2 bg-[#1c1c1c] px-4 py-2 rounded-md border border-[#2e2e2e] w-max">
-          <CalendarIcon className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-300">CDR date range: <span className="text-white font-medium">{globalStats.firstRecord} → {globalStats.lastRecord}</span></span>
-          <span className="text-[10px] px-2 py-0.5 ml-2 rounded border border-teal-500/30 text-teal-400 bg-teal-500/10">Range validated</span>
+    <div className="flex flex-col h-full w-full bg-[#0a1120] text-gray-200 overflow-hidden font-sans">
+      <div className="p-4 flex flex-col gap-4">
+        {/* Executive Summary Block */}
+        <div className="bg-[#131f37] rounded-lg border border-[#1e293b] p-4 relative overflow-hidden">
+          {/* Subtle blue accent line on top */}
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-blue-500/20" />
+          <h3 className="text-blue-500 text-xs font-bold tracking-wider mb-2 uppercase">Executive Summary</h3>
+          <p className="text-sm text-gray-200 leading-relaxed">
+            CDR data spans from <span className="font-semibold text-white">{globalStats.firstRecord}</span> to <span className="font-semibold text-white">{globalStats.lastRecord}</span>. 
+            Total covered days: <span className="font-semibold text-white">{globalStats.totalDays}</span>. 
+            Missing days: <span className="font-semibold text-white">{globalStats.missingDays}</span>. 
+            Coverage ratio: <span className="font-semibold text-white">{globalStats.activityPercentage}%</span>. 
+            Longest missing gap: <span className="font-semibold text-white">{globalStats.longestMissingGap} consecutive days</span>.
+          </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1c1c1c] rounded border border-[#2e2e2e]">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <select 
-              className="bg-transparent text-sm text-gray-200 outline-none border-none cursor-pointer"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              <option>All years</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1c1c1c] rounded border border-[#2e2e2e]">
-            <select 
-              className="bg-transparent text-sm text-gray-200 outline-none border-none cursor-pointer"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              <option>All months</option>
-            </select>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-300 ml-4">
-            <input type="text" value={dateRange.start} readOnly className="bg-[#1c1c1c] border border-[#2e2e2e] rounded px-3 py-1.5 w-28 text-center text-gray-400" />
-            <span className="text-gray-500">to</span>
-            <input type="text" value={dateRange.end} readOnly className="bg-[#1c1c1c] border border-[#2e2e2e] rounded px-3 py-1.5 w-28 text-center text-gray-400" />
-          </div>
-
-          <div className="flex-1" />
-
-          <div className="flex items-center gap-4 text-sm mr-2">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-teal-500"></div>
-              <span className="text-gray-400">Active</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span className="text-gray-400">Missing</span>
-            </div>
-          </div>
+        {/* Date Range Indication */}
+        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-3 flex items-center gap-3">
+          <CalendarIcon className="w-4 h-4 text-blue-400" />
+          <span className="text-sm text-gray-300">
+            CDR date range: <span className="text-white font-semibold ml-1">{globalStats.firstRecord} → {globalStats.lastRecord}</span>
+          </span>
+          <span className="px-2 py-0.5 rounded-full border border-teal-500/30 text-teal-400 bg-teal-500/10 text-[10px] font-medium ml-2">
+            Range validated
+          </span>
         </div>
+
+        {/* Filters Row */}
+        <MissingDatesFilters 
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+          dateRange={dateRange}
+        />
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mt-2 border-b border-[#2e2e2e] pb-0">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
-                activeTab === tab 
-                  ? 'border-blue-500 text-blue-400 bg-blue-500/10' 
-                  : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#1c1c1c]'
-              }`}
-            >
-              {tab === 'Monthly view' && <CalendarIcon className="w-4 h-4" />}
-              {tab === 'Overall statistics' && <Info className="w-4 h-4" />}
-              {tab === 'Missing dates details' && <AlertCircle className="w-4 h-4" />}
-              {tab === 'Timeline analysis' && <Clock className="w-4 h-4" />}
-              {tab === 'Heatmap' && <BarChartIcon className="w-4 h-4" />}
-              {tab === 'Reports' && <Printer className="w-4 h-4" />}
-              {tab}
-            </button>
-          ))}
+        <div className="flex items-center gap-1 mt-1 bg-[#131f37] border border-[#1e293b] rounded-lg p-1 w-max">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-blue-500 text-white' 
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-[#1e293b]'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.id}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-[#0a0a0a]">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3ecf8e]"></div>
-            <p className="text-gray-400 mt-4 text-sm font-mono">Analyzing dates...</p>
-          </div>
-        ) : (
-          <div className="h-full">
-            {activeTab === 'Monthly view' && <MonthlyView dateStats={dateStats} />}
-            {activeTab === 'Overall statistics' && <OverallStatistics globalStats={globalStats} monthlyStats={monthlyStats} />}
-            {activeTab === 'Missing dates details' && <MissingDatesDetails dateStats={dateStats} firstRecord={globalStats.firstRecord} lastRecord={globalStats.lastRecord} />}
-            {activeTab === 'Timeline analysis' && <TimelineAnalysis activePeriods={activePeriods} missingPeriods={missingPeriods} globalStats={globalStats} />}
-            {activeTab === 'Heatmap' && <HeatmapAnalysis monthlyStats={monthlyStats} dateStats={dateStats} weekdayStats={weekdayStats} />}
-            {activeTab === 'Reports' && <ReportsView cdrFile={cdrFile} dateStats={dateStats} globalStats={globalStats} dateRange={dateRange} />}
-          </div>
-        )}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
+        <div className="h-full">
+          {activeTab === 'Monthly view' && <MonthlyView dateStats={dateStats} />}
+          {activeTab === 'Overall statistics' && <OverallStatistics globalStats={globalStats} monthlyStats={monthlyStats} />}
+          {activeTab === 'Missing dates details' && <MissingDatesDetails dateStats={dateStats} />}
+          {activeTab === 'Timeline analysis' && <TimelineAnalysis activePeriods={activePeriods} missingPeriods={missingPeriods} globalStats={globalStats} />}
+          {activeTab === 'Heatmap' && <HeatmapAnalysis monthlyStats={monthlyStats} dateStats={dateStats} weekdayStats={weekdayStats} />}
+          {activeTab === 'Reports' && <ReportsView cdrFile={cdrFile} dateStats={dateStats} globalStats={globalStats} dateRange={dateRange} />}
+        </div>
       </div>
     </div>
   );

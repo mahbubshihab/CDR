@@ -6,7 +6,7 @@ export const ActivityIntensityHeatmap: React.FC<any> = ({ records }) => {
     const matrix = Array.from({ length: 7 }, () => Array(24).fill(0));
     let maxVal = 0;
 
-    records.forEach(r => {
+    records.forEach((r: any) => {
       const d = new Date(r.timestamp);
       let day = d.getDay();
       day = day === 0 ? 6 : day - 1;

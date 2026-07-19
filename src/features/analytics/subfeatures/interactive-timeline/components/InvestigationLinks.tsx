@@ -5,7 +5,7 @@ import { type CDRRecord } from '../../../../../utils/db';
 export const InvestigationLinks: React.FC<any> = ({ records, targetNumber }) => {
   const topLinks = useMemo(() => {
     const counts = new Map<string, number>();
-    records.forEach(r => {
+    records.forEach((r: any) => {
       const bParty = r.otherParty;
       if (bParty) {
         counts.set(bParty, (counts.get(bParty) || 0) + 1);

@@ -16,13 +16,13 @@ export const TimelineAnalysis: React.FC<TimelineAnalysisProps> = ({ activePeriod
   const formatShortDate = (d: Date) => `${String(d.getDate()).padStart(2, '0')} ${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-8 w-full">
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-          <h3 className="text-teal-400 font-semibold text-sm mb-4">Continuous active periods</h3>
+        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5">
+          <h3 className="text-teal-400 font-bold text-sm mb-4 tracking-wide uppercase">Continuous active periods</h3>
           <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
             {activePeriods.map((p, i) => (
-              <div key={i} className="bg-[#121212] border border-teal-500/20 rounded p-3 text-sm text-gray-300 flex items-center gap-2">
+              <div key={i} className="bg-[#0a1120] border border-[#1e293b] rounded p-3 text-sm text-gray-300 flex items-center gap-2">
                 <span>{formatShortDate(p.start)}</span>
                 <span className="text-gray-500">→</span>
                 <span>{formatShortDate(p.end)}</span>
@@ -32,11 +32,11 @@ export const TimelineAnalysis: React.FC<TimelineAnalysisProps> = ({ activePeriod
             {activePeriods.length === 0 && <div className="text-gray-500 text-sm italic">No continuous active periods found.</div>}
           </div>
         </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4">
-          <h3 className="text-red-400 font-semibold text-sm mb-4">Continuous missing periods</h3>
+        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5">
+          <h3 className="text-red-400 font-bold text-sm mb-4 tracking-wide uppercase">Continuous missing periods</h3>
           <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
             {missingPeriods.map((p, i) => (
-              <div key={i} className="bg-[#121212] border border-red-500/20 rounded p-3 text-sm text-gray-300 flex items-center gap-2">
+              <div key={i} className="bg-[#0a1120] border border-[#1e293b] rounded p-3 text-sm text-gray-300 flex items-center gap-2">
                 <span>{formatShortDate(p.start)}</span>
                 <span className="text-gray-500">→</span>
                 <span>{formatShortDate(p.end)}</span>
@@ -48,21 +48,21 @@ export const TimelineAnalysis: React.FC<TimelineAnalysisProps> = ({ activePeriod
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4 mt-2">
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
+        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5 flex flex-col items-center justify-center text-center">
           <span className="text-2xl font-bold text-red-400 mb-1">{globalStats.longestMissingGap} days</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LONGEST MISSING GAP</span>
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">LONGEST MISSING GAP</span>
         </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
+        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5 flex flex-col items-center justify-center text-center">
           <span className="text-2xl font-bold text-teal-400 mb-1">{globalStats.longestActivePeriod} days</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LONGEST ACTIVE PERIOD</span>
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">LONGEST ACTIVE PERIOD</span>
         </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-lg font-medium text-orange-400 mb-1">{globalStats.lastMissing}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">LAST MISSING</span>
+        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5 flex flex-col items-center justify-center text-center">
+          <span className="text-lg font-medium text-yellow-500 mb-1">{globalStats.lastMissing}</span>
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">LAST MISSING</span>
         </div>
-        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-lg p-4 flex flex-col items-center justify-center text-center">
+        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5 flex flex-col items-center justify-center text-center">
           <span className="text-2xl font-bold text-white mb-1">{globalStats.activePeriodCount}</span>
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">ACTIVE PERIOD COUNT</span>
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">ACTIVE PERIOD COUNT</span>
         </div>
       </div>
     </div>

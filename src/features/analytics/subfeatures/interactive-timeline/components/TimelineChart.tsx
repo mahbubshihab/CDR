@@ -74,7 +74,7 @@ export const TimelineChart: React.FC<any> = ({ records }) => {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1c1c1c', borderColor: '#2e2e2e', color: '#e5e7eb', fontSize: '11px', padding: '4px 8px' }}
                 cursor={{ fill: '#2e2e2e', opacity: 0.4 }}
-                formatter={(value: number, name: string) => [value, name.charAt(0).toUpperCase() + name.slice(1)]}
+                formatter={(value: any, name: any) => [value, String(name).charAt(0).toUpperCase() + String(name).slice(1)]}
               />
               <Bar dataKey="total" radius={[1, 1, 1, 1]}>
                 {chartData.map((entry, index) => (
