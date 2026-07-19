@@ -22,7 +22,7 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
     callerNumber: '',
     receiverBParty: '',
     imei: '',
-    location: 'N/A - PESHAWAR'
+    location: ''
   });
 
   const handleFilterChange = (key: string, value: string) => {
@@ -30,18 +30,13 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
   };
 
   const handleApplyFilters = () => {
-    // In a real application, this might trigger a more complex re-calculation or fetch.
-    // For now, we rely on useMemo to filter records.
   };
 
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
-      // Basic mock filtering based on input (e.g. BParty, location).
-      // Case-insensitive includes.
       if (filterState.receiverBParty && !r.otherParty?.includes(filterState.receiverBParty)) return false;
       if (filterState.callerNumber && !r.aparty?.includes(filterState.callerNumber)) return false;
       if (filterState.imei && !r.imei?.includes(filterState.imei)) return false;
-      // Ignoring date/time parsing for simplicity in this visual implementation unless needed.
       return true;
     });
   }, [records, filterState]);
@@ -59,9 +54,9 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
   }, [filteredRecords]);
 
   return (
-    <div className="flex h-full w-full bg-[#0a0a0a] text-gray-200 overflow-hidden">
+    <div className="flex h-full w-full bg-[#0a1120] text-gray-200 overflow-hidden font-sans">
       {/* Sidebar Filters */}
-      <div className="w-72 shrink-0 border-r border-[#2e2e2e] bg-[#121212] overflow-y-auto custom-scrollbar">
+      <div className="w-64 shrink-0 border-r border-slate-800 bg-[#131f37] overflow-y-auto custom-scrollbar">
         <TimelineFilters 
           filterState={filterState} 
           onFilterChange={handleFilterChange} 
@@ -71,12 +66,12 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-[#0a0a0a] flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4">
         {/* Header Block */}
-        <div className="bg-[#1e7b3e] rounded-lg p-4 border border-[#2e2e2e] shadow-sm">
+        <div className="bg-[#1a7f37] rounded-md p-4 shadow-sm border border-green-800">
           <h2 className="text-xl font-bold text-white mb-1">Interactive Timeline</h2>
-          <p className="text-xs text-[#a0dfb9] font-medium">
-            {stats.total} events · <span className="text-blue-300">Blue=Call</span> · <span className="text-green-300">Green=SMS</span> · <span className="text-purple-300">Purple=Data</span>
+          <p className="text-xs text-green-100 font-medium">
+            {stats.total} events · Blue=Call · Green=SMS · Purple=Data
           </p>
         </div>
 
