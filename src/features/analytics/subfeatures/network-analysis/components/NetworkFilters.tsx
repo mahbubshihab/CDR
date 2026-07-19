@@ -19,7 +19,7 @@ export const NetworkFilters: React.FC<NetworkFiltersProps> = ({
   filteredCount
 }) => {
   return (
-    <div className="bg-[#1a1f2e] border border-blue-900/30 rounded-t-xl p-4 font-mono text-[11px] flex flex-col gap-4">
+    <div className="bg-[#121212] border border-[#2e2e2e] rounded-t-xl p-4 font-mono text-[11px] flex flex-col gap-4">
       {/* Operator Toggles */}
       <div className="flex items-center gap-3">
         <Filter className="w-4 h-4 text-blue-400" />
@@ -32,7 +32,7 @@ export const NetworkFilters: React.FC<NetworkFiltersProps> = ({
               className={`px-3 py-1.5 rounded-lg border transition-colors ${
                 operatorFilter === op 
                   ? 'bg-blue-600 border-blue-500 text-white' 
-                  : 'bg-[#121622] border-[#2a3441] text-gray-400 hover:border-blue-500/50 hover:text-gray-200'
+                  : 'bg-[#1c1c1c] border-[#2e2e2e] text-gray-400 hover:border-blue-500/50 hover:text-gray-200'
               }`}
             >
               {op}
@@ -50,10 +50,10 @@ export const NetworkFilters: React.FC<NetworkFiltersProps> = ({
             placeholder="Search..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#121622] border border-[#2a3441] text-gray-200 placeholder-gray-500 rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-blue-500/50"
+            className="w-full bg-[#1c1c1c] border border-[#2e2e2e] text-gray-200 placeholder-gray-500 rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-blue-500/50"
           />
         </div>
-        <div className="bg-[#121622] border border-[#2a3441] text-gray-300 px-3 py-2 rounded-lg cursor-pointer hover:bg-[#1e2536] transition-colors">
+        <div className="bg-[#1c1c1c] border border-[#2e2e2e] text-gray-300 px-3 py-2 rounded-lg cursor-pointer hover:bg-[#2e2e2e] transition-colors">
           Columns
         </div>
         <div className="text-gray-500">

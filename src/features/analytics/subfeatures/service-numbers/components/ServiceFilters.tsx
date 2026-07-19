@@ -27,7 +27,7 @@ export const ServiceFilters: React.FC<ServiceFiltersProps> = ({ activeCategory, 
           className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors border ${
             activeCategory === cat
               ? 'bg-[#a855f7]/20 border-[#a855f7] text-[#a855f7]'
-              : 'bg-[#1a2332] border-[#2e3b4e] text-gray-400 hover:text-white hover:border-gray-500'
+              : 'bg-[#121212] border-[#2e2e2e] text-gray-400 hover:text-white hover:border-gray-500'
           }`}
         >
           {cat}

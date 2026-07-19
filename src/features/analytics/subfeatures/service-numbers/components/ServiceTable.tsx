@@ -18,8 +18,8 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
   setDropdownCategory,
 }) => {
   return (
-    <div className="bg-[#1a2332] border border-[#2e3b4e] rounded-xl overflow-hidden flex flex-col">
-      <div className="p-4 border-b border-[#2e3b4e] flex flex-col sm:flex-row gap-4 justify-between items-center bg-[#151c28]">
+    <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl overflow-hidden flex flex-col">
+      <div className="p-4 border-b border-[#2e2e2e] flex flex-col sm:flex-row gap-4 justify-between items-center bg-[#1c1c1c]">
         <div className="relative flex-1 max-w-xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
@@ -27,7 +27,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
             placeholder="Search hex, decoded value, operator, service, identifier..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#1a2332] border border-[#2e3b4e] text-sm text-white rounded-md pl-9 pr-4 py-2 focus:outline-none focus:border-[#3ecf8e] transition-colors placeholder:text-gray-500"
+            className="w-full bg-[#121212] border border-[#2e2e2e] text-sm text-white rounded-md pl-9 pr-4 py-2 focus:outline-none focus:border-[#3ecf8e] transition-colors placeholder:text-gray-500"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -37,7 +37,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
             <select
               value={dropdownCategory}
               onChange={(e) => setDropdownCategory(e.target.value)}
-              className="appearance-none bg-[#1a2332] border border-[#2e3b4e] text-sm text-white rounded-md pl-3 pr-8 py-2 focus:outline-none focus:border-[#3ecf8e] cursor-pointer"
+              className="appearance-none bg-[#121212] border border-[#2e2e2e] text-sm text-white rounded-md pl-3 pr-8 py-2 focus:outline-none focus:border-[#3ecf8e] cursor-pointer"
             >
               <option value="All categories">All categories</option>
               <option value="Emergency">Emergency</option>
@@ -56,7 +56,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
         {data.length > 0 ? (
           <table className="w-full text-xs text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-[#151c28] border-b border-[#2e3b4e] text-gray-400 font-semibold">
+              <tr className="bg-[#1c1c1c] border-b border-[#2e2e2e] text-gray-400 font-semibold">
                 <th className="py-3 px-4 font-bold">Value</th>
                 <th className="py-3 px-4">Label</th>
                 <th className="py-3 px-4">Organization</th>
@@ -74,7 +74,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
             </thead>
             <tbody className="divide-y divide-[#2e3b4e]/50">
               {data.map((row, idx) => (
-                <tr key={idx} className="hover:bg-[#2a3649]/30 text-gray-300 transition-colors">
+                <tr key={idx} className="hover:bg-[#2e2e2e] text-gray-300 transition-colors">
                   <td className="py-3 px-4 font-mono font-bold text-blue-400">{row.value}</td>
                   <td className="py-3 px-4 font-semibold">{row.label}</td>
                   <td className="py-3 px-4 text-gray-400">{row.organization}</td>

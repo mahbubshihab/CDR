@@ -15,7 +15,7 @@ interface ServiceSummaryCardsProps {
 
 export const ServiceSummaryCards: React.FC<ServiceSummaryCardsProps> = ({ stats }) => {
   return (
-    <div className="bg-[#1a2332] border border-[#2e3b4e] rounded-xl p-4 flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
+    <div className="bg-[#121212] border border-[#2e2e2e] rounded-xl p-4 flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
       
       <div className="flex items-center gap-6 md:gap-10 overflow-x-auto custom-scrollbar flex-1">
         <div className="text-center shrink-0">
@@ -54,7 +54,7 @@ export const ServiceSummaryCards: React.FC<ServiceSummaryCardsProps> = ({ stats 
         </div>
       </div>
 
-      <div className="border-l border-[#2e3b4e] pl-6 py-2 flex items-center gap-3 shrink-0">
+      <div className="border-l border-[#2e2e2e] pl-6 py-2 flex items-center gap-3 shrink-0">
         <Building2 className="h-8 w-8 text-[#3ecf8e]" />
         <div className="text-xs text-gray-400 max-w-[120px] leading-tight">
           Service + hex telecom intelligence
