@@ -80,7 +80,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               return (
                 <NavLink
                   key={tab.id}
-                  to={tab.id}
+                  to={`/case/${activeCase.id}/${tab.id}`}
                   className={({ isActive }) => `w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer ${
                     isActive
                       ? 'bg-[#2e2e2e] text-white'

@@ -167,7 +167,7 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
               return (
                 <NavLink
                   key={module.id}
-                  to={module.id}
+                  to={`/file/${targetFileId}/${module.id}`}
                   className={({ isActive }) => `w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer ${
                     isActive
                       ? 'bg-[#2e2e2e] text-white'
@@ -291,8 +291,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
         <main className="flex-1 overflow-hidden relative flex flex-col">
           <Routes>
             <Route path="/" element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<ExecutiveDashboard cdrFile={targetFile} records={targetRecords} onNavigateToTab={(tabId) => navigate(`../${tabId}`, { relative: "path" })} />} />
-            <Route path="advanced" element={<AdvancedCDRAnalysis cdrFile={targetFile} records={targetRecords} onNavigateToTab={(tabId) => navigate(`../${tabId}`, { relative: "path" })} />} />
+            <Route path="dashboard" element={<ExecutiveDashboard cdrFile={targetFile} records={targetRecords} onNavigateToTab={(tabId) => navigate(`/file/${targetFile.id}/${tabId}`)} />} />
+            <Route path="advanced" element={<AdvancedCDRAnalysis cdrFile={targetFile} records={targetRecords} onNavigateToTab={(tabId) => navigate(`/file/${targetFile.id}/${tabId}`)} />} />
             <Route path="graph" element={<GraphAnalytics cdrFile={targetFile} records={targetRecords} />} />
             <Route path="raw" element={<RawCDRLogs cdrFile={targetFile} records={targetRecords} />} />
             <Route path="mfc" element={<MfcAnalysis cdrFile={targetFile} records={targetRecords} />} />
