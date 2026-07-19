@@ -143,12 +143,12 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
         <div className="flex flex-col h-full text-left overflow-hidden">
           {/* Back trigger */}
           <button 
-            onClick={onBack}
+            onClick={() => targetFile && navigate(`/case/${targetFile.caseId}/overview`)}
             className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-2 px-4'} py-3 border-b border-[#2e2e2e] text-gray-400 hover:text-gray-250 transition-colors font-medium text-xs uppercase tracking-wider text-left cursor-pointer bg-[#141414]/45 shrink-0`}
-            title={isSidebarCollapsed ? "Back to Case" : undefined}
+            title={isSidebarCollapsed ? "Back to Case Workspace" : undefined}
           >
             <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
-            {!isSidebarCollapsed && <span>Back to Case</span>}
+            {!isSidebarCollapsed && <span>Back to Case Workspace</span>}
           </button>
 
           {/* Active Target Header */}
