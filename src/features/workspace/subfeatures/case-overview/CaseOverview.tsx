@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { db, type Case, type CDRFile } from '../../../../utils/db';
 import { UploadCDRModal } from '../../components/UploadCDRModal';
+import { DateTimeInput } from '../../../../components/ui/DateTimeInput';
 
 
 interface CaseOverviewProps {
@@ -274,16 +275,24 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
           </select>
 
           <div className="flex gap-2">
-            <input 
-              type="text" 
-              placeholder="dd/mm/yyyy"
-              className="w-1/2 bg-[#121212] border border-[#2e2e2e] rounded-lg px-2 py-1.5 text-sm text-gray-250 placeholder-gray-600 focus:outline-none"
-            />
-            <input 
-              type="text" 
-              placeholder="dd/mm/yyyy"
-              className="w-1/2 bg-[#121212] border border-[#2e2e2e] rounded-lg px-2 py-1.5 text-sm text-gray-250 placeholder-gray-600 focus:outline-none"
-            />
+            <div className="w-1/2">
+              <DateTimeInput 
+                mode="date"
+                value={startDate}
+                onChange={setStartDate}
+                placeholder="Start Date"
+                className="w-full"
+              />
+            </div>
+            <div className="w-1/2">
+              <DateTimeInput 
+                mode="date"
+                value={endDate}
+                onChange={setEndDate}
+                placeholder="End Date"
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
 

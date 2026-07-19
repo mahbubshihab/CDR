@@ -1,5 +1,6 @@
 import React from 'react';
 import { Filter, Calendar } from 'lucide-react';
+import { DateTimeInput } from '../../../../../components/ui/DateTimeInput';
 
 export const TimelineFilters: React.FC<any> = ({ filterState, onFilterChange, onApplyFilters, stats }) => {
   return (
@@ -12,51 +13,41 @@ export const TimelineFilters: React.FC<any> = ({ filterState, onFilterChange, on
       <div className="p-3 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
         <div>
           <label className="text-[11px] text-gray-400 block mb-1 font-medium">From Date</label>
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="dd/mm/yyyy" 
-              className="w-full bg-[#1c1c1c] border border-[#2e2e2e] rounded px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-gray-500"
-              value={filterState.fromDate}
-              onChange={(e) => onFilterChange('fromDate', e.target.value)}
-            />
-            <Calendar className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-2 pointer-events-none" />
-          </div>
+          <DateTimeInput
+            mode="date"
+            value={filterState.fromDate}
+            onChange={(val: string) => onFilterChange('fromDate', val)}
+            placeholder="YYYY-MM-DD"
+          />
         </div>
 
         <div>
           <label className="text-[11px] text-gray-400 block mb-1 font-medium">To Date</label>
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="dd/mm/yyyy" 
-              className="w-full bg-[#1c1c1c] border border-[#2e2e2e] rounded px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-gray-500"
-              value={filterState.toDate}
-              onChange={(e) => onFilterChange('toDate', e.target.value)}
-            />
-            <Calendar className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-2 pointer-events-none" />
-          </div>
+          <DateTimeInput
+            mode="date"
+            value={filterState.toDate}
+            onChange={(val: string) => onFilterChange('toDate', val)}
+            placeholder="YYYY-MM-DD"
+          />
         </div>
 
         <div>
           <label className="text-[11px] text-gray-400 block mb-1 font-medium">Start Time</label>
-          <input 
-            type="text" 
-            placeholder="--:--" 
-            className="w-full bg-[#1c1c1c] border border-[#2e2e2e] rounded px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-gray-500"
+          <DateTimeInput
+            mode="time"
             value={filterState.startTime}
-            onChange={(e) => onFilterChange('startTime', e.target.value)}
+            onChange={(val: string) => onFilterChange('startTime', val)}
+            placeholder="HH:MM"
           />
         </div>
 
         <div>
           <label className="text-[11px] text-gray-400 block mb-1 font-medium">End Time</label>
-          <input 
-            type="text" 
-            placeholder="--:--" 
-            className="w-full bg-[#1c1c1c] border border-[#2e2e2e] rounded px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-gray-500"
+          <DateTimeInput
+            mode="time"
             value={filterState.endTime}
-            onChange={(e) => onFilterChange('endTime', e.target.value)}
+            onChange={(val: string) => onFilterChange('endTime', val)}
+            placeholder="HH:MM"
           />
         </div>
 

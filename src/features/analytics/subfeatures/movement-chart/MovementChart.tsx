@@ -10,6 +10,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
+import { DateTimeInput } from '../../../../components/ui/DateTimeInput';
 
 // Fix Leaflet's default icon path issues
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -669,20 +670,22 @@ function DateTimeModal({ currentFilters, onApply, onClose }: { currentFilters: a
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-gray-400 text-xs font-medium">Start Date</label>
-              <input 
-                type="date" 
+              <DateTimeInput 
+                mode="date"
                 value={localFilters.startDate}
-                onChange={e => setLocalFilters(p => ({ ...p, startDate: e.target.value }))}
-                className="bg-[#1a1a1a] border border-[#333] text-gray-200 rounded px-3 py-2 outline-none focus:border-[#3ecf8e]" 
+                onChange={val => setLocalFilters(p => ({ ...p, startDate: val }))}
+                className="w-full"
+                placeholder="Start Date"
               />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-gray-400 text-xs font-medium">End Date</label>
-              <input 
-                type="date" 
+              <DateTimeInput 
+                mode="date"
                 value={localFilters.endDate}
-                onChange={e => setLocalFilters(p => ({ ...p, endDate: e.target.value }))}
-                className="bg-[#1a1a1a] border border-[#333] text-gray-200 rounded px-3 py-2 outline-none focus:border-[#3ecf8e]" 
+                onChange={val => setLocalFilters(p => ({ ...p, endDate: val }))}
+                className="w-full"
+                placeholder="End Date"
               />
             </div>
           </div>
@@ -690,20 +693,22 @@ function DateTimeModal({ currentFilters, onApply, onClose }: { currentFilters: a
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-gray-400 text-xs font-medium">Time From</label>
-              <input 
-                type="time" 
+              <DateTimeInput 
+                mode="time"
                 value={localFilters.timeFrom}
-                onChange={e => setLocalFilters(p => ({ ...p, timeFrom: e.target.value }))}
-                className="bg-[#1a1a1a] border border-[#333] text-gray-200 rounded px-3 py-2 outline-none focus:border-[#3ecf8e]" 
+                onChange={val => setLocalFilters(p => ({ ...p, timeFrom: val }))}
+                className="w-full"
+                placeholder="Time From"
               />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-gray-400 text-xs font-medium">Time To</label>
-              <input 
-                type="time" 
+              <DateTimeInput 
+                mode="time"
                 value={localFilters.timeTo}
-                onChange={e => setLocalFilters(p => ({ ...p, timeTo: e.target.value }))}
-                className="bg-[#1a1a1a] border border-[#333] text-gray-200 rounded px-3 py-2 outline-none focus:border-[#3ecf8e]" 
+                onChange={val => setLocalFilters(p => ({ ...p, timeTo: val }))}
+                className="w-full"
+                placeholder="Time To"
               />
             </div>
           </div>

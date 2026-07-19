@@ -4,6 +4,7 @@ import { Search, Users, ArrowDownLeft, ArrowUpRight, MessageSquare, Clock, Phone
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 // @ts-ignore - vis-network types might be missing
 import { Network } from 'vis-network';
+import { DateTimeInput } from '../../../../components/ui/DateTimeInput';
 
 interface LocationIntelligenceProps {
   cdrFile: CDRFile;
@@ -444,33 +445,33 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({ cdrF
           </div>
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-4 gap-4">
-              <input 
-                type="date" 
+              <DateTimeInput
+                mode="date"
                 value={filterStartDate}
-                onChange={(e) => setFilterStartDate(e.target.value)}
-                style={{ colorScheme: 'dark' }}
-                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+                onChange={setFilterStartDate}
+                placeholder="Start Date"
+                className="w-full"
               />
-              <input 
-                type="date" 
+              <DateTimeInput
+                mode="date"
                 value={filterEndDate}
-                onChange={(e) => setFilterEndDate(e.target.value)}
-                style={{ colorScheme: 'dark' }}
-                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+                onChange={setFilterEndDate}
+                placeholder="End Date"
+                className="w-full"
               />
-              <input 
-                type="time" 
+              <DateTimeInput
+                mode="time"
                 value={filterStartTime}
-                onChange={(e) => setFilterStartTime(e.target.value)}
-                style={{ colorScheme: 'dark' }}
-                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+                onChange={setFilterStartTime}
+                placeholder="Start Time"
+                className="w-full"
               />
-              <input 
-                type="time" 
+              <DateTimeInput
+                mode="time"
                 value={filterEndTime}
-                onChange={(e) => setFilterEndTime(e.target.value)}
-                style={{ colorScheme: 'dark' }}
-                className="bg-[#1e1e1e] border border-[#2e2e2e] rounded p-2 text-xs text-white w-full" 
+                onChange={setFilterEndTime}
+                placeholder="End Time"
+                className="w-full"
               />
             </div>
             <div className="grid grid-cols-5 gap-4">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Clock } from 'lucide-react';
+import { DateTimeInput } from '../../../../components/ui/DateTimeInput';
 
 interface TimeRangeFilterProps {
   onApply: (ranges: {
@@ -34,21 +35,23 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
           {/* Day Range */}
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-gray-500 uppercase tracking-wider">Day</span>
-            <input 
-              type="time" 
-              value={dayStart}
-              onChange={(e) => setDayStart(e.target.value)}
-              style={{ colorScheme: 'dark' }}
-              className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#3ecf8e]" 
-            />
+            <div className="w-24">
+              <DateTimeInput 
+                mode="time"
+                value={dayStart}
+                onChange={setDayStart}
+                className="w-full" 
+              />
+            </div>
             <span className="text-gray-500 text-xs">to</span>
-            <input 
-              type="time" 
-              value={dayEnd}
-              onChange={(e) => setDayEnd(e.target.value)}
-              style={{ colorScheme: 'dark' }}
-              className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#3ecf8e]" 
-            />
+            <div className="w-24">
+              <DateTimeInput 
+                mode="time"
+                value={dayEnd}
+                onChange={setDayEnd}
+                className="w-full" 
+              />
+            </div>
           </div>
 
           <div className="w-px h-4 bg-[#2e2e2e]"></div>
@@ -56,21 +59,23 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
           {/* Night Range */}
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-gray-500 uppercase tracking-wider">Night</span>
-            <input 
-              type="time" 
-              value={nightStart}
-              onChange={(e) => setNightStart(e.target.value)}
-              style={{ colorScheme: 'dark' }}
-              className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#3ecf8e]" 
-            />
+            <div className="w-24">
+              <DateTimeInput 
+                mode="time"
+                value={nightStart}
+                onChange={setNightStart}
+                className="w-full" 
+              />
+            </div>
             <span className="text-gray-500 text-xs">to</span>
-            <input 
-              type="time" 
-              value={nightEnd}
-              onChange={(e) => setNightEnd(e.target.value)}
-              style={{ colorScheme: 'dark' }}
-              className="bg-[#1e1e1e] border border-[#2e2e2e] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#3ecf8e]" 
-            />
+            <div className="w-24">
+              <DateTimeInput 
+                mode="time"
+                value={nightEnd}
+                onChange={setNightEnd}
+                className="w-full" 
+              />
+            </div>
           </div>
         </div>
 
