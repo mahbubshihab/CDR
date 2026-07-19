@@ -154,7 +154,7 @@ export const OwnershipIntelligence: React.FC<OwnershipIntelligenceProps> = ({ cd
         </div>
         <button 
           onClick={handleExport}
-          className="bg-[#1e293b] hover:bg-[#334155] border border-blue-900/50 text-blue-400 text-xs font-semibold px-4 py-2 rounded-lg transition-colors whitespace-nowrap self-start"
+          className="bg-[#1c1c1c] hover:bg-[#334155] border border-blue-900/50 text-blue-400 text-xs font-semibold px-4 py-2 rounded-lg transition-colors whitespace-nowrap self-start"
         >
           Export Excel (full report)
         </button>

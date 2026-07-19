@@ -104,7 +104,7 @@ export const OverallStatistics: React.FC<OverallStatisticsProps> = ({ globalStat
             </thead>
             <tbody className="divide-y divide-[#1e293b]">
               {monthlyStats.map((stat, idx) => (
-                <tr key={idx} className="hover:bg-[#1e293b]/50 transition-colors">
+                <tr key={idx} className="hover:bg-[#1c1c1c]/50 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-200">{stat.name}</td>
                   <td className="px-4 py-3 text-center text-gray-400">{stat.total}</td>
                   <td className="px-4 py-3 text-center text-teal-400">{stat.active}</td>

@@ -26,8 +26,8 @@ export const IntlAlertsView: React.FC<IntlAlertsViewProps> = ({ countries }) => 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {highRisk.length > 0 ? (
           highRisk.map(c => (
-            <div key={c.country} className="bg-[#1e293b] border border-[#f87171]/50 rounded-xl overflow-hidden shadow-lg shadow-black/20">
-              <div className="p-4 border-b border-[#334155] bg-[#0f172a]/80 flex justify-between items-center">
+            <div key={c.country} className="bg-[#1c1c1c] border border-[#f87171]/50 rounded-xl overflow-hidden shadow-lg shadow-black/20">
+              <div className="p-4 border-b border-[#2e2e2e] bg-[#121212]/80 flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-[#f87171]" />
                   <h4 className="font-bold text-gray-200">{c.country} ({c.code})</h4>
@@ -53,7 +53,7 @@ export const IntlAlertsView: React.FC<IntlAlertsViewProps> = ({ countries }) => 
             </div>
           ))
         ) : (
-          <div className="col-span-full py-12 text-center bg-[#1e293b] border border-[#334155] rounded-xl text-gray-500">
+          <div className="col-span-full py-12 text-center bg-[#1c1c1c] border border-[#2e2e2e] rounded-xl text-gray-500">
             No high-risk international contacts detected.
           </div>
         )}

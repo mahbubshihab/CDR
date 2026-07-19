@@ -103,7 +103,7 @@ export const InternationalIntelligence: React.FC<InternationalIntelligenceProps>
   }, [intlRecords, countries, filters.country, filters.riskLevel, searchQuery]);
 
   return (
-    <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#0b1121] animate-in fade-in duration-300">
+    <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#000000] animate-in fade-in duration-300">
       
       {/* Top Summary & KPIs */}
       <IntlSummaryCard 
@@ -155,7 +155,7 @@ export const InternationalIntelligence: React.FC<InternationalIntelligenceProps>
       )}
 
       {(activeTab === 'Correlations' || activeTab === 'Link Graph') && (
-        <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-12 text-center text-gray-500 mt-6 animate-in fade-in duration-300">
+        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-xl p-12 text-center text-gray-500 mt-6 animate-in fade-in duration-300">
           <div className="text-4xl mb-4">🚧</div>
           <h3 className="text-lg font-bold text-gray-300 mb-2">{activeTab} Interface</h3>
           <p>This module is currently being provisioned. Data structures are ready, but visual layout is pending.</p>

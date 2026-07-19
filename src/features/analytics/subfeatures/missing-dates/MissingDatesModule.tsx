@@ -313,7 +313,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive 
                     ? 'bg-[#2e2e2e] text-white' 
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-[#1e293b]'
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-[#1c1c1c]'
                 }`}
               >
                 <Icon className="w-4 h-4" />

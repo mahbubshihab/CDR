@@ -16,7 +16,7 @@ export const ImeiSummary: React.FC<ImeiSummaryProps> = ({ cdrFile, records }) =>
   const { tableData, stats, chartData } = useImeiAnalysis(records);
 
   return (
-    <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#0f1115] animate-in fade-in duration-300">
+    <div className="w-full h-full overflow-y-auto p-6 space-y-6 custom-scrollbar text-left bg-[#0a0a0a] animate-in fade-in duration-300">
       <ImeiSummaryStats 
         phoneNumber={cdrFile.phoneNumber} 
         totalRecords={records.length} 

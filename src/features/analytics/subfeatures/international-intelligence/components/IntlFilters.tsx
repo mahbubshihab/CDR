@@ -30,7 +30,7 @@ export const IntlFilters: React.FC<IntlFiltersProps> = ({
           placeholder="Search number or country..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#0f172a] border border-[#1e293b] text-gray-200 text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8] transition-all placeholder:text-gray-600"
+          className="w-full bg-[#121212] border border-[#2e2e2e] text-gray-200 text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8] transition-all placeholder:text-gray-600"
         />
       </div>
 
@@ -40,7 +40,7 @@ export const IntlFilters: React.FC<IntlFiltersProps> = ({
         <select
           value={filters.country}
           onChange={(e) => setFilters({ ...filters, country: e.target.value })}
-          className="bg-[#0f172a] border border-[#1e293b] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
+          className="bg-[#121212] border border-[#2e2e2e] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
         >
           <option value="ALL">All countries</option>
           {availableCountries.map(c => (
@@ -51,7 +51,7 @@ export const IntlFilters: React.FC<IntlFiltersProps> = ({
         <select
           value={filters.riskLevel}
           onChange={(e) => setFilters({ ...filters, riskLevel: e.target.value as any })}
-          className="bg-[#0f172a] border border-[#1e293b] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
+          className="bg-[#121212] border border-[#2e2e2e] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
         >
           <option value="ALL">All risk levels</option>
           <option value="HIGH">High / Critical</option>
@@ -62,7 +62,7 @@ export const IntlFilters: React.FC<IntlFiltersProps> = ({
         <select
           value={filters.usageType}
           onChange={(e) => setFilters({ ...filters, usageType: e.target.value as any })}
-          className="bg-[#0f172a] border border-[#1e293b] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
+          className="bg-[#121212] border border-[#2e2e2e] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
         >
           <option value="ALL">Calls + SMS</option>
           <option value="VOICE">Calls Only</option>
@@ -72,7 +72,7 @@ export const IntlFilters: React.FC<IntlFiltersProps> = ({
         <select
           value={filters.direction}
           onChange={(e) => setFilters({ ...filters, direction: e.target.value as any })}
-          className="bg-[#0f172a] border border-[#1e293b] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
+          className="bg-[#121212] border border-[#2e2e2e] hover:border-gray-500 text-gray-300 text-xs px-3 py-2.5 rounded-lg transition-colors focus:outline-none focus:border-[#38bdf8]"
         >
           <option value="ALL">All directions</option>
           <option value="INCOMING">Incoming</option>

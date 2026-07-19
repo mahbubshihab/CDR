@@ -26,29 +26,29 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ cdrFile, dateStats, gl
       <div className="bg-[#121212] border border-[#2e2e2e] rounded-lg p-5">
         <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wide">Export missing dates</h3>
         <div className="flex flex-wrap gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-sm text-gray-200 rounded transition-colors cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-sm text-gray-200 rounded transition-colors cursor-pointer">
             <Download className="w-4 h-4 text-gray-400" /> Missing dates table (CSV)
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-sm text-gray-200 rounded transition-colors cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-sm text-gray-200 rounded transition-colors cursor-pointer">
             <Download className="w-4 h-4 text-gray-400" /> Missing dates (Excel)
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-sm text-gray-200 rounded transition-colors cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-sm text-gray-200 rounded transition-colors cursor-pointer">
             <Printer className="w-4 h-4 text-gray-400" /> Full report (PDF)
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-sm text-gray-200 rounded transition-colors cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-sm text-gray-200 rounded transition-colors cursor-pointer">
             <Printer className="w-4 h-4 text-gray-400" /> Print dashboard (PDF)
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-sm text-gray-200 rounded transition-colors cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-sm text-gray-200 rounded transition-colors cursor-pointer">
             <Printer className="w-4 h-4 text-gray-400" /> Print calendars (PDF)
           </button>
         </div>
         <div className="flex flex-wrap gap-2 mt-4">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> CSV (All)</button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> Excel</button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Printer className="w-3 h-3" /> PDF Report</button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Printer className="w-3 h-3" /> Print</button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> KML</button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1e293b] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> KMZ</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> CSV (All)</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> Excel</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Printer className="w-3 h-3" /> PDF Report</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Printer className="w-3 h-3" /> Print</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> KML</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#1c1c1c] text-xs text-gray-300 rounded transition-colors cursor-pointer"><Download className="w-3 h-3" /> KMZ</button>
         </div>
         <p className="text-xs text-gray-500 mt-5 font-medium">Excel and PDF exports use server-side cached analysis. Print calendars for month-wise PDF views.</p>
       </div>
@@ -76,7 +76,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ cdrFile, dateStats, gl
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1e293b] bg-[#121212]">
-              <tr className="hover:bg-[#1e293b]/50 transition-colors">
+              <tr className="hover:bg-[#1c1c1c]/50 transition-colors">
                 <td className="px-4 py-3 text-xs text-gray-300 align-top">DATASET-001</td>
                 <td className="px-4 py-3 text-xs text-gray-300 align-top">CDR Dataset<br/>(Overall)</td>
                 <td className="px-4 py-3 text-xs text-gray-300 align-top">{cdrFile?.phoneNumber || 'N/A'}</td>

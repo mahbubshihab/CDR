@@ -232,25 +232,25 @@ export const ExportableChartCard: React.FC<ExportableChartCardProps> = ({
   return (
     <>
       {/* Standard Card View */}
-      <div id={id} className={`bg-[#1e293b] border border-[#334155] rounded-xl flex flex-col overflow-hidden text-left ${className}`}>
-        <div className="flex justify-between items-center px-4 py-3 border-b border-[#334155] bg-[#1e293b]">
+      <div id={id} className={`bg-[#1c1c1c] border border-[#2e2e2e] rounded-xl flex flex-col overflow-hidden text-left ${className}`}>
+        <div className="flex justify-between items-center px-4 py-3 border-b border-[#2e2e2e] bg-[#1c1c1c]">
           <div className="text-left">
             <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider">{title}</h3>
             {subdetails && <div className="mt-1">{subdetails}</div>}
           </div>
           <ActionsPanel />
         </div>
-        <div className={`p-4 flex-1 relative bg-[#1e293b] ${contentClassName}`}>
+        <div className={`p-4 flex-1 relative bg-[#1c1c1c] ${contentClassName}`}>
           {children}
         </div>
       </div>
 
       {/* Expanded Modal View */}
       {isExpanded && (
-        <div className="fixed inset-0 z-[100] bg-[#0b1121]/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div id={`${id}-expanded`} className="bg-[#1e293b] border border-[#334155] rounded-2xl w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] flex flex-col relative shadow-2xl overflow-y-auto custom-scrollbar">
+        <div className="fixed inset-0 z-[100] bg-[#000000]/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div id={`${id}-expanded`} className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-2xl w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] flex flex-col relative shadow-2xl overflow-y-auto custom-scrollbar">
             
-            <div className="flex justify-between items-center p-6 border-b border-[#334155]">
+            <div className="flex justify-between items-center p-6 border-b border-[#2e2e2e]">
               <div>
                 <h2 className="text-sm font-bold text-gray-100 uppercase tracking-wider">{title}</h2>
                 {subdetails && <div className="mt-1">{subdetails}</div>}
@@ -260,7 +260,7 @@ export const ExportableChartCard: React.FC<ExportableChartCardProps> = ({
 
             <button 
               onClick={() => setIsExpanded(false)}
-              className="absolute top-4 right-4 p-2 bg-[#0f172a] border border-[#334155] text-gray-400 hover:text-white hover:border-gray-500 rounded-xl transition-all cursor-pointer z-10 no-print-actions"
+              className="absolute top-4 right-4 p-2 bg-[#121212] border border-[#2e2e2e] text-gray-400 hover:text-white hover:border-gray-500 rounded-xl transition-all cursor-pointer z-10 no-print-actions"
               title="Close Full Screen"
             >
               <X className="h-4 w-4" />
