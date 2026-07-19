@@ -18,9 +18,9 @@ export const InvestigationLinks: React.FC<any> = ({ records, targetNumber }) => 
   }, [records]);
 
   return (
-    <div className="bg-[#131f37] border border-slate-700/60 rounded-md p-4 shadow-sm">
+    <div className="bg-[#121212] border border-[#2e2e2e] rounded-md p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
-        <UserCheck className="w-4 h-4 text-slate-300" />
+        <UserCheck className="w-4 h-4 text-gray-400" />
         <h3 className="text-sm font-bold text-white">Investigation Links</h3>
       </div>
       
@@ -28,13 +28,13 @@ export const InvestigationLinks: React.FC<any> = ({ records, targetNumber }) => 
         {topLinks.map(([bParty, count]) => (
           <div 
             key={bParty} 
-            className="bg-[#0a1120] border border-slate-700/80 hover:border-slate-500 rounded px-2 py-1 text-[11px] text-slate-300 transition-colors cursor-pointer font-mono"
+            className="bg-[#1c1c1c] border border-[#2e2e2e] hover:border-gray-500 rounded px-2 py-1 text-[11px] text-gray-300 transition-colors cursor-pointer font-mono"
           >
-            {targetNumber || 'TARGET'} ↔ {bParty} <span className="text-slate-500 ml-1">({count})</span>
+            {targetNumber || 'TARGET'} ↔ {bParty} <span className="text-gray-500 ml-1">({count})</span>
           </div>
         ))}
         {topLinks.length === 0 && (
-          <div className="text-xs text-slate-500 italic">No links available in current view.</div>
+          <div className="text-xs text-gray-500 italic">No links available in current view.</div>
         )}
       </div>
     </div>

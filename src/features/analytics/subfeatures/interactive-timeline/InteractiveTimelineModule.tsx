@@ -54,9 +54,9 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
   }, [filteredRecords]);
 
   return (
-    <div className="flex h-full w-full bg-[#0a1120] text-gray-200 overflow-hidden font-sans">
+    <div className="flex h-full w-full bg-[#0a0a0a] text-gray-200 overflow-hidden font-sans">
       {/* Sidebar Filters */}
-      <div className="w-64 shrink-0 border-r border-slate-800 bg-[#131f37] overflow-y-auto custom-scrollbar">
+      <div className="w-64 shrink-0 border-r border-[#2e2e2e] bg-[#121212] overflow-y-auto custom-scrollbar">
         <TimelineFilters 
           filterState={filterState} 
           onFilterChange={handleFilterChange} 
@@ -68,9 +68,9 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4">
         {/* Header Block */}
-        <div className="bg-[#1a7f37] rounded-md p-4 shadow-sm border border-green-800">
+        <div className="bg-[#121212] rounded-md p-4 shadow-sm border border-[#2e2e2e]">
           <h2 className="text-xl font-bold text-white mb-1">Interactive Timeline</h2>
-          <p className="text-xs text-green-100 font-medium">
+          <p className="text-xs text-gray-400 font-medium">
             {stats.total} events · Blue=Call · Green=SMS · Purple=Data
           </p>
         </div>

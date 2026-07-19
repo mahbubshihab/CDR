@@ -29,18 +29,18 @@ export const ActivityIntensityHeatmap: React.FC<any> = ({ records }) => {
   };
 
   return (
-    <div className="bg-[#131f37] border border-slate-700/60 rounded-md p-4 shadow-sm">
+    <div className="bg-[#121212] border border-[#2e2e2e] rounded-md p-4 shadow-sm">
       <h3 className="text-sm font-bold text-white mb-4">Activity Intensity Heatmap</h3>
       
       <div className="flex">
-        <div className="flex flex-col justify-between pr-3 text-[10px] text-slate-400 font-mono mt-6">
+        <div className="flex flex-col justify-between pr-3 text-[10px] text-gray-400 font-mono mt-6">
           {days.map(d => (
             <div key={d} className="h-5 flex items-center">{d}</div>
           ))}
         </div>
 
         <div className="flex-1 overflow-x-auto pr-2">
-          <div className="text-center text-[10px] text-slate-500 mb-2 font-mono">Hour</div>
+          <div className="text-center text-[10px] text-gray-500 mb-2 font-mono">Hour</div>
           
           <div className="flex flex-col gap-1">
             {heatmapData.matrix.map((row, dayIdx) => (
@@ -48,7 +48,7 @@ export const ActivityIntensityHeatmap: React.FC<any> = ({ records }) => {
                 {row.map((val, hourIdx) => (
                   <div
                     key={`${dayIdx}-${hourIdx}`}
-                    className="flex-1 rounded-sm bg-blue-500 transition-opacity hover:opacity-100 cursor-pointer"
+                    className="flex-1 rounded-sm bg-[#3b82f6] transition-opacity hover:opacity-100 cursor-pointer"
                     style={{ opacity: getOpacity(val, heatmapData.maxVal) }}
                     title={`${days[dayIdx]} ${hourIdx}:00 - ${val} events`}
                   />
@@ -59,7 +59,7 @@ export const ActivityIntensityHeatmap: React.FC<any> = ({ records }) => {
 
           <div className="flex mt-2">
             {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} className="flex-1 text-center text-[9px] text-slate-500 font-mono">
+              <div key={i} className="flex-1 text-center text-[9px] text-gray-500 font-mono">
                 {i % 2 === 0 ? i : ''}
               </div>
             ))}
