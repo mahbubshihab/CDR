@@ -75,13 +75,13 @@ export const TimelineFilters: React.FC<any> = ({ filterState, onFilterChange, on
         <div className="flex gap-1 w-full pt-1">
           <button 
             className={`flex-1 py-1.5 text-xs font-medium rounded border ${filterState.dayNight === 'Day' ? 'bg-[#2e2e2e] border-gray-500 text-white' : 'bg-[#1c1c1c] border-[#2e2e2e] text-gray-400'} hover:bg-[#2e2e2e] transition-colors cursor-pointer`}
-            onClick={() => onFilterChange('dayNight', 'Day')}
+            onClick={() => onFilterChange('dayNight', filterState.dayNight === 'Day' ? '' : 'Day')}
           >
             Day
           </button>
           <button 
             className={`flex-1 py-1.5 text-xs font-medium rounded border ${filterState.dayNight === 'Night' ? 'bg-[#2e2e2e] border-gray-500 text-white' : 'bg-[#1c1c1c] border-[#2e2e2e] text-gray-400'} hover:bg-[#2e2e2e] transition-colors cursor-pointer`}
-            onClick={() => onFilterChange('dayNight', 'Night')}
+            onClick={() => onFilterChange('dayNight', filterState.dayNight === 'Night' ? '' : 'Night')}
           >
             Night
           </button>

@@ -18,7 +18,7 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
     startTime: '',
     endTime: '',
     periodView: 'Day View',
-    dayNight: 'Day',
+    dayNight: '',
     callerNumber: '',
     receiverBParty: '',
     imei: '',
@@ -34,9 +34,63 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
 
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
+      // 1. Text searches
       if (filterState.receiverBParty && !r.otherParty?.includes(filterState.receiverBParty)) return false;
       if (filterState.callerNumber && !r.aparty?.includes(filterState.callerNumber)) return false;
       if (filterState.imei && !r.imei?.includes(filterState.imei)) return false;
+      if (filterState.location) {
+        const searchLoc = filterState.location.toLowerCase();
+        const hasLoc = r.siteAddress?.toLowerCase().includes(searchLoc) || 
+                       r.firstCellSite?.toLowerCase().includes(searchLoc) || 
+                       r.lastCellSite?.toLowerCase().includes(searchLoc);
+        if (!hasLoc) return false;
+      }
+
+      const d = new Date(r.timestamp);
+
+      // 2. Date filters
+      if (filterState.fromDate) {
+        const [dd, mm, yyyy] = filterState.fromDate.split('/');
+        if (dd && mm && yyyy) {
+          const from = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+          if (d < from) return false;
+        }
+      }
+      if (filterState.toDate) {
+        const [dd, mm, yyyy] = filterState.toDate.split('/');
+        if (dd && mm && yyyy) {
+          const to = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd), 23, 59, 59);
+          if (d > to) return false;
+        }
+      }
+
+      // 3. Time filters
+      if (filterState.startTime) {
+        const [hh, min] = filterState.startTime.split(':');
+        if (hh && min) {
+          const rMins = d.getHours() * 60 + d.getMinutes();
+          const fMins = parseInt(hh) * 60 + parseInt(min);
+          if (rMins < fMins) return false;
+        }
+      }
+      if (filterState.endTime) {
+        const [hh, min] = filterState.endTime.split(':');
+        if (hh && min) {
+          const rMins = d.getHours() * 60 + d.getMinutes();
+          const fMins = parseInt(hh) * 60 + parseInt(min);
+          if (rMins > fMins) return false;
+        }
+      }
+
+      // 4. Day/Night filter (Day: 06:00-17:59, Night: 18:00-05:59)
+      if (filterState.dayNight === 'Day') {
+        const hour = d.getHours();
+        if (hour < 6 || hour >= 18) return false;
+      } else if (filterState.dayNight === 'Night') {
+        const hour = d.getHours();
+        if (hour >= 6 && hour < 18) return false;
+      }
+
       return true;
     });
   }, [records, filterState]);
@@ -45,12 +99,32 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
     let calls = 0;
     let sms = 0;
     let data = 0;
+    
+    // Calculate peak day
+    const dayCounts: Record<string, number> = {};
+    let peakDay = '';
+    let maxCount = 0;
+
     filteredRecords.forEach(r => {
       if (r.usageType?.toLowerCase().includes('call')) calls++;
       else if (r.usageType?.toLowerCase().includes('sms')) sms++;
       else if (r.usageType?.toLowerCase().includes('data')) data++;
+
+      const dateStr = new Date(r.timestamp).toISOString().split('T')[0];
+      dayCounts[dateStr] = (dayCounts[dateStr] || 0) + 1;
+      if (dayCounts[dateStr] > maxCount) {
+        maxCount = dayCounts[dateStr];
+        peakDay = dateStr;
+      }
     });
-    return { calls, sms, data, total: filteredRecords.length, peak: '2026-04-13 @ 0:00' };
+
+    return { 
+      calls, 
+      sms, 
+      data, 
+      total: filteredRecords.length, 
+      peak: peakDay ? `${peakDay} (${maxCount})` : 'N/A' 
+    };
   }, [filteredRecords]);
 
   return (
