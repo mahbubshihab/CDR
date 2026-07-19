@@ -224,7 +224,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0a1120] text-gray-200 overflow-hidden font-sans">
+    <div className="flex flex-col h-full w-full bg-[#0a0a0a] text-gray-200 overflow-y-auto custom-scrollbar font-sans">
       <div className="p-4 flex flex-col gap-4">
         {/* Executive Summary Block */}
         <div className="bg-[#131f37] rounded-lg border border-[#1e293b] p-4 relative overflow-hidden">
@@ -284,7 +284,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
+      <div className="flex-1 p-4 pt-0">
         <div className="h-full">
           {activeTab === 'Monthly view' && <MonthlyView dateStats={dateStats} />}
           {activeTab === 'Overall statistics' && <OverallStatistics globalStats={globalStats} monthlyStats={monthlyStats} />}
