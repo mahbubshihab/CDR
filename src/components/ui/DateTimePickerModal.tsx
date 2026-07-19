@@ -25,6 +25,52 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
   const [minutes, setMinutes] = useState('00');
   const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
   const [timeView, setTimeView] = useState<'hours' | 'minutes'>('hours');
+  const dialRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    if (!isDragging) return;
+    
+    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+      if (!dialRef.current) return;
+      const rect = dialRef.current.getBoundingClientRect();
+      const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+      const x = clientX - rect.left - 120;
+      const y = clientY - rect.top - 120;
+      let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+      if (angle < 0) angle += 360;
+
+      if (timeView === 'hours') {
+        let hour = Math.round(angle / 30);
+        if (hour === 0) hour = 12;
+        setHours(hour.toString().padStart(2, '0'));
+      } else {
+        let min = Math.round(angle / 6);
+        if (min === 60) min = 0;
+        setMinutes(min.toString().padStart(2, '0'));
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      if (timeView === 'hours') {
+        setTimeout(() => setTimeView('minutes'), 300);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleMouseMove);
+    window.addEventListener('touchend', handleMouseUp);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleMouseMove);
+      window.removeEventListener('touchend', handleMouseUp);
+    };
+  }, [isDragging, timeView]);
 
   useEffect(() => {
     if (isOpen) {
@@ -247,9 +293,11 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
 
               {/* Analog Clock Dial */}
               <div 
+                ref={dialRef}
                 className="relative bg-[#1c1c1c] border border-[#2e2e2e] rounded-full shadow-inner cursor-pointer"
-                style={{ width: 240, height: 240 }}
+                style={{ width: 240, height: 240, touchAction: 'none' }}
                 onMouseDown={(e) => {
+                  setIsDragging(true);
                   const rect = e.currentTarget.getBoundingClientRect();
                   const x = e.clientX - rect.left - 120;
                   const y = e.clientY - rect.top - 120;
@@ -260,8 +308,24 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                     let hour = Math.round(angle / 30);
                     if (hour === 0) hour = 12;
                     setHours(hour.toString().padStart(2, '0'));
-                    // Small delay before switching to minutes so the user sees the selection
-                    setTimeout(() => setTimeView('minutes'), 300);
+                  } else {
+                    let min = Math.round(angle / 6);
+                    if (min === 60) min = 0;
+                    setMinutes(min.toString().padStart(2, '0'));
+                  }
+                }}
+                onTouchStart={(e) => {
+                  setIsDragging(true);
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.touches[0].clientX - rect.left - 120;
+                  const y = e.touches[0].clientY - rect.top - 120;
+                  let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+                  if (angle < 0) angle += 360;
+
+                  if (timeView === 'hours') {
+                    let hour = Math.round(angle / 30);
+                    if (hour === 0) hour = 12;
+                    setHours(hour.toString().padStart(2, '0'));
                   } else {
                     let min = Math.round(angle / 6);
                     if (min === 60) min = 0;
@@ -277,7 +341,7 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
 
                 {/* Hand */}
                 <div 
-                  className="absolute bg-[#3ecf8e] z-10 transition-transform duration-200 origin-bottom"
+                  className="absolute bg-[#3ecf8e] z-0 transition-transform duration-75 origin-bottom"
                   style={{
                     width: 2,
                     height: 90,
@@ -287,7 +351,7 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                   }}
                 >
                   {/* Circle at the end of the hand */}
-                  <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full border-[2px] border-[#3ecf8e] bg-transparent" />
+                  <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full border-[2px] border-[#3ecf8e] bg-[#3ecf8e]" />
                 </div>
 
                 {/* Numbers */}
