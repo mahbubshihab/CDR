@@ -24,6 +24,7 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
   const [hours, setHours] = useState('12');
   const [minutes, setMinutes] = useState('00');
   const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
+  const [timeView, setTimeView] = useState<'hours' | 'minutes'>('hours');
 
   useEffect(() => {
     if (isOpen) {
@@ -226,53 +227,103 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
           )}
 
           {mode === 'time' && (
-            <div className="py-6 flex flex-col items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center gap-2">
-                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Hours</label>
-                  <input 
-                    type="number"
-                    min="1"
-                    max="12"
-                    value={hours}
-                    onChange={(e) => {
-                      let val = parseInt(e.target.value);
-                      if (isNaN(val)) val = 12;
-                      if (val > 12) val = 12;
-                      if (val < 1) val = 1;
-                      setHours(val.toString().padStart(2, '0'));
-                    }}
-                    className="w-20 h-16 bg-[#1c1c1c] border border-[#2e2e2e] rounded-xl text-3xl font-mono text-center text-gray-200 focus:outline-none focus:border-[#3ecf8e] transition-colors"
-                  />
-                </div>
-                <span className="text-2xl font-bold text-gray-600 mt-5">:</span>
-                <div className="flex flex-col items-center gap-2">
-                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Minutes</label>
-                  <input 
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={minutes}
-                    onChange={(e) => {
-                      let val = parseInt(e.target.value);
-                      if (isNaN(val)) val = 0;
-                      if (val > 59) val = 59;
-                      if (val < 0) val = 0;
-                      setMinutes(val.toString().padStart(2, '0'));
-                    }}
-                    className="w-20 h-16 bg-[#1c1c1c] border border-[#2e2e2e] rounded-xl text-3xl font-mono text-center text-gray-200 focus:outline-none focus:border-[#3ecf8e] transition-colors"
-                  />
-                </div>
+            <div className="py-6 flex flex-col items-center">
+              {/* Digital Time Display (Toggle between Hours / Minutes) */}
+              <div className="flex gap-2 items-center justify-center mb-6">
+                <button 
+                  onClick={() => setTimeView('hours')}
+                  className={`text-4xl font-mono px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${timeView === 'hours' ? 'text-[#3ecf8e] bg-[#3ecf8e]/10' : 'text-gray-400 hover:text-gray-200 hover:bg-[#2e2e2e]'}`}
+                >
+                  {hours.padStart(2, '0')}
+                </button>
+                <span className="text-2xl font-bold text-gray-600 mb-1">:</span>
+                <button 
+                  onClick={() => setTimeView('minutes')}
+                  className={`text-4xl font-mono px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${timeView === 'minutes' ? 'text-[#3ecf8e] bg-[#3ecf8e]/10' : 'text-gray-400 hover:text-gray-200 hover:bg-[#2e2e2e]'}`}
+                >
+                  {minutes.padStart(2, '0')}
+                </button>
               </div>
-              <div className="flex bg-[#1c1c1c] rounded-lg border border-[#2e2e2e] p-1">
+
+              {/* Analog Clock Dial */}
+              <div 
+                className="relative bg-[#1c1c1c] border border-[#2e2e2e] rounded-full shadow-inner cursor-pointer"
+                style={{ width: 240, height: 240 }}
+                onMouseDown={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left - 120;
+                  const y = e.clientY - rect.top - 120;
+                  let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+                  if (angle < 0) angle += 360;
+
+                  if (timeView === 'hours') {
+                    let hour = Math.round(angle / 30);
+                    if (hour === 0) hour = 12;
+                    setHours(hour.toString().padStart(2, '0'));
+                    // Small delay before switching to minutes so the user sees the selection
+                    setTimeout(() => setTimeView('minutes'), 300);
+                  } else {
+                    let min = Math.round(angle / 6);
+                    if (min === 60) min = 0;
+                    setMinutes(min.toString().padStart(2, '0'));
+                  }
+                }}
+              >
+                {/* Center Dot */}
+                <div 
+                  className="absolute bg-[#3ecf8e] rounded-full z-20"
+                  style={{ width: 8, height: 8, left: 116, top: 116 }}
+                />
+
+                {/* Hand */}
+                <div 
+                  className="absolute bg-[#3ecf8e] z-10 transition-transform duration-200 origin-bottom"
+                  style={{
+                    width: 2,
+                    height: 90,
+                    bottom: 120,
+                    left: 119,
+                    transform: `rotate(${timeView === 'hours' ? parseInt(hours) * 30 : parseInt(minutes) * 6}deg)`
+                  }}
+                >
+                  {/* Circle at the end of the hand */}
+                  <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full border-[2px] border-[#3ecf8e] bg-transparent" />
+                </div>
+
+                {/* Numbers */}
+                {(timeView === 'hours' ? [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]).map((val) => {
+                  const angle = (val * (timeView === 'hours' ? 30 : 6) - 90) * (Math.PI / 180);
+                  const x = 120 + 90 * Math.cos(angle);
+                  const y = 120 + 90 * Math.sin(angle);
+                  
+                  // Check if this number is exactly selected
+                  const isSelected = timeView === 'hours' 
+                    ? parseInt(hours) === val || (parseInt(hours) === 12 && val === 0)
+                    : parseInt(minutes) === val;
+
+                  return (
+                    <div
+                      key={val}
+                      className={`absolute w-8 h-8 -ml-4 -mt-4 flex items-center justify-center text-sm font-medium rounded-full z-10 pointer-events-none transition-colors
+                        ${isSelected ? 'text-[#0a0a0a]' : 'text-gray-300'}`}
+                      style={{ left: x, top: y }}
+                    >
+                      {val === 0 && timeView === 'minutes' ? '00' : val}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* AM/PM Toggle */}
+              <div className="flex bg-[#1c1c1c] rounded-lg border border-[#2e2e2e] p-1 mt-6">
                 <button
-                  className={`px-6 py-1.5 rounded-md text-sm font-semibold transition-colors cursor-pointer ${period === 'AM' ? 'bg-[#3ecf8e] text-[#0a0a0a]' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-8 py-2 rounded-md text-sm font-bold transition-colors cursor-pointer ${period === 'AM' ? 'bg-[#3ecf8e] text-[#0a0a0a]' : 'text-gray-400 hover:text-white'}`}
                   onClick={() => setPeriod('AM')}
                 >
                   AM
                 </button>
                 <button
-                  className={`px-6 py-1.5 rounded-md text-sm font-semibold transition-colors cursor-pointer ${period === 'PM' ? 'bg-[#3ecf8e] text-[#0a0a0a]' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-8 py-2 rounded-md text-sm font-bold transition-colors cursor-pointer ${period === 'PM' ? 'bg-[#3ecf8e] text-[#0a0a0a]' : 'text-gray-400 hover:text-white'}`}
                   onClick={() => setPeriod('PM')}
                 >
                   PM
