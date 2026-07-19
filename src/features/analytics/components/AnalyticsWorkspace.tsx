@@ -141,6 +141,16 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
       {/* 1. Sidebar Navigation */}
       <aside className={`transition-all duration-300 border-r border-[#2e2e2e] bg-[#171717] flex flex-col justify-between shrink-0 h-full ${isSidebarCollapsed ? 'w-16' : 'w-56'}`}>
         <div className="flex flex-col h-full text-left overflow-hidden">
+          {/* Back trigger */}
+          <button 
+            onClick={onBack}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-2 px-4'} py-3 border-b border-[#2e2e2e] text-gray-400 hover:text-gray-250 transition-colors font-medium text-xs uppercase tracking-wider text-left cursor-pointer bg-[#141414]/45 shrink-0`}
+            title={isSidebarCollapsed ? "Back to Case" : undefined}
+          >
+            <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+            {!isSidebarCollapsed && <span>Back to Case</span>}
+          </button>
+
           {/* Active Target Header */}
           <div className={`p-4 border-b border-[#2e2e2e] bg-[#141414]/30 ${isSidebarCollapsed ? 'flex justify-center items-center h-[76px]' : ''}`}>
             {!isSidebarCollapsed ? (
