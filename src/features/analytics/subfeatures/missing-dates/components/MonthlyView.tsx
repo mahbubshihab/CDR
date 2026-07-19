@@ -47,21 +47,21 @@ export const MonthlyView: React.FC<{ dateStats: DateStats[] }> = ({ dateStats })
         });
 
         return (
-          <div key={monthKey} className="bg-[#131f37] border border-[#1e293b] rounded-lg overflow-hidden">
+          <div key={monthKey} className="bg-[#121212] border border-[#2e2e2e] rounded-lg overflow-hidden">
             {/* Header */}
-            <div className="p-5 pb-4 flex justify-between items-start border-b border-[#1e293b]">
+            <div className="p-5 pb-4 flex justify-between items-start border-b border-[#2e2e2e]">
               <div>
                 <h3 className="text-xl font-bold text-white mb-1">{monthName}</h3>
                 <p className="text-sm text-gray-400">{firstDay.getFullYear()} · {totalDays} days in CDR range</p>
               </div>
               <div className="flex items-center gap-2">
-                <div className="px-3 py-1 rounded-full bg-[#112a3d] border border-teal-800 text-teal-400 text-xs font-medium">
+                <div className="px-3 py-1 rounded-full bg-[#1c1c1c] border border-teal-800 text-teal-400 text-xs font-medium">
                   Active: {activeDays}
                 </div>
                 <div className="px-3 py-1 rounded-full bg-red-950 border border-red-900 text-red-400 text-xs font-medium">
                   Missing: {missingDays}
                 </div>
-                <div className="px-3 py-1 rounded-full bg-[#112a3d] border border-blue-900 text-blue-400 text-xs font-medium">
+                <div className="px-3 py-1 rounded-full bg-[#1c1c1c] border border-[#2e2e2e] text-[#22c55e] text-xs font-medium">
                   Activity: {activityPct}%
                 </div>
                 <div className="px-3 py-1 rounded-full bg-[#3b2a1a] border border-yellow-900 text-yellow-500 text-xs font-medium">
@@ -104,7 +104,7 @@ export const MonthlyView: React.FC<{ dateStats: DateStats[] }> = ({ dateStats })
             </div>
             
             {/* Footer Summary */}
-            <div className="px-5 py-4 bg-[#0a1120] border-t border-[#1e293b] flex items-start gap-3">
+            <div className="px-5 py-4 bg-[#1c1c1c] border-t border-[#2e2e2e] flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <span className="font-semibold text-red-400">Missing in {firstDay.toLocaleString('default', { month: 'long' })}: </span>

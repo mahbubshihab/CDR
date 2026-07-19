@@ -17,7 +17,7 @@ interface HeatmapAnalysisProps {
 export const HeatmapAnalysis: React.FC<HeatmapAnalysisProps> = ({ monthlyStats, dateStats, weekdayStats }) => {
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full">
-      <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5">
+      <div className="bg-[#121212] border border-[#2e2e2e] rounded-lg p-5">
         <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">Monthly activity heatmap</h3>
         <p className="text-xs text-gray-400 mb-6 font-medium">Darker red = missing day • Teal/green = active CDR day</p>
         
@@ -45,7 +45,7 @@ export const HeatmapAnalysis: React.FC<HeatmapAnalysisProps> = ({ monthlyStats, 
         </div>
       </div>
 
-      <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5">
+      <div className="bg-[#121212] border border-[#2e2e2e] rounded-lg p-5">
         <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wide">Missing by weekday</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">

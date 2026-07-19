@@ -15,7 +15,7 @@ export const MissingDatesDetails: React.FC<{ dateStats: DateStats[] }> = ({ date
   }
 
   return (
-    <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-5">
+    <div className="bg-[#121212] border border-[#2e2e2e] rounded-lg p-5">
       <div className="mb-4">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-red-500" />

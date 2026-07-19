@@ -57,6 +57,23 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedYear, setSelectedYear] = useState('All years');
   const [selectedMonth, setSelectedMonth] = useState('All months');
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!records || records.length === 0) return;
+    const years = new Set<string>();
+    const months = new Set<string>();
+    
+    records.forEach(r => {
+      const d = new Date(r.timestamp);
+      years.add(d.getFullYear().toString());
+      months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    });
+    
+    setAvailableYears(Array.from(years).sort());
+    setAvailableMonths(Array.from(months).sort());
+  }, [records]);
 
   useEffect(() => {
     if (!records || records.length === 0) {
@@ -68,8 +85,30 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
 
     const timer = setTimeout(() => {
       try {
-        const sortedRecords = [...records].sort((a, b) => a.timestamp - b.timestamp);
-        if (sortedRecords.length === 0) return;
+        let filteredRecords = records;
+        
+        if (selectedYear !== 'All years') {
+          filteredRecords = filteredRecords.filter(r => new Date(r.timestamp).getFullYear().toString() === selectedYear);
+        }
+        
+        if (selectedMonth !== 'All months') {
+           filteredRecords = filteredRecords.filter(r => {
+             const d = new Date(r.timestamp);
+             const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+             return mStr === selectedMonth;
+           });
+        }
+        
+        const sortedRecords = [...filteredRecords].sort((a, b) => a.timestamp - b.timestamp);
+        
+        if (sortedRecords.length === 0) {
+           setDateStats([]);
+           setActivePeriods([]);
+           setMissingPeriods([]);
+           setMonthlyStats([]);
+           setWeekdayStats([]);
+           return;
+        }
 
         const firstDate = new Date(sortedRecords[0].timestamp);
         const lastDate = new Date(sortedRecords[sortedRecords.length - 1].timestamp);
@@ -203,7 +242,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [records]);
+  }, [records, selectedYear, selectedMonth]);
 
   const tabs = [
     { id: 'Monthly view', icon: CalendarIcon },
@@ -216,7 +255,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-[#0a1120]">
+      <div className="flex flex-col items-center justify-center h-full bg-[#1c1c1c]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         <p className="text-gray-400 mt-4 text-sm font-mono">Analyzing dates...</p>
       </div>
@@ -227,10 +266,10 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
     <div className="flex flex-col h-full w-full bg-[#0a0a0a] text-gray-200 overflow-y-auto custom-scrollbar font-sans">
       <div className="p-4 flex flex-col gap-4">
         {/* Executive Summary Block */}
-        <div className="bg-[#131f37] rounded-lg border border-[#1e293b] p-4 relative overflow-hidden">
+        <div className="bg-[#121212] rounded-lg border border-[#2e2e2e] p-4 relative overflow-hidden">
           {/* Subtle blue accent line on top */}
-          <div className="absolute top-0 left-0 w-full h-0.5 bg-blue-500/20" />
-          <h3 className="text-blue-500 text-xs font-bold tracking-wider mb-2 uppercase">Executive Summary</h3>
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-[#22c55e]/20" />
+          <h3 className="text-[#22c55e] text-xs font-bold tracking-wider mb-2 uppercase">Executive Summary</h3>
           <p className="text-sm text-gray-200 leading-relaxed">
             CDR data spans from <span className="font-semibold text-white">{globalStats.firstRecord}</span> to <span className="font-semibold text-white">{globalStats.lastRecord}</span>. 
             Total covered days: <span className="font-semibold text-white">{globalStats.totalDays}</span>. 
@@ -241,8 +280,8 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
         </div>
 
         {/* Date Range Indication */}
-        <div className="bg-[#131f37] border border-[#1e293b] rounded-lg p-3 flex items-center gap-3">
-          <CalendarIcon className="w-4 h-4 text-blue-400" />
+        <div className="bg-[#121212] border border-[#2e2e2e] rounded-lg p-3 flex items-center gap-3">
+          <CalendarIcon className="w-4 h-4 text-[#22c55e]" />
           <span className="text-sm text-gray-300">
             CDR date range: <span className="text-white font-semibold ml-1">{globalStats.firstRecord} → {globalStats.lastRecord}</span>
           </span>
@@ -258,10 +297,12 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
           dateRange={dateRange}
+          availableYears={availableYears}
+          availableMonths={availableMonths}
         />
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mt-1 bg-[#131f37] border border-[#1e293b] rounded-lg p-1 w-max">
+        <div className="flex items-center gap-1 mt-1 bg-[#121212] border border-[#2e2e2e] rounded-lg p-1 w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -271,7 +312,7 @@ export const MissingDatesModule: React.FC<MissingDatesModuleProps> = ({ cdrFile,
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive 
-                    ? 'bg-blue-500 text-white' 
+                    ? 'bg-[#2e2e2e] text-white' 
                     : 'text-gray-400 hover:text-gray-200 hover:bg-[#1e293b]'
                 }`}
               >
