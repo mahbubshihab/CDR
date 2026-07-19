@@ -103,7 +103,7 @@ export const NetworkAnalysis: React.FC<NetworkAnalysisProps> = ({ cdrFile, recor
   };
 
   return (
-    <div className="w-full h-full overflow-y-auto p-6 space-y-4 custom-scrollbar text-left bg-[#0f141e] animate-in fade-in duration-300 font-sans">
+    <div className="w-full h-full overflow-y-auto p-6 space-y-4 custom-scrollbar text-left bg-[#0a0a0a] animate-in fade-in duration-300 font-sans">
       
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
@@ -127,13 +127,13 @@ export const NetworkAnalysis: React.FC<NetworkAnalysisProps> = ({ cdrFile, recor
         <div className="flex gap-2">
           <button 
             onClick={() => handleExport('excel')}
-            className="bg-[#1a1f2e] border border-[#2a3441] hover:bg-[#20273a] hover:border-blue-500/50 text-gray-300 text-xs font-semibold px-4 py-2 rounded-lg transition-colors font-mono"
+            className="bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#2e2e2e] hover:border-blue-500/50 text-gray-300 text-xs font-semibold px-4 py-2 rounded-lg transition-colors font-mono"
           >
             Excel
           </button>
           <button 
             onClick={() => handleExport('csv')}
-            className="bg-[#1a1f2e] border border-[#2a3441] hover:bg-[#20273a] hover:border-blue-500/50 text-gray-300 text-xs font-semibold px-4 py-2 rounded-lg transition-colors font-mono"
+            className="bg-[#1c1c1c] border border-[#2e2e2e] hover:bg-[#2e2e2e] hover:border-blue-500/50 text-gray-300 text-xs font-semibold px-4 py-2 rounded-lg transition-colors font-mono"
           >
             CSV
           </button>

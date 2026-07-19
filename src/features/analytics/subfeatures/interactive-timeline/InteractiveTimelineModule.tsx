@@ -40,9 +40,7 @@ export const InteractiveTimelineModule: React.FC<InteractiveTimelineModuleProps>
       if (filterState.imei && !r.imei?.includes(filterState.imei)) return false;
       if (filterState.location) {
         const searchLoc = filterState.location.toLowerCase();
-        const hasLoc = r.siteAddress?.toLowerCase().includes(searchLoc) || 
-                       r.firstCellSite?.toLowerCase().includes(searchLoc) || 
-                       r.lastCellSite?.toLowerCase().includes(searchLoc);
+        const hasLoc = r.address?.toLowerCase().includes(searchLoc);
         if (!hasLoc) return false;
       }
 

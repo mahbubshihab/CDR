@@ -25,7 +25,7 @@ export const ServiceNumbers: React.FC<ServiceNumbersProps> = ({ cdrFile, records
   } = useServiceAnalysis(records);
 
   return (
-    <div className="w-full h-full bg-[#0b101a] overflow-y-auto p-4 md:p-6 space-y-4">
+    <div className="w-full h-full bg-[#0a0a0a] overflow-y-auto p-4 md:p-6 space-y-4">
       {/* Summary Cards */}
       <ServiceSummaryCards stats={summaryStats} />
 
