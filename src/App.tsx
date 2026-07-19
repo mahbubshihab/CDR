@@ -5,6 +5,7 @@ import {
   HelpCircle, Settings, Link2, Sun, Bell, MoreVertical,
   BookOpen
 } from 'lucide-react';
+import { Routes, Route, Navigate, useNavigate, useParams, NavLink } from 'react-router-dom';
 import { GlobalDashboard } from './features/dashboard/components/GlobalDashboard';
 import { AddCaseModal } from './features/add-case/components/AddCaseModal';
 import { CaseList } from './features/view-cases/components/CaseList';
@@ -23,177 +24,77 @@ import { Settings as SettingsTab } from './features/settings/Settings';
 import { About } from './features/about/About';
 import { db, type Case } from './utils/db';
 
-function App() {
-  const [activeMenu, setActiveMenu] = useState('dashboard');
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [activeCaseForEdit, setActiveCaseForEdit] = useState<Case | null>(null);
-  const [activeWorkspaceCase, setActiveWorkspaceCase] = useState<Case | null>(null);
-  const [activeTargetFileId, setActiveTargetFileId] = useState<number | null>(null);
-  const [timeString, setTimeString] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
+const menuItems = [
+  { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { id: 'add-case', name: 'Add New Case', icon: PlusCircle },
+  { id: 'view-cases', name: 'View Cases', icon: FolderOpen, path: '/view-cases' },
+  { id: 'imei', name: 'IMEI Info', icon: Smartphone, path: '/imei' },
+  { id: 'lookup', name: 'Number Lookup', icon: Search, path: '/lookup' },
+  { id: 'ownership', name: 'Ownership Finder', icon: UserCheck, path: '/ownership' },
+  { id: 'reports', name: 'Reports', icon: FileTextIcon, path: '/reports' },
+  { id: 'watchlist', name: 'Watchlist', icon: ShieldAlert, path: '/watchlist' },
+  { id: 'common', name: 'Common Report', icon: BookOpen, path: '/common' },
+  { id: 'intelligence', name: 'Add Intelligence Datab...', icon: Database, path: '/intelligence' },
+  { id: 'links', name: 'Useful Links', icon: Link2, path: '/links' },
+  { id: 'settings', name: 'Settings', icon: Settings, path: '/settings' },
+  { id: 'about', name: 'About & Support', icon: HelpCircle, path: '/about' }
+];
 
-  const menuItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
-    { id: 'add-case', name: 'Add New Case', icon: PlusCircle, action: () => setIsAddOpen(true) },
-    { id: 'view-cases', name: 'View Cases', icon: FolderOpen },
-    { id: 'imei', name: 'IMEI Info', icon: Smartphone },
-    { id: 'lookup', name: 'Number Lookup', icon: Search },
-    { id: 'ownership', name: 'Ownership Finder', icon: UserCheck },
-    { id: 'reports', name: 'Reports', icon: FileTextIcon },
-    { id: 'watchlist', name: 'Watchlist', icon: ShieldAlert },
-    { id: 'common', name: 'Common Report', icon: BookOpen },
-    { id: 'intelligence', name: 'Add Intelligence Datab...', icon: Database },
-    { id: 'links', name: 'Useful Links', icon: Link2 },
-    { id: 'settings', name: 'Settings', icon: Settings },
-    { id: 'about', name: 'About & Support', icon: HelpCircle }
-  ];
+function WorkspaceRoute({ isEditOpen, setIsEditOpen, activeCaseForEdit, setActiveCaseForEdit, refreshKey, handleCaseSaved }: any) {
+  const { caseId } = useParams();
+  const navigate = useNavigate();
+  const [activeCase, setActiveCase] = useState<Case | null>(null);
 
-  // Auto-seed mock data on mount
   useEffect(() => {
-    const initDb = async () => {
-      // Initialize logic if needed
-      handleCaseSaved();
-    };
-    initDb();
-  }, []);
+    if (caseId) {
+      db.cases.get(parseInt(caseId)).then(record => {
+        if (record) setActiveCase(record);
+      });
+    }
+  }, [caseId, refreshKey]);
 
-  // Hash Routing Synchronizer Hook
-  useEffect(() => {
-    const parseHashRoute = async () => {
-      const hash = window.location.hash || '#/dashboard';
-      
-      if (hash.startsWith('#/case/')) {
-        const parts = hash.split('/');
-        const caseId = parseInt(parts[2], 10);
-        if (!isNaN(caseId)) {
-          const caseRecord = await db.cases.get(caseId);
-          if (caseRecord) {
-            setActiveWorkspaceCase(caseRecord);
-            setActiveTargetFileId(null);
-            return;
+  if (!activeCase) return null;
+
+  return (
+    <div className="h-screen w-screen bg-transparent text-gray-200 animate-in fade-in duration-200">
+      <Workspace 
+        activeCase={activeCase}
+        onBack={() => {
+          navigate('/view-cases');
+        }}
+        onTriggerRefresh={handleCaseSaved}
+        onOpenEditModal={(c) => {
+          setActiveCaseForEdit(c);
+          setIsEditOpen(true);
+        }}
+        onOpenTargetFileId={(fileId) => {
+          navigate(`/file/${fileId}`);
+        }}
+      />
+      <EditCaseModal 
+        isOpen={isEditOpen} 
+        onClose={() => setIsEditOpen(false)} 
+        caseData={activeCaseForEdit} 
+        onSave={() => {
+          handleCaseSaved();
+          if (activeCase.id) {
+            db.cases.get(activeCase.id).then(updated => {
+              if (updated) setActiveCase(updated);
+            });
           }
-        }
-      } else if (hash.startsWith('#/file/')) {
-        const fileId = parseInt(hash.replace('#/file/', ''), 10);
-        if (!isNaN(fileId)) {
-          const fileRecord = await db.cdrFiles.get(fileId);
-          if (fileRecord) {
-            const caseRecord = await db.cases.get(fileRecord.caseId);
-            if (caseRecord) {
-              setActiveWorkspaceCase(caseRecord);
-              setActiveTargetFileId(fileId);
-              return;
-            }
-          }
-        }
-      }
-      
-      const menuId = hash.replace('#/', '');
-      const menuExists = menuItems.some(m => m.id === menuId);
-      if (menuExists) {
-        setActiveMenu(menuId);
-      } else {
-        setActiveMenu('dashboard');
-      }
-      setActiveWorkspaceCase(null);
-      setActiveTargetFileId(null);
-    };
+        }}
+      />
+    </div>
+  );
+}
 
-    window.addEventListener('hashchange', parseHashRoute);
-    // Trigger on mount
-    parseHashRoute();
-
-    return () => window.removeEventListener('hashchange', parseHashRoute);
-  }, [refreshKey]);
-
-  // Time formatter
-  useEffect(() => {
-    const updateTime = () => {
-      const date = new Date();
-      setTimeString(
-        date.toLocaleString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-        })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleCaseSaved = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  // If target file analytics is active, let it take over the entire view
-  if (activeTargetFileId) {
-    return (
-      <div className="h-screen w-screen bg-transparent text-gray-200 animate-in fade-in duration-200">
-        <AnalyticsWorkspace 
-          targetFileId={activeTargetFileId}
-          onBack={() => {
-            if (activeWorkspaceCase && activeWorkspaceCase.id) {
-              window.location.hash = `#/case/${activeWorkspaceCase.id}`;
-            } else {
-              window.location.hash = '#/view-cases';
-            }
-          }}
-        />
-      </div>
-    );
-  }
-
-  // If case workspace is active, let it take over the entire view
-  if (activeWorkspaceCase) {
-    return (
-      <div className="h-screen w-screen bg-transparent text-gray-200 animate-in fade-in duration-200">
-        <Workspace 
-          activeCase={activeWorkspaceCase}
-          onBack={() => {
-            window.location.hash = '#/view-cases';
-          }}
-          onTriggerRefresh={handleCaseSaved}
-          onOpenEditModal={(c) => {
-            setActiveCaseForEdit(c);
-            setIsEditOpen(true);
-          }}
-          onOpenTargetFileId={(fileId) => {
-            window.location.hash = `#/file/${fileId}`;
-          }}
-        />
-
-        {/* Edit Case Modal overlay inside workspace */}
-        <EditCaseModal 
-          isOpen={isEditOpen} 
-          onClose={() => setIsEditOpen(false)} 
-          caseData={activeCaseForEdit} 
-          onSave={() => {
-            handleCaseSaved();
-            // Refresh workspace active case reference dynamically from Dexie
-            if (activeWorkspaceCase.id) {
-              db.cases.get(activeWorkspaceCase.id).then(updated => {
-                if (updated) setActiveWorkspaceCase(updated);
-              });
-            }
-          }}
-        />
-      </div>
-    );
-  }
+function MainLayout({ timeString, setIsAddOpen, refreshKey, handleCaseSaved, setIsEditOpen, setActiveCaseForEdit }: any) {
+  const navigate = useNavigate();
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-transparent text-gray-200 text-sm animate-in fade-in duration-200">
-      {/* 1. Left Sidebar */}
       <aside className="w-64 border-r border-[#2e2e2e] bg-[#171717] flex flex-col justify-between shrink-0 h-full">
         <div>
-          {/* Header branding */}
           <div className="h-16 px-5 border-b border-[#2e2e2e] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 bg-[#3ecf8e]/10 border border-[#3ecf8e]/20 rounded-lg flex items-center justify-center">
@@ -208,47 +109,51 @@ function App() {
               <MoreVertical className="h-4 w-4" />
             </button>
           </div>
-
-          {/* Menu Items */}
           <nav className="p-3 space-y-0.5 overflow-y-auto max-h-[calc(100vh-120px)] custom-scrollbar">
             {menuItems.map(item => {
               const Icon = item.icon;
-              const isActive = activeMenu === item.id;
+              
+              if (item.id === 'add-case') {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setIsAddOpen(true)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer text-xs text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200"
+                  >
+                    <Icon className="h-4.5 w-4.5 shrink-0 text-gray-500" />
+                    <span>{item.name}</span>
+                  </button>
+                );
+              }
+
               return (
-                <button
+                <NavLink
                   key={item.id}
-                  onClick={() => {
-                    if (item.action) {
-                      item.action();
-                    } else {
-                      window.location.hash = '#/' + item.id;
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer text-xs ${
+                  to={item.path!}
+                  className={({ isActive }) => `w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer text-xs ${
                     isActive
                       ? 'bg-[#2e2e2e] text-white'
                       : 'text-gray-400 hover:bg-[#1e1e1e]/60 hover:text-gray-200'
                   }`}
                 >
-                  <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-[#3ecf8e]' : 'text-gray-500'}`} />
-                  <span>{item.name}</span>
-                </button>
+                  {({ isActive }) => (
+                    <>
+                      <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-[#3ecf8e]' : 'text-gray-500'}`} />
+                      <span>{item.name}</span>
+                    </>
+                  )}
+                </NavLink>
               );
             })}
           </nav>
         </div>
-
-        {/* Footer info */}
         <div className="p-3 border-t border-[#2e2e2e] text-[10px] text-gray-550 font-mono text-center">
           Created by Sajawal Khan
         </div>
       </aside>
 
-      {/* 2. Right Workspace area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header */}
         <header className="h-16 border-b border-[#2e2e2e] bg-[#171717] flex items-center justify-between px-6 shrink-0 z-10">
-          {/* Top Search bar */}
           <div className="w-96 flex items-center bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl px-3 py-1.5 focus-within:border-[#3ecf8e]/50 transition-colors">
             <Search className="h-4 w-4 text-gray-500 mr-2.5 shrink-0" />
             <input 
@@ -257,25 +162,17 @@ function App() {
               className="w-full bg-transparent text-xs text-gray-200 placeholder-gray-600 focus:outline-none"
             />
           </div>
-
-          {/* Right Header metrics */}
           <div className="flex items-center gap-5">
             <div className="flex items-center gap-2 text-gray-450 font-medium font-mono text-[11px]">
               <Sun className="h-4.5 w-4.5 text-gray-500" />
               <span>{timeString}</span>
             </div>
-
             <div className="h-7 w-px bg-[#2e2e2e]" />
-
-            {/* Notification bell */}
             <button className="relative p-1.5 text-gray-500 hover:text-gray-300">
               <Bell className="h-4.5 w-4.5" />
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
             </button>
-
             <div className="h-7 w-px bg-[#2e2e2e]" />
-
-            {/* User Profile */}
             <div className="flex items-center gap-2.5">
               <div className="h-8.5 w-8.5 rounded-full bg-[#1e1e1e] border border-[#2e2e2e] flex items-center justify-center font-bold text-xs text-[#3ecf8e] font-mono">
                 IN
@@ -288,99 +185,123 @@ function App() {
           </div>
         </header>
 
-        {/* Content Body area */}
         <main className="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar">
-          {activeMenu === 'dashboard' ? (
-            <GlobalDashboard 
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<GlobalDashboard 
               key={refreshKey}
               onAddNewCase={() => setIsAddOpen(true)}
-              onViewCases={() => {
-                window.location.hash = '#/view-cases';
-              }}
-              onOpenCase={(c) => {
-                window.location.hash = '#/case/' + c.id;
-              }}
-            />
-          ) : activeMenu === 'view-cases' ? (
-            <CaseList 
-              onOpenCase={(c) => {
-                window.location.hash = '#/case/' + c.id;
-              }}
-              onEditCase={(c) => {
-                setActiveCaseForEdit(c);
-                setIsEditOpen(true);
-              }}
-              onUploadCDR={(c) => {
-                window.location.hash = '#/case/' + c.id;
-              }}
+              onViewCases={() => navigate('/view-cases')}
+              onOpenCase={(c) => navigate(`/case/${c.id}`)}
+            />} />
+            <Route path="/view-cases" element={<CaseList 
+              onOpenCase={(c) => navigate(`/case/${c.id}`)}
+              onEditCase={(c) => { setActiveCaseForEdit(c); setIsEditOpen(true); }}
+              onUploadCDR={(c) => navigate(`/case/${c.id}`)}
               refreshKey={refreshKey}
               onTriggerRefresh={handleCaseSaved}
-            />
-          ) : activeMenu === 'imei' ? (
-            <ImeiInfo />
-          ) : activeMenu === 'lookup' ? (
-            <NumberLookup />
-          ) : activeMenu === 'ownership' ? (
-            <OwnershipFinder />
-          ) : activeMenu === 'reports' ? (
-            <Reports />
-          ) : activeMenu === 'watchlist' ? (
-            <Watchlist />
-          ) : activeMenu === 'common' ? (
-            <CommonReport />
-          ) : activeMenu === 'intelligence' ? (
-            <IntelligenceDatabase />
-          ) : activeMenu === 'links' ? (
-            <UsefulLinks />
-          ) : activeMenu === 'settings' ? (
-            <SettingsTab />
-          ) : activeMenu === 'about' ? (
-            <About />
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-              <Database className="h-8 w-8 text-gray-500 mb-3" />
-              <h3 className="font-bold text-gray-300">Module Workspace</h3>
-              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                The "{menuItems.find(m => m.id === activeMenu)?.name}" workspace is loaded. We will activate its sub-components in the next screenshot step.
-              </p>
-            </div>
-          )}
+            />} />
+            <Route path="/imei" element={<ImeiInfo />} />
+            <Route path="/lookup" element={<NumberLookup />} />
+            <Route path="/ownership" element={<OwnershipFinder />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/watchlist" element={<Watchlist />} />
+            <Route path="/common" element={<CommonReport />} />
+            <Route path="/intelligence" element={<IntelligenceDatabase />} />
+            <Route path="/links" element={<UsefulLinks />} />
+            <Route path="/settings" element={<SettingsTab />} />
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={
+              <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
+                <Database className="h-8 w-8 text-gray-500 mb-3" />
+                <h3 className="font-bold text-gray-300">Module Not Found</h3>
+              </div>
+            } />
+          </Routes>
         </main>
       </div>
+    </div>
+  );
+}
 
-      {/* 3. Add Case Modal overlay */}
-      <AddCaseModal 
-        isOpen={isAddOpen} 
-        onClose={() => setIsAddOpen(false)} 
-        onSave={handleCaseSaved}
-      />
+function AnalyticsWorkspaceRoute() {
+  const { fileId } = useParams();
+  const navigate = useNavigate();
+  
+  if (!fileId) return null;
 
-      {/* 4. Edit Case Modal overlay */}
-      <EditCaseModal 
-        isOpen={isEditOpen} 
-        onClose={() => setIsEditOpen(false)} 
-        caseData={activeCaseForEdit} 
-        onSave={handleCaseSaved}
+  return (
+    <div className="h-screen w-screen bg-transparent text-gray-200 animate-in fade-in duration-200">
+      <AnalyticsWorkspace 
+        targetFileId={parseInt(fileId)}
+        onBack={() => navigate(-1)}
       />
     </div>
   );
 }
 
-// Simple placeholder icon
+function App() {
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [activeCaseForEdit, setActiveCaseForEdit] = useState<Case | null>(null);
+  const [timeString, setTimeString] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const date = new Date();
+      setTimeString(
+        date.toLocaleString('en-US', {
+          weekday: 'short', month: 'short', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true,
+        })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCaseSaved = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  return (
+    <>
+      <Routes>
+        <Route path="/file/:fileId/*" element={<AnalyticsWorkspaceRoute />} />
+        <Route path="/case/:caseId/*" element={<WorkspaceRoute 
+            isEditOpen={isEditOpen} 
+            setIsEditOpen={setIsEditOpen} 
+            activeCaseForEdit={activeCaseForEdit} 
+            setActiveCaseForEdit={setActiveCaseForEdit} 
+            refreshKey={refreshKey} 
+            handleCaseSaved={handleCaseSaved} 
+        />} />
+        <Route path="/*" element={
+          <MainLayout 
+            timeString={timeString} 
+            setIsAddOpen={setIsAddOpen}
+            refreshKey={refreshKey}
+            handleCaseSaved={handleCaseSaved}
+            setIsEditOpen={setIsEditOpen}
+            setActiveCaseForEdit={setActiveCaseForEdit}
+          />
+        } />
+      </Routes>
+
+      <AddCaseModal 
+        isOpen={isAddOpen} 
+        onClose={() => setIsAddOpen(false)} 
+        onSave={handleCaseSaved}
+      />
+    </>
+  );
+}
+
 function FileTextIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
       <path d="M14 2v4a2 2 0 0 0 2 2h4" />
       <path d="M10 9H8" />

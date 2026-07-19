@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, Upload, Search, Smartphone, MapPin, 
   LayoutDashboard, Menu
@@ -21,7 +22,7 @@ interface WorkspaceProps {
 export const Workspace: React.FC<WorkspaceProps> = ({ 
   activeCase, onBack, onTriggerRefresh, onOpenEditModal, onOpenTargetFileId 
 }) => {
-  const [activeCaseTab, setActiveCaseTab] = useState<'overview' | 'add-cdr' | 'search' | 'mfc' | 'imei'>('overview');
+  const location = useLocation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
@@ -62,26 +63,37 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           <nav className="p-2 space-y-0.5 flex-1 overflow-y-auto custom-scrollbar">
             {caseTabs.map(tab => {
               const Icon = tab.icon;
-              const isActive = activeCaseTab === tab.id;
+              
+              if (tab.action) {
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={tab.action}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer text-gray-450 hover:bg-[#1c1c1c]/50 hover:text-gray-200"
+                  >
+                    <Icon className="h-4.5 w-4.5 shrink-0 text-gray-500" />
+                    <span className="text-xs">{tab.name}</span>
+                  </button>
+                );
+              }
+
               return (
-                <button
+                <NavLink
                   key={tab.id}
-                  onClick={() => {
-                    if (tab.action) {
-                      tab.action();
-                    } else {
-                      setActiveCaseTab(tab.id as any);
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer ${
+                  to={tab.id}
+                  className={({ isActive }) => `w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer ${
                     isActive
                       ? 'bg-[#2e2e2e] text-white'
                       : 'text-gray-450 hover:bg-[#1c1c1c]/50 hover:text-gray-200'
                   }`}
                 >
-                  <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-[#3ecf8e]' : 'text-gray-500'}`} />
-                  <span className="text-xs">{tab.name}</span>
-                </button>
+                  {({ isActive }) => (
+                    <>
+                      <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-[#3ecf8e]' : 'text-gray-500'}`} />
+                      <span className="text-xs">{tab.name}</span>
+                    </>
+                  )}
+                </NavLink>
               );
             })}
           </nav>
@@ -107,20 +119,20 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         </div>
 
         <main className="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar">
-          {activeCaseTab === 'overview' ? (
-            <CaseOverview 
-              activeCase={activeCase}
-              onTriggerRefresh={onTriggerRefresh}
-              onOpenEditModal={() => onOpenEditModal(activeCase)}
-              onOpenTargetFileId={onOpenTargetFileId}
-            />
-          ) : activeCaseTab === 'search' ? (
-            <SearchCDRLogs activeCase={activeCase} />
-          ) : activeCaseTab === 'mfc' ? (
-            <MfcCellTowerMapping activeCase={activeCase} />
-          ) : activeCaseTab === 'imei' ? (
-            <ImeiImsiSummary activeCase={activeCase} />
-          ) : null}
+          <Routes>
+            <Route path="/" element={<Navigate to="overview" replace />} />
+            <Route path="overview" element={
+              <CaseOverview 
+                activeCase={activeCase}
+                onTriggerRefresh={onTriggerRefresh}
+                onOpenEditModal={() => onOpenEditModal(activeCase)}
+                onOpenTargetFileId={onOpenTargetFileId}
+              />
+            } />
+            <Route path="search" element={<SearchCDRLogs activeCase={activeCase} />} />
+            <Route path="mfc" element={<MfcCellTowerMapping activeCase={activeCase} />} />
+            <Route path="imei" element={<ImeiImsiSummary activeCase={activeCase} />} />
+          </Routes>
         </main>
       </div>
 

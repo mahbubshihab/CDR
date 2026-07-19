@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Download, Menu, Database, LayoutDashboard, 
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
-  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route, ArrowRightLeft,
+  Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route as RouteIcon, ArrowRightLeft,
   CalendarDays, Clock
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
@@ -36,7 +37,8 @@ interface AnalyticsWorkspaceProps {
 }
 
 export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFileId, onBack }) => {
-  const [activeAnalysisTab, setActiveAnalysisTab] = useState('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [targetFile, setTargetFile] = useState<CDRFile | null>(null);
   const [targetRecords, setTargetRecords] = useState<CDRRecord[]>([]);
@@ -84,7 +86,7 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'day_calls', name: 'Day Calls', icon: Sun },
     { id: 'night_locations', name: 'Night Locations', icon: Moon },
     { id: 'night_calls', name: 'Night Calls', icon: Moon },
-    { id: 'movement_chart', name: 'Movement Chart', icon: Route },
+    { id: 'movement_chart', name: 'Movement Chart', icon: RouteIcon },
     { id: 'cell_id_changes', name: 'Cell ID Changes', icon: ArrowRightLeft },
     { id: 'location_changes', name: 'Location Changes', icon: MapPin },
     { id: 'missing_dates', name: 'Missing Dates', icon: CalendarDays },
@@ -162,21 +164,24 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
           <nav className="p-2 space-y-0.5 flex-1 overflow-y-auto custom-scrollbar">
             {analysisModules.map(module => {
               const Icon = module.icon;
-              const isActive = activeAnalysisTab === module.id;
               return (
-                <button
+                <NavLink
                   key={module.id}
-                  onClick={() => setActiveAnalysisTab(module.id)}
-                  className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer ${
+                  to={module.id}
+                  className={({ isActive }) => `w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-lg font-medium text-left transition-all duration-150 cursor-pointer ${
                     isActive
                       ? 'bg-[#2e2e2e] text-white'
                       : 'text-gray-450 hover:bg-[#1c1c1c]/50 hover:text-gray-200'
                   }`}
                   title={isSidebarCollapsed ? module.name : undefined}
                 >
-                  <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-[#3ecf8e]' : 'text-gray-500'}`} />
-                  {!isSidebarCollapsed && <span className="text-xs whitespace-nowrap">{module.name}</span>}
-                </button>
+                  {({ isActive }) => (
+                    <>
+                      <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-[#3ecf8e]' : 'text-gray-500'}`} />
+                      {!isSidebarCollapsed && <span className="text-xs whitespace-nowrap">{module.name}</span>}
+                    </>
+                  )}
+                </NavLink>
               );
             })}
           </nav>
@@ -211,9 +216,13 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
                 <span>·</span>
                 <span>{targetFile.recordsCount.toLocaleString()} rows</span>
                 <span>·</span>
-                <span className="text-[#3ecf8e] font-semibold">
-                  • {activeAnalysisTab === 'dashboard' ? 'Executive Dashboard' : 'Advanced CDR Analysis'}
-                </span>
+                <Routes>
+                  <Route path=":tabId" element={
+                    <span className="text-[#3ecf8e] font-semibold">
+                      • {location.pathname.split('/').pop() === 'dashboard' ? 'Executive Dashboard' : analysisModules.find(m => m.id === location.pathname.split('/').pop())?.name || 'Advanced Analysis'}
+                    </span>
+                  } />
+                </Routes>
               </div>
             </div>
           </div>
@@ -279,73 +288,35 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
           </div>
         </div>
 
-        {/* Tab Panel switcher */}
         <main className="flex-1 overflow-hidden relative flex flex-col">
-          {activeAnalysisTab === 'dashboard' ? (
-            <ExecutiveDashboard 
-              cdrFile={targetFile}
-              records={targetRecords}
-              onNavigateToTab={(tabId) => setActiveAnalysisTab(tabId)}
-            />
-          ) : activeAnalysisTab === 'advanced' ? (
-            <AdvancedCDRAnalysis 
-              cdrFile={targetFile}
-              records={targetRecords}
-              onNavigateToTab={(tabId) => setActiveAnalysisTab(tabId)}
-            />
-          ) : activeAnalysisTab === 'graph' ? (
-            <GraphAnalytics 
-              cdrFile={targetFile}
-              records={targetRecords}
-            />
-          ) : activeAnalysisTab === 'raw' ? (
-            <RawCDRLogs 
-              cdrFile={targetFile}
-              records={targetRecords}
-            />
-          ) : activeAnalysisTab === 'mfc' ? (
-            <MfcAnalysis cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'network' ? (
-            <NetworkAnalysis cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'ownership' ? (
-            <OwnershipIntelligence cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'international' ? (
-            <InternationalIntelligence cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'service_numbers' ? (
-            <ServiceNumbers cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'imei' ? (
-            <ImeiSummary cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'imsi' ? (
-            <ImsiSummary cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'imei_patterns' ? (
-            <ImeiPatterns cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'imsi_patterns' ? (
-            <ImsiPatterns cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'first_last_call' ? (
-            <FirstLastCall cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'locations' ? (
-            <LocationSummary cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'loc_intel' ? (
-            <LocationIntelligence cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'day_calls' ? (
-            <TimeCallsIntelligence records={targetRecords} mode="day" />
-          ) : activeAnalysisTab === 'night_calls' ? (
-            <TimeCallsIntelligence records={targetRecords} mode="night" />
-          ) : activeAnalysisTab === 'day_locations' ? (
-            <TimeLocationsIntelligence records={targetRecords} mode="day" />
-          ) : activeAnalysisTab === 'night_locations' ? (
-            <TimeLocationsIntelligence records={targetRecords} mode="night" />
-          ) : activeAnalysisTab === 'movement_chart' ? (
-            <MovementChart cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'cell_id_changes' ? (
-            <CellIdChangesModule cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'location_changes' ? (
-            <LocationChangesModule cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'missing_dates' ? (
-            <MissingDatesModule cdrFile={targetFile} records={targetRecords} />
-          ) : activeAnalysisTab === 'interactive_timeline' ? (
-            <InteractiveTimelineModule cdrFile={targetFile} records={targetRecords} />
-          ) : null}
+          <Routes>
+            <Route path="/" element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<ExecutiveDashboard cdrFile={targetFile} records={targetRecords} onNavigateToTab={(tabId) => navigate(`../${tabId}`, { relative: "path" })} />} />
+            <Route path="advanced" element={<AdvancedCDRAnalysis cdrFile={targetFile} records={targetRecords} onNavigateToTab={(tabId) => navigate(`../${tabId}`, { relative: "path" })} />} />
+            <Route path="graph" element={<GraphAnalytics cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="raw" element={<RawCDRLogs cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="mfc" element={<MfcAnalysis cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="network" element={<NetworkAnalysis cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="ownership" element={<OwnershipIntelligence cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="international" element={<InternationalIntelligence cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="service_numbers" element={<ServiceNumbers cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="imei" element={<ImeiSummary cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="imsi" element={<ImsiSummary cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="imei_patterns" element={<ImeiPatterns cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="imsi_patterns" element={<ImsiPatterns cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="first_last_call" element={<FirstLastCall cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="locations" element={<LocationSummary cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="loc_intel" element={<LocationIntelligence cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="day_calls" element={<TimeCallsIntelligence records={targetRecords} mode="day" />} />
+            <Route path="night_calls" element={<TimeCallsIntelligence records={targetRecords} mode="night" />} />
+            <Route path="day_locations" element={<TimeLocationsIntelligence records={targetRecords} mode="day" />} />
+            <Route path="night_locations" element={<TimeLocationsIntelligence records={targetRecords} mode="night" />} />
+            <Route path="movement_chart" element={<MovementChart cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="cell_id_changes" element={<CellIdChangesModule cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="location_changes" element={<LocationChangesModule cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="missing_dates" element={<MissingDatesModule cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="interactive_timeline" element={<InteractiveTimelineModule cdrFile={targetFile} records={targetRecords} />} />
+          </Routes>
         </main>
       </div>
     </div>
