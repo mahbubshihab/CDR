@@ -51,7 +51,6 @@ interface TowerStats {
 
 // Helper to create custom div icon showing name and hits directly on map
 const createCustomIcon = (address: string, hits: number, isSelected: boolean) => {
-  const cleanName = address.split(',')[0] || 'Unknown';
   const pinColor = isSelected ? '#10b981' : '#ef4444';
   
   return L.divIcon({
@@ -59,41 +58,14 @@ const createCustomIcon = (address: string, hits: number, isSelected: boolean) =>
     html: `
       <div style="
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 6px;
-        background: rgba(255, 255, 255, 0.95);
-        border: 1.5px solid ${isSelected ? '#10b981' : '#cbd5e1'};
-        box-shadow: 0 4px 10px rgba(0,0,0,0.12), ${isSelected ? '0 0 12px rgba(16,185,129,0.5)' : 'none'};
-        padding: 4px 10px;
-        border-radius: 9999px;
-        color: #1e293b;
-        font-family: monospace;
-        font-size: 10px;
-        font-weight: 700;
-        white-space: nowrap;
-        transform: translate(-50%, -50%);
-        transition: all 0.25s ease;
-        z-index: ${isSelected ? 999 : 1};
+        justify-content: center;
+        transform: translate(-50%, -100%);
       ">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${pinColor}" style="width: 14px; height: 14px; flex-shrink: 0; display: inline-block;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${pinColor}" style="width: 36px; height: 36px; filter: drop-shadow(0px 3px 5px rgba(0, 0, 0, 0.45));">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
         </svg>
-        <span style="
-          max-width: 120px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          color: #334155;
-        ">${cleanName}</span>
-        <span style="
-          background: ${isSelected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.08)'};
-          color: ${isSelected ? '#047857' : '#b91c1c'};
-          padding: 1px 5px;
-          border-radius: 4px;
-          font-size: 9px;
-          font-weight: 850;
-          border: 1px solid ${isSelected ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.15)'};
-        ">${hits}</span>
       </div>
     `,
     iconSize: L.point(0, 0),
@@ -102,22 +74,15 @@ const createCustomIcon = (address: string, hits: number, isSelected: boolean) =>
 
 // Helper to update map view dynamically and handle initial bounds fitting
 const MapUpdater: React.FC<{
-  center: [number, number];
-  zoom: number;
   selectedCoords: [number, number] | null;
-  fitAllBounds: L.LatLngBounds | null;
-}> = ({ center, zoom, selectedCoords, fitAllBounds }) => {
+}> = ({ selectedCoords }) => {
   const map = useMap();
-  const initialFitDone = useRef(false);
 
   useEffect(() => {
     if (selectedCoords) {
       map.setView(selectedCoords, 16, { animate: true, duration: 1.2 });
-    } else if (fitAllBounds && !initialFitDone.current) {
-      map.fitBounds(fitAllBounds, { padding: [50, 50], maxZoom: 13 });
-      initialFitDone.current = true;
     }
-  }, [selectedCoords, fitAllBounds, map]);
+  }, [selectedCoords, map]);
 
   return null;
 };
@@ -452,13 +417,22 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
 
         {/* Map Visualization */}
         <div className="flex-1 min-h-[400px] bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl overflow-hidden relative">
-          {!hasCoordinates && towers.length > 0 && !geocodedCoords && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] z-[400] text-gray-400 font-mono text-sm border-2 border-dashed border-[#2e2e2e] m-4 rounded-xl">
-              <MapIcon className="h-8 w-8 text-gray-600 mb-3" />
-              <div className="mb-2 text-gray-300 font-semibold">📍 Coordinates not available in CDR files</div>
-              <div className="text-xs text-gray-500 max-w-sm text-center">
-                Map plotting requires exact latitude and longitude fields. 
-                Click on any tower to search it on the live map.
+          {!selectedTower && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212]/90 backdrop-blur-sm z-[999] text-gray-400 font-mono text-sm border-2 border-dashed border-[#2e2e2e] m-4 rounded-xl">
+              <MapIcon className="h-8 w-8 text-[#3ecf8e] mb-3 animate-bounce" />
+              <div className="mb-2 text-gray-300 font-bold tracking-wider">📍 Please select a location to view on map</div>
+              <div className="text-xs text-gray-500 max-w-xs text-center">
+                Select any cell tower address from the list on the left to plot and zoom to it.
+              </div>
+            </div>
+          )}
+
+          {selectedTower && !selectedCoords && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212]/95 z-[999] text-gray-400 font-mono text-sm border-2 border-dashed border-red-500/20 m-4 rounded-xl">
+              <MapIcon className="h-8 w-8 text-red-500 mb-3" />
+              <div className="mb-2 text-red-400 font-bold">⚠️ Could not resolve address coordinates</div>
+              <div className="text-xs text-gray-550 max-w-sm text-center">
+                Coordinates are not available in the database and geocoding search failed.
               </div>
             </div>
           )}
@@ -475,56 +449,17 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
             />
 
             <MapUpdater 
-              center={mapCenter} 
-              zoom={mapZoom} 
               selectedCoords={selectedCoords} 
-              fitAllBounds={fitAllBounds} 
             />
 
-            {/* Standard Database Markers */}
-            {towers.filter(t => t.lat && t.lng).slice(0, 100).map((tower, idx) => {
-              const isSelected = selectedTower?.address === tower.address;
-              if (isSelected) {
-                return (
-                  <SelectedMarker
-                    key={`selected-${idx}`}
-                    position={[tower.lat!, tower.lng!]}
-                    address={tower.address}
-                    count={tower.count}
-                    targets={tower.targets}
-                    targetMap={targetMap}
-                  />
-                );
-              }
-              return (
-                <Marker 
-                  key={idx} 
-                  position={[tower.lat!, tower.lng!]}
-                  icon={createCustomIcon(tower.address, tower.count, false)}
-                  eventHandlers={{
-                    click: () => handleTowerClick(tower)
-                  }}
-                >
-                  <Popup className="bg-[#171717] border border-[#2e2e2e] text-gray-200 font-mono text-xs">
-                    <div className="p-2 space-y-1">
-                      <strong className="text-[#3ecf8e] block text-sm border-b border-[#2e2e2e] pb-1 mb-1">{tower.address}</strong>
-                      <div>Hits: {tower.count}</div>
-                      <div>Targets: {Array.from(tower.targets).map(id => targetMap.get(id)).join(', ')}</div>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-
-            {/* Geocoded Marker */}
-            {geocodedCoords && selectedTower && (
+            {selectedTower && selectedCoords && (
               <SelectedMarker
-                position={geocodedCoords}
+                position={selectedCoords}
                 address={selectedTower.address}
                 count={selectedTower.count}
                 targets={selectedTower.targets}
                 targetMap={targetMap}
-                isGeocoded={true}
+                isGeocoded={!(selectedTower.lat != null && selectedTower.lng != null)}
               />
             )}
           </MapContainer>
