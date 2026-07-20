@@ -457,17 +457,17 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
           <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-4">
             Frequent Locations
           </h4>
-          <div className="h-32 flex items-end justify-between gap-2.5 pt-3">
+          <div className="h-32 flex items-end justify-between gap-2.5 pt-3 w-full overflow-hidden">
             {frequentLocations.length > 0 ? (
               frequentLocations.map((loc, idx) => {
                 const heightPct = Math.max(10, Math.round((loc.count / maxLocCount) * 90));
                 return (
-                  <div key={idx} title={`${loc.name}: ${loc.count}`} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                  <div key={idx} title={`${loc.name}: ${loc.count}`} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end min-w-0 group">
                     <div 
                       className="w-full bg-brand-emerald/20 border-t border-brand-emerald rounded-t-sm transition-all duration-300 group-hover:bg-brand-emerald/35"
                       style={{ height: `${heightPct}%` }}
                     />
-                    <span className="text-sm text-gray-400 font-bold font-mono truncate max-w-full">
+                    <span className="text-[10px] text-gray-400 font-bold font-mono block w-full text-center truncate px-0.5" title={loc.name}>
                       {loc.name.split(',')[0]}
                     </span>
                   </div>

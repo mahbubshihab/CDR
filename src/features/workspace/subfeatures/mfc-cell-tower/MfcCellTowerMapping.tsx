@@ -26,12 +26,80 @@ interface TowerStats {
   lng?: number;
 }
 
-// Helper to update map view dynamically
-const MapUpdater: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
+// Helper to create custom div icon showing name and hits directly on map
+const createCustomIcon = (address: string, hits: number, isSelected: boolean) => {
+  const cleanName = address.split(',')[0] || 'Unknown';
+  return L.divIcon({
+    className: 'custom-cell-tower-icon',
+    html: `
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1.5px solid ${isSelected ? '#3ecf8e' : '#94a3b8'};
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12), ${isSelected ? '0 0 12px rgba(62,207,142,0.5)' : 'none'};
+        padding: 4px 10px;
+        border-radius: 9999px;
+        color: #1e293b;
+        font-family: monospace;
+        font-size: 10px;
+        font-weight: 700;
+        white-space: nowrap;
+        transform: translate(-50%, -50%);
+        transition: all 0.25s ease;
+        z-index: ${isSelected ? 999 : 1};
+      ">
+        <span style="
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: ${isSelected ? '#10b981' : '#ef4444'};
+          box-shadow: 0 0 6px ${isSelected ? '#10b981' : '#ef4444'};
+          display: inline-block;
+          flex-shrink: 0;
+        "></span>
+        <span style="
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          color: #334155;
+        ">${cleanName}</span>
+        <span style="
+          background: ${isSelected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.08)'};
+          color: ${isSelected ? '#047857' : '#b91c1c'};
+          padding: 1px 5px;
+          border-radius: 4px;
+          font-size: 9px;
+          font-weight: 850;
+          border: 1px solid ${isSelected ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.15)'};
+        ">${hits}</span>
+      </div>
+    `,
+    iconSize: L.point(0, 0),
+  });
+};
+
+// Helper to update map view dynamically and handle initial bounds fitting
+const MapUpdater: React.FC<{
+  center: [number, number];
+  zoom: number;
+  selectedCoords: [number, number] | null;
+  fitAllBounds: L.LatLngBounds | null;
+}> = ({ center, zoom, selectedCoords, fitAllBounds }) => {
   const map = useMap();
+  const initialFitDone = useRef(false);
+
   useEffect(() => {
-    map.setView(center, zoom, { animate: true, duration: 1 });
-  }, [center, zoom, map]);
+    if (selectedCoords) {
+      map.setView(selectedCoords, 16, { animate: true, duration: 1.2 });
+    } else if (fitAllBounds && !initialFitDone.current) {
+      map.fitBounds(fitAllBounds, { padding: [50, 50], maxZoom: 13 });
+      initialFitDone.current = true;
+    }
+  }, [selectedCoords, fitAllBounds, map]);
+
   return null;
 };
 
@@ -65,7 +133,7 @@ const SelectedMarker: React.FC<SelectedMarkerProps> = ({
   }, [position]);
 
   return (
-    <Marker ref={markerRef} position={position}>
+    <Marker ref={markerRef} position={position} icon={createCustomIcon(address, count, true)}>
       <Popup className="bg-[#171717] border border-[#2e2e2e] text-gray-200 font-mono text-xs">
         <div className="p-2 space-y-1">
           <strong className="text-[#3ecf8e] block text-sm border-b border-[#2e2e2e] pb-1 mb-1">{address}</strong>
@@ -126,6 +194,27 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
 
     return { towers: sortedTowers, hasCoordinates: hasCoords, targetMap: tMap };
   }, [records, files]);
+
+  // Bounds fitting calculations
+  const fitAllBounds = useMemo(() => {
+    const coords = towers.filter(t => t.lat && t.lng).map(t => [t.lat!, t.lng!] as [number, number]);
+    if (coords.length > 0) {
+      return L.latLngBounds(coords);
+    }
+    return null;
+  }, [towers]);
+
+  const selectedCoords = useMemo<[number, number] | null>(() => {
+    if (selectedTower) {
+      if (selectedTower.lat != null && selectedTower.lng != null) {
+        return [selectedTower.lat, selectedTower.lng];
+      }
+      if (geocodedCoords) {
+        return geocodedCoords;
+      }
+    }
+    return null;
+  }, [selectedTower, geocodedCoords]);
 
   // Geocoding logic with progressive fallbacks
   const searchGeocode = async (address: string): Promise<{ lat: number; lng: number } | null> => {
@@ -290,15 +379,20 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
           <MapContainer 
             center={mapCenter} 
             zoom={mapZoom} 
-            style={{ height: '100%', width: '100%', background: '#1e1e1e' }}
+            style={{ height: '100%', width: '100%', background: '#f8fafc' }}
             zoomControl={false}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             />
 
-            <MapUpdater center={mapCenter} zoom={mapZoom} />
+            <MapUpdater 
+              center={mapCenter} 
+              zoom={mapZoom} 
+              selectedCoords={selectedCoords} 
+              fitAllBounds={fitAllBounds} 
+            />
 
             {/* Standard Database Markers */}
             {towers.filter(t => t.lat && t.lng).slice(0, 100).map((tower, idx) => {
@@ -316,7 +410,14 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
                 );
               }
               return (
-                <Marker key={idx} position={[tower.lat!, tower.lng!]}>
+                <Marker 
+                  key={idx} 
+                  position={[tower.lat!, tower.lng!]}
+                  icon={createCustomIcon(tower.address, tower.count, false)}
+                  eventHandlers={{
+                    click: () => handleTowerClick(tower)
+                  }}
+                >
                   <Popup className="bg-[#171717] border border-[#2e2e2e] text-gray-200 font-mono text-xs">
                     <div className="p-2 space-y-1">
                       <strong className="text-[#3ecf8e] block text-sm border-b border-[#2e2e2e] pb-1 mb-1">{tower.address}</strong>
