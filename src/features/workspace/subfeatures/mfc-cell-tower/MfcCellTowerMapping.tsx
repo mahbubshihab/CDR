@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Map as MapIcon, Target } from 'lucide-react';
+import { MapPin, Map as MapIcon, Target, Search } from 'lucide-react';
 import { type Case } from '../../../../utils/db';
 import { useCaseData } from '../../hooks/useCaseData';
 
@@ -26,8 +26,68 @@ interface TowerStats {
   lng?: number;
 }
 
+// Helper to update map view dynamically
+const MapUpdater: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, zoom, { animate: true, duration: 1 });
+  }, [center, zoom, map]);
+  return null;
+};
+
+// Custom Marker component that opens its popup automatically when mounted or selected
+interface SelectedMarkerProps {
+  position: [number, number];
+  address: string;
+  count: number;
+  targets: Set<number>;
+  targetMap: Map<number, string>;
+  isGeocoded?: boolean;
+}
+
+const SelectedMarker: React.FC<SelectedMarkerProps> = ({
+  position,
+  address,
+  count,
+  targets,
+  targetMap,
+  isGeocoded
+}) => {
+  const markerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (markerRef.current) {
+      const timer = setTimeout(() => {
+        markerRef.current.openPopup();
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [position]);
+
+  return (
+    <Marker ref={markerRef} position={position}>
+      <Popup className="bg-[#171717] border border-[#2e2e2e] text-gray-200 font-mono text-xs">
+        <div className="p-2 space-y-1">
+          <strong className="text-[#3ecf8e] block text-sm border-b border-[#2e2e2e] pb-1 mb-1">{address}</strong>
+          {isGeocoded && <div className="text-[10px] text-amber-400 font-semibold mb-1">📍 Geocoded from Address</div>}
+          <div>Hits: {count}</div>
+          <div>Targets: {Array.from(targets).map(id => targetMap.get(id)).join(', ')}</div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+};
+
 export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ activeCase }) => {
   const { records, files, loading } = useCaseData(activeCase.id);
+
+  // Map state
+  const [selectedTower, setSelectedTower] = useState<TowerStats | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([23.685, 90.356]);
+  const [mapZoom, setMapZoom] = useState<number>(7);
+  const [geocodedCoords, setGeocodedCoords] = useState<[number, number] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchFailed, setSearchFailed] = useState(false);
 
   const { towers, hasCoordinates, targetMap } = useMemo(() => {
     const tMap = new Map<number, string>();
@@ -67,6 +127,67 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
     return { towers: sortedTowers, hasCoordinates: hasCoords, targetMap: tMap };
   }, [records, files]);
 
+  // Geocoding logic with progressive fallbacks
+  const searchGeocode = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      // 1. Full Query
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      }
+      
+      // 2. Clean fallback: part 0 + last part
+      const parts = address.split(',').map(p => p.trim()).filter(Boolean);
+      if (parts.length > 1) {
+        const fallbackQuery = `${parts[0]}, ${parts[parts.length - 1]}`;
+        const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fallbackQuery)}&limit=1`;
+        const resFb = await fetch(fallbackUrl);
+        const dataFb = await resFb.json();
+        if (dataFb && dataFb.length > 0) {
+          return { lat: parseFloat(dataFb[0].lat), lng: parseFloat(dataFb[0].lon) };
+        }
+      }
+      
+      // 3. Last part (City/Region fallback)
+      if (parts.length > 0) {
+        const lastPart = parts[parts.length - 1];
+        const lastUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(lastPart)}&limit=1`;
+        const resLast = await fetch(lastUrl);
+        const dataLast = await resLast.json();
+        if (dataLast && dataLast.length > 0) {
+          return { lat: parseFloat(dataLast[0].lat), lng: parseFloat(dataLast[0].lon) };
+        }
+      }
+    } catch (err) {
+      console.error("Geocoding lookup error:", err);
+    }
+    return null;
+  };
+
+  const handleTowerClick = async (tower: TowerStats) => {
+    setSelectedTower(tower);
+    setGeocodedCoords(null);
+    setSearchFailed(false);
+    
+    if (tower.lat != null && tower.lng != null) {
+      setMapCenter([tower.lat, tower.lng]);
+      setMapZoom(15);
+    } else {
+      setIsSearching(true);
+      const coords = await searchGeocode(tower.address);
+      setIsSearching(false);
+      if (coords) {
+        setGeocodedCoords([coords.lat, coords.lng]);
+        setMapCenter([coords.lat, coords.lng]);
+        setMapZoom(15);
+      } else {
+        setSearchFailed(true);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-[#121212]">
@@ -95,31 +216,56 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
             <span className="text-xs font-mono text-gray-500">{towers.length} Unique Locations</span>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
-            {towers.slice(0, 50).map((tower, idx) => (
-              <div key={idx} className="p-3 bg-[#171717] border border-[#2e2e2e] rounded-lg">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-start gap-2 max-w-[70%]">
-                    <div className="mt-0.5 bg-[#3ecf8e]/10 p-1 rounded">
-                      <MapPin className="h-3.5 w-3.5 text-[#3ecf8e]" />
+            {towers.slice(0, 50).map((tower, idx) => {
+              const isSelected = selectedTower?.address === tower.address;
+              return (
+                <div 
+                  key={idx} 
+                  onClick={() => handleTowerClick(tower)}
+                  className={`p-3 bg-[#171717] border rounded-lg cursor-pointer hover:border-[#3ecf8e]/40 hover:bg-[#1e1e1e] transition-all relative ${
+                    isSelected 
+                      ? 'border-[#3ecf8e] shadow-[0_0_12px_rgba(62,207,142,0.15)] pl-4' 
+                      : 'border-[#2e2e2e]'
+                  }`}
+                >
+                  {isSelected && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3ecf8e] rounded-l-lg" />
+                  )}
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-start gap-2 max-w-[70%]">
+                      <div className="mt-0.5 bg-[#3ecf8e]/10 p-1 rounded">
+                        <MapPin className="h-3.5 w-3.5 text-[#3ecf8e]" />
+                      </div>
+                      <span className="text-xs text-gray-200 break-words font-medium">{tower.address}</span>
                     </div>
-                    <span className="text-xs text-gray-200 break-words font-medium">{tower.address}</span>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-[#3ecf8e] font-mono">{tower.count}</div>
+                      <div className="text-[9px] text-gray-500 uppercase">Hits</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-[#3ecf8e] font-mono">{tower.count}</div>
-                    <div className="text-[9px] text-gray-500 uppercase">Hits</div>
+                  
+                  <div className="mt-2 pt-2 border-t border-[#2e2e2e]/50 flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] text-gray-550 mr-1">Targets found here:</span>
+                    {Array.from(tower.targets).map(tId => (
+                      <span key={tId} className="px-1.5 py-0.5 bg-blue-900/20 text-blue-400 border border-blue-800/30 rounded text-[9px] font-mono">
+                        {targetMap.get(tId) || 'Unknown'}
+                      </span>
+                    ))}
                   </div>
-                </div>
-                
-                <div className="mt-2 pt-2 border-t border-[#2e2e2e]/50 flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] text-gray-500 mr-1">Targets found here:</span>
-                  {Array.from(tower.targets).map(tId => (
-                    <span key={tId} className="px-1.5 py-0.5 bg-blue-900/20 text-blue-400 border border-blue-800/30 rounded text-[9px] font-mono">
-                      {targetMap.get(tId) || 'Unknown'}
+
+                  {isSearching && isSelected && (
+                    <span className="text-[10px] text-amber-400 animate-pulse mt-1.5 flex items-center gap-1">
+                      <Search className="h-3 w-3 animate-spin" /> Searching location on map...
                     </span>
-                  ))}
+                  )}
+                  {searchFailed && isSelected && (
+                    <span className="text-[10px] text-red-400 mt-1.5 block">
+                      ⚠️ Could not resolve address coordinates
+                    </span>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {towers.length === 0 && (
               <div className="p-8 text-center text-gray-500 text-xs">
                 No cell tower address data found in case logs.
@@ -130,20 +276,20 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
 
         {/* Map Visualization */}
         <div className="flex-1 min-h-[400px] bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl overflow-hidden relative">
-          {!hasCoordinates && towers.length > 0 && (
+          {!hasCoordinates && towers.length > 0 && !geocodedCoords && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] z-[400] text-gray-400 font-mono text-sm border-2 border-dashed border-[#2e2e2e] m-4 rounded-xl">
               <MapIcon className="h-8 w-8 text-gray-600 mb-3" />
               <div className="mb-2 text-gray-300 font-semibold">📍 Coordinates not available in CDR files</div>
               <div className="text-xs text-gray-500 max-w-sm text-center">
                 Map plotting requires exact latitude and longitude fields. 
-                Tower frequencies are available in the side panel.
+                Click on any tower to search it on the live map.
               </div>
             </div>
           )}
           
           <MapContainer 
-            center={[23.685, 90.356]} 
-            zoom={7} 
+            center={mapCenter} 
+            zoom={mapZoom} 
             style={{ height: '100%', width: '100%', background: '#1e1e1e' }}
             zoomControl={false}
           >
@@ -151,17 +297,48 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
-            {hasCoordinates && towers.filter(t => t.lat && t.lng).slice(0, 100).map((tower, idx) => (
-              <Marker key={idx} position={[tower.lat!, tower.lng!]}>
-                <Popup className="bg-[#171717] border border-[#2e2e2e] text-gray-200 font-mono text-xs">
-                  <div className="p-2 space-y-1">
-                    <strong className="text-[#3ecf8e] block text-sm border-b border-[#2e2e2e] pb-1 mb-1">{tower.address}</strong>
-                    <div>Hits: {tower.count}</div>
-                    <div>Targets: {Array.from(tower.targets).map(id => targetMap.get(id)).join(', ')}</div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+
+            <MapUpdater center={mapCenter} zoom={mapZoom} />
+
+            {/* Standard Database Markers */}
+            {towers.filter(t => t.lat && t.lng).slice(0, 100).map((tower, idx) => {
+              const isSelected = selectedTower?.address === tower.address;
+              if (isSelected) {
+                return (
+                  <SelectedMarker
+                    key={`selected-${idx}`}
+                    position={[tower.lat!, tower.lng!]}
+                    address={tower.address}
+                    count={tower.count}
+                    targets={tower.targets}
+                    targetMap={targetMap}
+                  />
+                );
+              }
+              return (
+                <Marker key={idx} position={[tower.lat!, tower.lng!]}>
+                  <Popup className="bg-[#171717] border border-[#2e2e2e] text-gray-200 font-mono text-xs">
+                    <div className="p-2 space-y-1">
+                      <strong className="text-[#3ecf8e] block text-sm border-b border-[#2e2e2e] pb-1 mb-1">{tower.address}</strong>
+                      <div>Hits: {tower.count}</div>
+                      <div>Targets: {Array.from(tower.targets).map(id => targetMap.get(id)).join(', ')}</div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+
+            {/* Geocoded Marker */}
+            {geocodedCoords && selectedTower && (
+              <SelectedMarker
+                position={geocodedCoords}
+                address={selectedTower.address}
+                count={selectedTower.count}
+                targets={selectedTower.targets}
+                targetMap={targetMap}
+                isGeocoded={true}
+              />
+            )}
           </MapContainer>
         </div>
       </div>
