@@ -580,69 +580,78 @@ Verified by: Mahbub Shihab`;
           <div className="flex flex-wrap items-center gap-2 text-xs font-sans">
             <style>{`
               @media print {
-                body, html {
+                /* Reset layout boxes so print engines can break pages naturally */
+                html, body, #root, .flex, .flex-col, .h-full, .overflow-hidden, main, .flex-1, .grid {
+                  height: auto !important;
+                  min-height: 0 !important;
+                  overflow: visible !important;
+                  display: block !important;
+                  position: static !important;
                   background: #ffffff !important;
-                  color: #0d1117 !important;
+                  color: #000000 !important;
                 }
                 aside {
                   display: none !important;
                 }
-                /* Hide top bar */
-                .p-4.border-b.border-\\[\\#2e2e2e\\] {
+                /* Hide top header bar during print */
+                .p-4.border-b.border-\\[\\#2e2e2e\\], 
+                div[class*="border-b border-[#2e2e2e]"] {
                   display: none !important;
                 }
-                main {
-                  width: 100% !important;
-                  max-width: 100% !important;
-                  background: #ffffff !important;
-                  color: #0d1117 !important;
-                  overflow: visible !important;
-                  height: auto !important;
-                  padding: 0 !important;
-                  margin: 0 !important;
-                }
-                /* Make dark cards white during print */
-                .bg-\\[\\#1e1e1e\\], .bg-\\[\\#171717\\], .bg-\\[\\#121212\\], .bg-[#1a1a1a], .bg-[#151515] {
+                /* Force every single item to be black text on white background and preserve graphics */
+                * {
                   background-color: #ffffff !important;
+                  background: #ffffff !important;
                   color: #000000 !important;
-                  border-color: #e2e8f0 !important;
+                  border-color: #cbd5e1 !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                  box-shadow: none !important;
+                  text-shadow: none !important;
                 }
-                .text-white, .text-gray-200, .text-gray-300, .text-gray-400, .text-gray-500 {
-                  color: #0f172a !important;
+                svg text {
+                  fill: #000000 !important;
+                }
+                /* Avoid card split cuts */
+                div[class*="bg-[#1e1e1e]"], 
+                div[class*="bg-[#171717]"], 
+                div[class*="bg-[#121212]"],
+                .bg-\\[\\#1e1e1e\\],
+                .bg-\\[\\#171717\\],
+                .bg-\\[\\#121212\\] {
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
+                  margin-bottom: 16px !important;
+                  padding: 16px !important;
+                  border: 1px solid #cbd5e1 !important;
+                  border-radius: 8px !important;
                 }
               }
 
-              /* Styling for html2canvas high fidelity print capture */
+              /* Styling for html2canvas high fidelity PDF capture */
               .print-capture {
                 background-color: #ffffff !important;
-                color: #0d1117 !important;
+                color: #000000 !important;
                 padding: 24px !important;
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
               }
-              .print-capture .bg-\\[\\#1e1e1e\\], 
-              .print-capture .bg-\\[\\#171717\\], 
-              .print-capture .bg-\\[\\#121212\\],
-              .print-capture .bg-[#1a1a1a],
-              .print-capture .bg-[#151515] {
+              .print-capture * {
                 background-color: #ffffff !important;
-                color: #0d1117 !important;
-                border-color: #cbd5e1 !important;
-              }
-              .print-capture .text-white,
-              .print-capture .text-gray-200,
-              .print-capture .text-gray-350,
-              .print-capture .text-gray-400,
-              .print-capture .text-gray-500,
-              .print-capture h3,
-              .print-capture h4,
-              .print-capture span,
-              .print-capture div,
-              .print-capture p {
-                color: #0f172a !important;
-              }
-              .print-capture border-\\[\\#2e2e2e\\],
-              .print-capture border-[#2e2e2e],
-              .print-capture border-slate-700 {
+                background: #ffffff !important;
+                color: #000000 !important;
                 border-color: #e2e8f0 !important;
+                box-shadow: none !important;
+              }
+              .print-capture svg text {
+                fill: #000000 !important;
+              }
+              .print-capture div[class*="bg-[#1e1e1e]"], 
+              .print-capture div[class*="bg-[#171717]"], 
+              .print-capture div[class*="bg-[#121212]"] {
+                border: 1px solid #e2e8f0 !important;
+                margin-bottom: 16px !important;
               }
             `}</style>
             <button 
