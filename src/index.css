@@ -115,14 +115,32 @@ body {
 
   /* Force exact graphics rendering */
   * {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-color: #cbd5e1 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     box-shadow: none !important;
     text-shadow: none !important;
+  }
+
+  /* Turn containers white */
+  main,
+  section,
+  div[class*="bg-"],
+  div[class*="border-"],
+  .bg-\[\#1e1e1e\],
+  .bg-\[\#171717\],
+  .bg-\[\#121212\] {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Make text black on transparent background */
+  h1, h2, h3, h4, h5, h6, p, span, a, td, th, li, label, strong, b, i {
+    color: #000000 !important;
+    background-color: transparent !important;
   }
 
   /* Ensure SVG elements like charts are legible */
@@ -141,20 +159,6 @@ body {
     max-height: none !important;
     overflow: visible !important;
   }
-
-  /* Clean print block representations */
-  div[class*="bg-[#1e1e1e]"], 
-  div[class*="bg-[#171717]"], 
-  div[class*="bg-[#121212]"] {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    margin-bottom: 20px !important;
-    padding: 20px !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
 }
 
 /* High-fidelity PDF snapshot capture context (strictly active only during print generation) */
@@ -167,23 +171,28 @@ body {
   display: block !important;
 }
 
-.print-capture * {
+.print-capture main,
+.print-capture section,
+.print-capture div[class*="bg-"] {
   background-color: #ffffff !important;
   background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
   color: #000000 !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: none !important;
+}
+
+.print-capture h1,
+.print-capture h2,
+.print-capture h3,
+.print-capture h4,
+.print-capture p,
+.print-capture span,
+.print-capture td,
+.print-capture th,
+.print-capture label {
+  color: #000000 !important;
+  background-color: transparent !important;
 }
 
 .print-capture svg text {
   fill: #000000 !important;
-}
-
-.print-capture div[class*="bg-[#1e1e1e]"], 
-.print-capture div[class*="bg-[#171717]"], 
-.print-capture div[class*="bg-[#121212]"] {
-  border: 1px solid #cbd5e1 !important;
-  margin-bottom: 20px !important;
-  background-color: #ffffff !important;
-  color: #000000 !important;
 }
