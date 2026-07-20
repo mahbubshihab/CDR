@@ -87,7 +87,7 @@ export function IntelligenceDatabase() {
             setCurrentItem({ type: 'Number', tag: 'suspicious' });
             setIsEditing(true);
           }}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-[#3ecf8e] hover:bg-[#2ebd7e] text-gray-950 font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           Add Target
@@ -193,7 +193,7 @@ export function IntelligenceDatabase() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 rounded-lg bg-[#3ecf8e] text-gray-950 font-bold hover:bg-[#2ebd7e] flex items-center gap-2 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   Save Record

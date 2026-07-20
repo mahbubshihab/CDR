@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FileSpreadsheet, Printer, Upload, BarChart2, ExternalLink, 
-  Edit2, Trash2, Search, CheckCircle, FileText
+  Edit2, Trash2, Search, CheckCircle, FileText, X
 } from 'lucide-react';
 import { db, type Case, type CDRFile } from '../../../../utils/db';
 import { UploadCDRModal } from '../../components/UploadCDRModal';
@@ -31,6 +31,14 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
 
   // Table selections
   const [selectedFileIds, setSelectedFileIds] = useState<number[]>([]);
+  const [showDeleteMultipleConfirm, setShowDeleteMultipleConfirm] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportData, setReportData] = useState<{
+    topContacts: { number: string; count: number }[];
+    topLocations: { address: string; count: number }[];
+    caseDetails: any;
+    cdrSummary: any[];
+  } | null>(null);
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,6 +97,221 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
       console.error(err);
     } finally {
       setPendingDeleteFileId(null);
+    }
+  };
+
+  const confirmDeleteMultiple = async () => {
+    if (selectedFileIds.length === 0) return;
+    try {
+      await Promise.all(selectedFileIds.map(id => db.cdrFiles.delete(id)));
+      await Promise.all(selectedFileIds.map(id => db.cdrRecords.where('fileId').equals(id).delete()));
+      setSelectedFileIds([]);
+      fetchWorkspaceData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setShowDeleteMultipleConfirm(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!activeCase.id) return;
+    try {
+      const records = await db.cdrRecords.where('caseId').equals(activeCase.id).toArray();
+      if (records.length === 0) {
+        alert("No CDR records available in this case to generate report.");
+        return;
+      }
+
+      const contactMap: Record<string, number> = {};
+      const locMap: Record<string, number> = {};
+      
+      records.forEach(r => {
+        if (r.otherParty) contactMap[r.otherParty] = (contactMap[r.otherParty] || 0) + 1;
+        if (r.address) locMap[r.address] = (locMap[r.address] || 0) + 1;
+      });
+
+      const topC = Object.entries(contactMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([number, count]) => ({ number, count }));
+
+      const topL = Object.entries(locMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([address, count]) => ({ address, count }));
+
+      setReportData({
+        topContacts: topC,
+        topLocations: topL,
+        caseDetails: activeCase,
+        cdrSummary: cdrFiles
+      });
+      setIsReportOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate report.");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (!activeCase.id) return;
+    try {
+      const records = await db.cdrRecords.where('caseId').equals(activeCase.id).toArray();
+      if (records.length === 0) {
+        alert("No CDR records available in this case to export.");
+        return;
+      }
+      
+      const XLSX = await import('xlsx');
+      const wb = XLSX.utils.book_new();
+
+      const overviewData = [
+        ['Parameter', 'Value'],
+        ['Case ID', activeCase.caseIdString],
+        ['Case Title', activeCase.title],
+        ['Case Type', activeCase.caseType],
+        ['Police Station', activeCase.policeStation || 'N/A'],
+        ['Investigator', activeCase.investigatorName || 'N/A'],
+        ['Total CDR Files', cdrFiles.length],
+        ['Total Records Count', records.length],
+        ['Export Date', new Date().toLocaleString()]
+      ];
+      const overviewWs = XLSX.utils.aoa_to_sheet(overviewData);
+      XLSX.utils.book_append_sheet(wb, overviewWs, 'Overview');
+
+      const contactMap: Record<string, { number: string; count: number; duration: number }> = {};
+      records.forEach(r => {
+        if (!r.otherParty) return;
+        if (!contactMap[r.otherParty]) {
+          contactMap[r.otherParty] = { number: r.otherParty, count: 0, duration: 0 };
+        }
+        contactMap[r.otherParty].count++;
+        contactMap[r.otherParty].duration += r.duration || 0;
+      });
+      const topContacts = Object.values(contactMap).sort((a, b) => b.count - a.count).slice(0, 50);
+      const contactsHeaders = ['Contact Number', 'Call/SMS count', 'Total Duration (min)'];
+      const contactsRows = topContacts.map(c => [c.number, c.count, Math.round(c.duration / 60)]);
+      const contactsWs = XLSX.utils.aoa_to_sheet([contactsHeaders, ...contactsRows]);
+      XLSX.utils.book_append_sheet(wb, contactsWs, 'Top Contacts');
+
+      const rawHeaders = ['Timestamp', 'Usage Type', 'Calling Number', 'Other Party', 'IMEI', 'IMSI', 'Call Duration (sec)', 'Cell Address', 'LAC', 'Cell ID'];
+      const rawRows = records.slice(0, 10000).map(r => [
+        new Date(r.timestamp).toISOString().replace('T', ' ').substring(0, 19),
+        r.usageType,
+        r.aparty || '',
+        r.otherParty || '',
+        r.imei || '',
+        r.imsi || '',
+        r.duration || 0,
+        r.address || '',
+        r.lac || '',
+        r.cellId || ''
+      ]);
+      const rawWs = XLSX.utils.aoa_to_sheet([rawHeaders, ...rawRows]);
+      XLSX.utils.book_append_sheet(wb, rawWs, 'Raw Records');
+
+      XLSX.writeFile(wb, `Case_CDR_Report_${activeCase.caseIdString}.xlsx`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export Excel report.");
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!activeCase.id) return;
+    try {
+      const records = await db.cdrRecords.where('caseId').equals(activeCase.id).toArray();
+      if (records.length === 0) {
+        alert("No CDR records available in this case to export.");
+        return;
+      }
+
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+
+      doc.setFillColor(10, 17, 40);
+      doc.rect(0, 0, 210, 297, 'F');
+
+      doc.setTextColor(56, 189, 248);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.text("CASE INVESTIGATION FORENSIC REPORT", 20, 65);
+
+      doc.setDrawColor(56, 189, 248);
+      doc.setLineWidth(1.5);
+      doc.line(20, 75, 190, 75);
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(148, 163, 184);
+      doc.text("CDR ANALYSIS SYSTEM | LAWMOR FORENSICS", 20, 83);
+
+      let yPos = 110;
+      doc.setFontSize(12);
+      doc.setTextColor(203, 213, 225);
+      
+      const caseDetails = [
+        ['Case ID:', activeCase.caseIdString],
+        ['Case Title:', activeCase.title],
+        ['Case Type:', activeCase.caseType],
+        ['Police Station:', activeCase.policeStation || 'N/A'],
+        ['Investigator:', activeCase.investigatorName || 'N/A'],
+        ['Total CDR Files:', String(cdrFiles.length)],
+        ['Total Records:', String(records.length)],
+        ['Generated Date:', new Date().toLocaleString()]
+      ];
+
+      caseDetails.forEach(([lbl, val]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(lbl, 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(val, 80, yPos);
+        yPos += 12;
+      });
+
+      const contactMap: Record<string, number> = {};
+      records.forEach(r => {
+        if (!r.otherParty) return;
+        contactMap[r.otherParty] = (contactMap[r.otherParty] || 0) + 1;
+      });
+      const topContacts = Object.entries(contactMap).sort((a, b) => b[1] - a[1]).slice(0, 15);
+
+      doc.addPage();
+      doc.setFillColor(10, 17, 40);
+      doc.rect(0, 0, 210, 297, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("TOP INTERACTING CONTACTS", 20, 30);
+      doc.setDrawColor(56, 189, 248);
+      doc.line(20, 35, 190, 35);
+
+      yPos = 50;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(148, 163, 184);
+      doc.text("Contact Number", 20, yPos);
+      doc.text("Total Communications (Calls + SMS)", 100, yPos);
+
+      doc.setDrawColor(51, 65, 85);
+      doc.setLineWidth(0.5);
+      doc.line(20, yPos + 3, 190, yPos + 3);
+      yPos += 12;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 255, 255);
+      topContacts.forEach(([number, count]) => {
+        doc.text(String(number), 20, yPos);
+        doc.text(String(count) + " times", 100, yPos);
+        yPos += 10;
+      });
+
+      doc.save(`Forensic_Case_Report_${activeCase.caseIdString}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export PDF report.");
     }
   };
 
@@ -153,7 +376,7 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
 
         <button 
           onClick={onOpenEditModal}
-          className="flex items-center gap-1.5 px-4 py-2 bg-[#1e1e1e] hover:bg-[#3ecf8e] text-gray-950 font-semibold/15 border border-[#2e2e2e] hover:border-brand-blue text-gray-250 hover:text-white rounded-xl transition-all cursor-pointer text-sm"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#3ecf8e]/10 hover:bg-[#3ecf8e] border border-[#3ecf8e]/30 hover:border-[#3ecf8e] text-[#3ecf8e] hover:text-gray-950 font-bold rounded-xl transition-all cursor-pointer text-sm"
         >
           <Edit2 className="h-3.5 w-3.5" />
           Edit case
@@ -173,7 +396,7 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
           { label: 'Status', value: activeCase.status }
         ].map((item, idx) => (
           <div key={idx} className="bg-[#171717]/40 border border-[#2e2e2e] rounded-xl p-4 flex flex-col justify-between">
-            <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider font-mono">
+            <span className="text-[11px] text-gray-550 font-bold uppercase tracking-wider font-mono">
               {item.label}
             </span>
             <span className="text-sm font-bold text-gray-200 mt-1.5">
@@ -191,7 +414,7 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
         <div className="flex flex-wrap items-center gap-2.5">
           <button 
             onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#046a38] text-white font-medium border border-[#3ecf8e] hover:bg-[#00522c] rounded-xl transition-colors cursor-pointer text-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#3ecf8e] hover:bg-[#2ebd7e] text-gray-950 font-bold rounded-xl transition-all cursor-pointer text-sm"
           >
             <Upload className="h-4 w-4" />
             Upload new CDR
@@ -199,37 +422,32 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
           
           <button 
             disabled={selectedFileIds.length === 0}
-            onClick={() => selectedFileIds[0] !== undefined && onOpenTargetFileId(selectedFileIds[0])}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#1e1e1e] border border-[#2e2e2e] disabled:opacity-40 text-gray-300 rounded-xl font-semibold transition-colors cursor-pointer text-sm"
+            onClick={() => setShowDeleteMultipleConfirm(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-red-950/20 hover:bg-red-900/30 border border-red-900/30 disabled:opacity-40 text-red-400 disabled:text-gray-500 disabled:border-[#2e2e2e] rounded-xl font-semibold transition-all cursor-pointer text-sm"
           >
-            <BarChart2 className="h-4 w-4 text-[#3ecf8e]" />
-            Analyze selected CDR
+            <Trash2 className="h-4 w-4" />
+            Delete Selected ({selectedFileIds.length})
           </button>
 
           <button 
-            disabled={selectedFileIds.length < 2}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#1e1e1e] border border-[#2e2e2e] disabled:opacity-40 text-gray-300 rounded-xl font-semibold transition-colors cursor-pointer text-sm"
-          >
-            <ExternalLink className="h-4 w-4 text-[#3ecf8e]" />
-            Multi-CDR analysis
-          </button>
-
-          <button 
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#1e1e1e] border border-[#2e2e2e] text-gray-300 rounded-xl font-semibold transition-colors cursor-pointer text-sm"
+            onClick={handleGenerateReport}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#3ecf8e]/10 border border-[#2e2e2e] hover:border-[#3ecf8e]/30 text-gray-300 hover:text-white rounded-xl font-semibold transition-all cursor-pointer text-sm"
           >
             <FileText className="h-4 w-4 text-[#3ecf8e]" />
             Generate report
           </button>
 
           <button 
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#1e1e1e] border border-[#2e2e2e] text-gray-300 rounded-xl font-semibold transition-colors cursor-pointer text-sm"
+            onClick={handleExportExcel}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#3ecf8e]/10 border border-[#2e2e2e] hover:border-[#3ecf8e]/30 text-gray-300 hover:text-white rounded-xl font-semibold transition-all cursor-pointer text-sm"
           >
             <FileSpreadsheet className="h-4 w-4 text-[#3ecf8e]" />
             Export Excel
           </button>
 
           <button 
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#1e1e1e] border border-[#2e2e2e] text-gray-300 rounded-xl font-semibold transition-colors cursor-pointer text-sm"
+            onClick={handleExportPdf}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#1e1e1e] hover:bg-[#3ecf8e]/10 border border-[#2e2e2e] hover:border-[#3ecf8e]/30 text-gray-300 hover:text-white rounded-xl font-semibold transition-all cursor-pointer text-sm"
           >
             <Printer className="h-4 w-4 text-[#3ecf8e]" />
             Export PDF
@@ -435,6 +653,161 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
         onConfirm={confirmDeleteFile}
         onCancel={() => setPendingDeleteFileId(null)}
       />
+
+      <CustomConfirm
+        isOpen={showDeleteMultipleConfirm}
+        title="Delete Multiple CDR Files"
+        message={`Are you sure you want to delete ${selectedFileIds.length} selected CDR file(s) and all their associated records? This action cannot be undone.`}
+        confirmText="Confirm Delete All"
+        onConfirm={confirmDeleteMultiple}
+        onCancel={() => setShowDeleteMultipleConfirm(false)}
+      />
+
+      {isReportOpen && reportData && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4 overflow-y-auto">
+          <style>{`
+            @media print {
+              body * {
+                visibility: hidden;
+              }
+              #printable-forensic-report, #printable-forensic-report * {
+                visibility: visible;
+              }
+              #printable-forensic-report {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                color: #000000 !important;
+                background: #ffffff !important;
+                padding: 20px;
+                font-family: monospace;
+              }
+              .no-print {
+                display: none !important;
+              }
+            }
+          `}</style>
+          <div className="bg-[#171717] border border-[#2e2e2e] rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-[#2e2e2e] flex items-center justify-between no-print bg-[#1a1a1a]">
+              <h3 className="text-sm font-bold text-gray-200 uppercase tracking-widest flex items-center gap-2">
+                <FileText className="h-4 w-4 text-[#3ecf8e]" />
+                Forensic Summary Report
+              </h3>
+              <button 
+                onClick={() => setIsReportOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 space-y-6" id="printable-forensic-report">
+              {/* Header */}
+              <div className="text-center pb-4 border-b border-[#2e2e2e]">
+                <h2 className="text-lg font-bold text-white uppercase tracking-widest">CDR FORENSIC ANALYSIS SUMMARY REPORT</h2>
+                <p className="text-xs text-gray-400 font-mono mt-1">GENERATED BY LAWMOR FORENSICS AI | STATUS: SECURE</p>
+              </div>
+
+              {/* Case Info */}
+              <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+                <div className="space-y-1">
+                  <div><span className="text-gray-500 font-bold">CASE ID:</span> <span className="text-gray-200">{reportData.caseDetails.caseIdString}</span></div>
+                  <div><span className="text-gray-500 font-bold">TITLE:</span> <span className="text-gray-200">{reportData.caseDetails.title}</span></div>
+                  <div><span className="text-gray-500 font-bold">CASE TYPE:</span> <span className="text-gray-200">{reportData.caseDetails.caseType}</span></div>
+                </div>
+                <div className="space-y-1">
+                  <div><span className="text-gray-500 font-bold">POLICE STATION:</span> <span className="text-gray-200">{reportData.caseDetails.policeStation || 'N/A'}</span></div>
+                  <div><span className="text-gray-500 font-bold">INVESTIGATOR:</span> <span className="text-gray-200">{reportData.caseDetails.investigatorName || 'N/A'}</span></div>
+                  <div><span className="text-gray-500 font-bold">DATE GENERATED:</span> <span className="text-gray-200">{new Date().toLocaleString()}</span></div>
+                </div>
+              </div>
+
+              {/* Targets Summary */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-l-2 border-[#3ecf8e] pl-2">Case Target CDR Files</h4>
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-[#2e2e2e] text-gray-500">
+                      <th className="py-2">Phone Number</th>
+                      <th className="py-2">Operator</th>
+                      <th className="py-2">Category</th>
+                      <th className="py-2 text-right">Records Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportData.cdrSummary.map((f, i) => (
+                      <tr key={i} className="border-b border-[#2e2e2e]/30 text-gray-300">
+                        <td className="py-2">{f.phoneNumber}</td>
+                        <td className="py-2">{f.operator || 'N/A'}</td>
+                        <td className="py-2">{f.category || 'N/A'}</td>
+                        <td className="py-2 text-right">{f.recordsCount || 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Top Contacts */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-l-2 border-[#3ecf8e] pl-2">Top Interacting Contacts</h4>
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-[#2e2e2e] text-gray-500">
+                      <th className="py-2">Contact Number</th>
+                      <th className="py-2 text-right">Communication Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportData.topContacts.map((c, i) => (
+                      <tr key={i} className="border-b border-[#2e2e2e]/30 text-gray-300">
+                        <td className="py-2">{c.number}</td>
+                        <td className="py-2 text-right">{c.count} times</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Top Locations */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-l-2 border-[#3ecf8e] pl-2">Top Cell Tower Locations Visited</h4>
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-[#2e2e2e] text-gray-500">
+                      <th className="py-2">Location Address</th>
+                      <th className="py-2 text-right">Hits Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportData.topLocations.map((l, i) => (
+                      <tr key={i} className="border-b border-[#2e2e2e]/30 text-gray-350">
+                        <td className="py-2 max-w-sm truncate" title={l.address}>{l.address}</td>
+                        <td className="py-2 text-right">{l.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-[#2e2e2e] flex justify-end gap-3 no-print bg-[#1a1a1a]">
+              <button 
+                onClick={() => setIsReportOpen(false)}
+                className="px-4 py-2 border border-[#2e2e2e] hover:bg-[#2e2e2e] text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer text-sm"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-[#3ecf8e] hover:bg-[#2ebd7e] text-gray-950 font-bold rounded-xl transition-all cursor-pointer text-sm"
+              >
+                Print Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
