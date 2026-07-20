@@ -466,23 +466,6 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
             </div>
             <div className="space-y-1">
               <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
-                Network operator
-              </label>
-              <select
-                value={operator}
-                onChange={e => setOperator(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#3ecf8e]"
-              >
-                {['Grameenphone', 'Robi', 'Banglalink', 'Teletalk', 'Airtel'].map(op => (
-                  <option key={op} value={op}>{op}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
                 Category (case link)
               </label>
               <select
@@ -495,18 +478,19 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                 ))}
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
-                Description
-              </label>
-              <input
-                type="text"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Short description or reference"
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
-              />
-            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
+              Description
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Short description or reference"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
+            />
           </div>
 
           {/* Drag & Drop File area */}
