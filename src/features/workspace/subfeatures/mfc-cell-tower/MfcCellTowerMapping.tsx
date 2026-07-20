@@ -268,6 +268,92 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
     };
   }, [towers, loading]);
 
+// Dictionary of major districts and cities in Bangladesh for foolproof offline geocoding backup
+const getBangladeshDistrictFallback = (address: string): { lat: number; lng: number } | null => {
+  const normalized = address.toLowerCase();
+  
+  const districts: { name: string; aliases?: string[]; lat: number; lng: number }[] = [
+    { name: 'dhaka', lat: 23.8103, lng: 90.4125 },
+    { name: 'mymensingh', lat: 24.7471, lng: 90.4203 },
+    { name: 'chittagong', aliases: ['chattogram'], lat: 22.3569, lng: 91.7832 },
+    { name: 'sylhet', lat: 24.8949, lng: 91.8687 },
+    { name: 'laxmipur', aliases: ['lakshmipur'], lat: 22.9426, lng: 90.8412 },
+    { name: 'rajshahi', lat: 24.3636, lng: 88.6241 },
+    { name: 'khulna', lat: 22.8456, lng: 89.5403 },
+    { name: 'barisal', aliases: ['barishal'], lat: 22.7010, lng: 90.3535 },
+    { name: 'rangpur', lat: 25.7500, lng: 89.2500 },
+    { name: 'comilla', aliases: ['cumilla'], lat: 23.4607, lng: 91.1809 },
+    { name: 'gazipur', lat: 23.9999, lng: 90.4200 },
+    { name: 'jessore', aliases: ['jashore'], lat: 23.1664, lng: 89.2081 },
+    { name: 'bogra', aliases: ['bogura'], lat: 24.8481, lng: 89.3730 },
+    { name: 'cox\'s bazar', aliases: ['coxs bazar', 'coxsbazar'], lat: 21.4272, lng: 92.0058 },
+    { name: 'narayanganj', lat: 23.6238, lng: 90.5000 },
+    { name: 'tangail', lat: 24.2513, lng: 89.9167 },
+    { name: 'dinajpur', lat: 25.6217, lng: 88.6354 },
+    { name: 'faridpur', lat: 23.6071, lng: 89.8429 },
+    { name: 'feni', lat: 23.0134, lng: 91.3980 },
+    { name: 'noakhali', lat: 22.8698, lng: 91.0990 },
+    { name: 'pabna', lat: 24.0068, lng: 89.2366 },
+    { name: 'sirajganj', lat: 24.4577, lng: 89.7085 },
+    { name: 'jamalpur', lat: 24.9197, lng: 89.9481 },
+    { name: 'netrokona', lat: 24.8700, lng: 90.7200 },
+    { name: 'sherpur', lat: 25.0188, lng: 90.0175 },
+    { name: 'kishoreganj', lat: 24.4385, lng: 90.7818 },
+    { name: 'munshiganj', lat: 23.5422, lng: 90.5305 },
+    { name: 'manikganj', lat: 23.8644, lng: 90.0047 },
+    { name: 'narail', lat: 23.1657, lng: 89.4984 },
+    { name: 'magura', lat: 23.4875, lng: 89.4192 },
+    { name: 'meherpur', lat: 23.8052, lng: 88.6724 },
+    { name: 'kushtia', lat: 23.9013, lng: 89.1204 },
+    { name: 'chuadanga', lat: 23.6406, lng: 88.8418 },
+    { name: 'jhenaidah', lat: 23.5450, lng: 89.1726 },
+    { name: 'bagerhat', lat: 22.6516, lng: 89.7859 },
+    { name: 'satkhira', lat: 22.7185, lng: 89.0705 },
+    { name: 'patuakhali', lat: 22.3597, lng: 90.3297 },
+    { name: 'bhola', lat: 22.6875, lng: 90.6441 },
+    { name: 'pirojpur', lat: 22.5790, lng: 89.9753 },
+    { name: 'barguna', lat: 22.1553, lng: 90.1226 },
+    { name: 'jhalokati', aliases: ['jhalokathi'], lat: 22.6406, lng: 90.1989 },
+    { name: 'brahmanbaria', lat: 23.9573, lng: 91.1119 },
+    { name: 'chandpur', lat: 23.2321, lng: 90.6631 },
+    { name: 'rangamani', lat: 22.6556, lng: 92.1754 },
+    { name: 'bandarban', lat: 22.1953, lng: 92.2184 },
+    { name: 'khagrachhari', lat: 23.1192, lng: 91.9847 },
+    { name: 'sunamganj', lat: 25.0658, lng: 91.3950 },
+    { name: 'habiganj', lat: 24.3749, lng: 91.4165 },
+    { name: 'moulvibazar', aliases: ['maulvibazar'], lat: 24.4829, lng: 91.7685 },
+    { name: 'kurigram', lat: 25.8054, lng: 89.6361 },
+    { name: 'gaibandha', lat: 25.3287, lng: 89.5426 },
+    { name: 'lalmonirhat', lat: 25.9125, lng: 89.4486 },
+    { name: 'nilphamari', lat: 25.9417, lng: 88.8444 },
+    { name: 'panchagarh', lat: 26.3411, lng: 88.5541 },
+    { name: 'thakurgaon', lat: 26.0336, lng: 88.4616 },
+    { name: 'joypurhat', lat: 25.0968, lng: 89.0227 },
+    { name: 'naogaon', lat: 24.7936, lng: 88.9318 },
+    { name: 'natore', lat: 24.4102, lng: 88.9802 },
+    { name: 'nawabganj', aliases: ['chapainawabganj'], lat: 24.5965, lng: 88.2753 },
+    { name: 'gopalganj', lat: 23.0078, lng: 89.8273 },
+    { name: 'madaripur', lat: 23.1641, lng: 90.1896 },
+    { name: 'shariatpur', lat: 23.2423, lng: 90.3412 },
+    { name: 'rajbari', lat: 23.7574, lng: 89.6393 }
+  ];
+
+  for (const d of districts) {
+    if (normalized.includes(d.name)) {
+      return { lat: d.lat, lng: d.lng };
+    }
+    if (d.aliases) {
+      for (const alias of d.aliases) {
+        if (normalized.includes(alias)) {
+          return { lat: d.lat, lng: d.lng };
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
 // Helper to clean names and common prefixes from Bangladesh addresses for better geocoding results
 const cleanBangladeshAddress = (address: string): string[] => {
   const parts = address.split(',').map(p => p.trim());
@@ -372,6 +458,11 @@ const cleanBangladeshAddress = (address: string): string[] => {
         if (dataFb && dataFb.length > 0) {
           return { lat: parseFloat(dataFb[0].lat), lng: parseFloat(dataFb[0].lon) };
         }
+      }
+      // 3. Last fallback: local dictionary check for Bangladesh districts
+      const fallbackLoc = getBangladeshDistrictFallback(address);
+      if (fallbackLoc) {
+        return fallbackLoc;
       }
     } catch (err) {
       console.error("Geocoding lookup error:", err);

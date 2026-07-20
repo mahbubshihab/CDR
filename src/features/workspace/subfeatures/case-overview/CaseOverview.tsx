@@ -133,12 +133,12 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
 
       const topC = Object.entries(contactMap)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
+        .slice(0, 30)
         .map(([number, count]) => ({ number, count }));
 
       const topL = Object.entries(locMap)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
+        .slice(0, 30)
         .map(([address, count]) => ({ address, count }));
 
       setReportData({
@@ -230,82 +230,191 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
 
-      doc.setFillColor(10, 17, 40);
+      // Timestamps info
+      const timestamps = records.map(r => r.timestamp).filter(t => !isNaN(t));
+      const minTime = timestamps.length > 0 ? Math.min(...timestamps) : null;
+      const maxTime = timestamps.length > 0 ? Math.max(...timestamps) : null;
+      const firstContact = minTime ? new Date(minTime).toLocaleString() : 'N/A';
+      const lastContact = maxTime ? new Date(maxTime).toLocaleString() : 'N/A';
+
+      // Top 30 communicating partners
+      const contactMap: Record<string, { number: string; count: number; calls: number; sms: number; duration: number }> = {};
+      records.forEach(r => {
+        const party = r.otherParty;
+        if (!party) return;
+        if (!contactMap[party]) {
+          contactMap[party] = { number: party, count: 0, calls: 0, sms: 0, duration: 0 };
+        }
+        const item = contactMap[party];
+        item.count++;
+        if (r.usageType?.includes('SMS')) {
+          item.sms++;
+        } else {
+          item.calls++;
+        }
+        item.duration += r.duration || 0;
+      });
+      const topContacts = Object.values(contactMap).sort((a, b) => b.count - a.count).slice(0, 30);
+
+      // Top 30 locations
+      const locMap: Record<string, number> = {};
+      records.forEach(r => {
+        if (r.address) {
+          locMap[r.address] = (locMap[r.address] || 0) + 1;
+        }
+      });
+      const topLocations = Object.entries(locMap).sort((a, b) => b[1] - a[1]).slice(0, 30);
+
+      // Operator count
+      const operatorMap: Record<string, number> = {};
+      cdrFiles.forEach(f => {
+        if (f.operator) {
+          operatorMap[f.operator] = (operatorMap[f.operator] || 0) + 1;
+        }
+      });
+      const operatorsStr = Object.entries(operatorMap).map(([op, cnt]) => `${op} (${cnt})`).join(', ') || 'N/A';
+
+      // PAGE 1: COVER PAGE (White background)
+      doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, 210, 297, 'F');
 
-      doc.setTextColor(56, 189, 248);
+      doc.setTextColor(15, 23, 42); // slate-900
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(22);
-      doc.text("CASE INVESTIGATION FORENSIC REPORT", 20, 65);
+      doc.text("CDR FORENSIC ANALYSIS SUMMARY REPORT", 20, 45);
 
-      doc.setDrawColor(56, 189, 248);
+      doc.setDrawColor(16, 185, 129); // emerald green divider
       doc.setLineWidth(1.5);
-      doc.line(20, 75, 190, 75);
+      doc.line(20, 52, 190, 52);
 
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(148, 163, 184);
-      doc.text("CDR ANALYSIS SYSTEM | LAWMOR FORENSICS", 20, 83);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105); // slate-600
+      doc.text("LAWMOR FORENSICS WORKSPACE | CONFIDENTIAL FORENSIC DOSSIER", 20, 59);
 
-      let yPos = 110;
-      doc.setFontSize(12);
-      doc.setTextColor(203, 213, 225);
-      
+      // Section: Case Metadata
+      doc.setFontSize(13);
+      doc.setTextColor(15, 23, 42);
+      doc.text("CASE METADATA", 20, 78);
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.setLineWidth(0.5);
+      doc.line(20, 81, 190, 81);
+
+      let yPos = 90;
+      doc.setFontSize(10);
       const caseDetails = [
         ['Case ID:', activeCase.caseIdString],
         ['Case Title:', activeCase.title],
         ['Case Type:', activeCase.caseType],
         ['Police Station:', activeCase.policeStation || 'N/A'],
         ['Investigator:', activeCase.investigatorName || 'N/A'],
-        ['Total CDR Files:', String(cdrFiles.length)],
-        ['Total Records:', String(records.length)],
-        ['Generated Date:', new Date().toLocaleString()]
+        ['Associated Targets:', String(cdrFiles.length) + " Target Numbers"],
+        ['Operators Active:', operatorsStr],
+        ['Total CDR Rows:', String(records.length)],
+        ['First Activity Recorded:', firstContact],
+        ['Last Activity Recorded:', lastContact],
+        ['Date Generated:', new Date().toLocaleString()]
       ];
 
       caseDetails.forEach(([lbl, val]) => {
         doc.setFont('helvetica', 'bold');
+        doc.setTextColor(71, 85, 105);
         doc.text(lbl, 20, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(val, 80, yPos);
-        yPos += 12;
+        doc.setTextColor(15, 23, 42);
+        doc.text(val, 75, yPos);
+        yPos += 10;
       });
 
-      const contactMap: Record<string, number> = {};
-      records.forEach(r => {
-        if (!r.otherParty) return;
-        contactMap[r.otherParty] = (contactMap[r.otherParty] || 0) + 1;
-      });
-      const topContacts = Object.entries(contactMap).sort((a, b) => b[1] - a[1]).slice(0, 15);
-
-      doc.addPage();
-      doc.setFillColor(10, 17, 40);
-      doc.rect(0, 0, 210, 297, 'F');
-
+      // Target numbers list
+      yPos += 5;
+      doc.setFontSize(13);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text("TOP INTERACTING CONTACTS", 20, 30);
-      doc.setDrawColor(56, 189, 248);
-      doc.line(20, 35, 190, 35);
-
-      yPos = 50;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(148, 163, 184);
-      doc.text("Contact Number", 20, yPos);
-      doc.text("Total Communications (Calls + SMS)", 100, yPos);
-
-      doc.setDrawColor(51, 65, 85);
-      doc.setLineWidth(0.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text("TARGET NUMBERS SUMMARY", 20, yPos);
       doc.line(20, yPos + 3, 190, yPos + 3);
-      yPos += 12;
+      yPos += 11;
+
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Phone Number", 20, yPos);
+      doc.text("Operator", 75, yPos);
+      doc.text("Category", 120, yPos);
+      doc.text("Records Count", 165, yPos);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 8;
 
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(255, 255, 255);
-      topContacts.forEach(([number, count]) => {
-        doc.text(String(number), 20, yPos);
-        doc.text(String(count) + " times", 100, yPos);
-        yPos += 10;
+      doc.setTextColor(15, 23, 42);
+      cdrFiles.forEach(f => {
+        doc.text(f.phoneNumber, 20, yPos);
+        doc.text(f.operator || 'N/A', 75, yPos);
+        doc.text(f.category || 'N/A', 120, yPos);
+        doc.text(String(f.recordsCount || 0), 165, yPos);
+        yPos += 8;
+      });
+
+      // PAGE 2: TOP INTERACTING PARTNERS (White background)
+      doc.addPage();
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(15, 23, 42);
+      doc.text("TOP INTERACTING COMMUNICATIONS PARTNERS", 20, 25);
+      doc.setDrawColor(16, 185, 129);
+      doc.line(20, 29, 190, 29);
+
+      yPos = 40;
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Rank", 20, yPos);
+      doc.text("Contact Number", 35, yPos);
+      doc.text("Total Comms", 75, yPos);
+      doc.text("Calls (In/Out)", 115, yPos);
+      doc.text("SMS (In/Out)", 145, yPos);
+      doc.text("Duration (Min)", 175, yPos);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 9;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      topContacts.forEach((c, idx) => {
+        doc.text(String(idx + 1), 20, yPos);
+        doc.text(c.number, 35, yPos);
+        doc.text(String(c.count) + " times", 75, yPos);
+        doc.text(String(c.calls), 115, yPos);
+        doc.text(String(c.sms), 145, yPos);
+        doc.text(String(Math.round(c.duration / 60)), 175, yPos);
+        yPos += 7.5;
+      });
+
+      // PAGE 3: TOP CELL TOWER LOCATIONS (White background)
+      doc.addPage();
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(15, 23, 42);
+      doc.text("TOP CELL TOWER LOCATIONS VISITED", 20, 25);
+      doc.setDrawColor(16, 185, 129);
+      doc.line(20, 29, 190, 29);
+
+      yPos = 40;
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Rank", 20, yPos);
+      doc.text("Cell Tower Address Description", 35, yPos);
+      doc.text("Hits Count", 165, yPos);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 9;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      topLocations.forEach(([address, count], idx) => {
+        const cleanedAddr = address.length > 70 ? address.substring(0, 67) + '...' : address;
+        doc.text(String(idx + 1), 20, yPos);
+        doc.text(cleanedAddr, 35, yPos);
+        doc.text(String(count) + " hits", 165, yPos);
+        yPos += 7.5;
       });
 
       doc.save(`Forensic_Case_Report_${activeCase.caseIdString}.pdf`);
