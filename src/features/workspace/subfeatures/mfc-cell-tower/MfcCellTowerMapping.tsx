@@ -18,6 +18,29 @@ interface MfcCellTowerMappingProps {
   activeCase: Case;
 }
 
+// Local cache structures for geocoding coordinates to speed up loading
+interface CachedCoords {
+  lat: number;
+  lng: number;
+}
+
+const getGeoCache = (): Record<string, CachedCoords> => {
+  try {
+    const raw = localStorage.getItem('cdr_geo_cache_v3');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveGeoCache = (cache: Record<string, CachedCoords>) => {
+  try {
+    localStorage.setItem('cdr_geo_cache_v3', JSON.stringify(cache));
+  } catch (err) {
+    console.error('Failed to save geo cache:', err);
+  }
+};
+
 interface TowerStats {
   address: string;
   count: number;
@@ -29,6 +52,8 @@ interface TowerStats {
 // Helper to create custom div icon showing name and hits directly on map
 const createCustomIcon = (address: string, hits: number, isSelected: boolean) => {
   const cleanName = address.split(',')[0] || 'Unknown';
+  const pinColor = isSelected ? '#10b981' : '#ef4444';
+  
   return L.divIcon({
     className: 'custom-cell-tower-icon',
     html: `
@@ -37,8 +62,8 @@ const createCustomIcon = (address: string, hits: number, isSelected: boolean) =>
         align-items: center;
         gap: 6px;
         background: rgba(255, 255, 255, 0.95);
-        border: 1.5px solid ${isSelected ? '#3ecf8e' : '#94a3b8'};
-        box-shadow: 0 4px 10px rgba(0,0,0,0.12), ${isSelected ? '0 0 12px rgba(62,207,142,0.5)' : 'none'};
+        border: 1.5px solid ${isSelected ? '#10b981' : '#cbd5e1'};
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12), ${isSelected ? '0 0 12px rgba(16,185,129,0.5)' : 'none'};
         padding: 4px 10px;
         border-radius: 9999px;
         color: #1e293b;
@@ -50,15 +75,9 @@ const createCustomIcon = (address: string, hits: number, isSelected: boolean) =>
         transition: all 0.25s ease;
         z-index: ${isSelected ? 999 : 1};
       ">
-        <span style="
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background-color: ${isSelected ? '#10b981' : '#ef4444'};
-          box-shadow: 0 0 6px ${isSelected ? '#10b981' : '#ef4444'};
-          display: inline-block;
-          flex-shrink: 0;
-        "></span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${pinColor}" style="width: 14px; height: 14px; flex-shrink: 0; display: inline-block;">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
         <span style="
           max-width: 120px;
           overflow: hidden;
@@ -157,43 +176,51 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
   const [isSearching, setIsSearching] = useState(false);
   const [searchFailed, setSearchFailed] = useState(false);
 
-  const { towers, hasCoordinates, targetMap } = useMemo(() => {
+  // Local storage coordinates cache state
+  const [resolvedCoords, setResolvedCoords] = useState<Record<string, CachedCoords>>({});
+
+  // Load cache on mount
+  useEffect(() => {
+    setResolvedCoords(getGeoCache());
+  }, []);
+
+  const { towers, targetMap } = useMemo(() => {
     const tMap = new Map<number, string>();
     files.forEach(f => {
       if (f.id) tMap.set(f.id, f.phoneNumber);
     });
 
     const towerMap = new Map<string, TowerStats>();
-    let hasCoords = false;
 
     records.forEach((r: any) => {
       if (!r.address || r.address.trim() === '') return;
       
       const addr = r.address.trim();
       if (!towerMap.has(addr)) {
+        const cached = resolvedCoords[addr];
         towerMap.set(addr, {
           address: addr,
           count: 0,
           targets: new Set(),
-          lat: r.latitude,
-          lng: r.longitude
+          lat: r.latitude ?? cached?.lat,
+          lng: r.longitude ?? cached?.lng
         });
       }
       
       const stats = towerMap.get(addr)!;
       stats.count++;
       if (r.fileId) stats.targets.add(r.fileId);
-      
-      if (r.latitude != null && r.longitude != null) {
-        hasCoords = true;
-      }
     });
 
     // Sort by most frequent
     const sortedTowers = Array.from(towerMap.values()).sort((a, b) => b.count - a.count);
 
-    return { towers: sortedTowers, hasCoordinates: hasCoords, targetMap: tMap };
-  }, [records, files]);
+    return { towers: sortedTowers, targetMap: tMap };
+  }, [records, files, resolvedCoords]);
+
+  const hasCoordinates = useMemo(() => {
+    return towers.some(t => t.lat != null && t.lng != null);
+  }, [towers]);
 
   // Bounds fitting calculations
   const fitAllBounds = useMemo(() => {
@@ -215,6 +242,66 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
     }
     return null;
   }, [selectedTower, geocodedCoords]);
+
+  // Background geocoding loop to resolve coordinates for top towers sequentially
+  useEffect(() => {
+    if (loading || towers.length === 0) return;
+
+    // Limit sequential background geocoding to the top 20 towers to prevent API rate limits
+    const towersToGeocode = towers.slice(0, 20).filter(t => !t.lat || !t.lng);
+    if (towersToGeocode.length === 0) return;
+
+    let active = true;
+
+    const processGeocoding = async () => {
+      // Small initial delay before starting background requests
+      await new Promise(r => setTimeout(r, 600));
+
+      const cache = getGeoCache();
+      let updated = false;
+
+      for (const tower of towersToGeocode) {
+        if (!active) break;
+
+        // Skip if already loaded in cache in the background
+        if (cache[tower.address]) {
+          const coords = cache[tower.address];
+          setResolvedCoords(prev => ({
+            ...prev,
+            [tower.address]: coords
+          }));
+          continue;
+        }
+
+        const coords = await searchGeocode(tower.address);
+        if (coords) {
+          cache[tower.address] = coords;
+          updated = true;
+          
+          setResolvedCoords(prev => ({
+            ...prev,
+            [tower.address]: coords
+          }));
+
+          // Wait 1.1s to respect Nominatim limits
+          await new Promise(r => setTimeout(r, 1100));
+        } else {
+          // Cooldown on failure
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+
+      if (updated && active) {
+        saveGeoCache(cache);
+      }
+    };
+
+    processGeocoding();
+
+    return () => {
+      active = false;
+    };
+  }, [towers, loading]);
 
   // Geocoding logic with progressive fallbacks
   const searchGeocode = async (address: string): Promise<{ lat: number; lng: number } | null> => {
