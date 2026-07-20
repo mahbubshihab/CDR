@@ -216,117 +216,343 @@ export const ReportsDownloads: React.FC<ReportsDownloadsProps> = ({ cdrFile, rec
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
 
-      // Premium Page 1 Cover
-      doc.setFillColor(10, 17, 40); // very dark blue
+      // 1. Process timestamps for start and end dates
+      const timestamps = records.map(r => r.timestamp).filter(t => !isNaN(t));
+      const minTime = timestamps.length > 0 ? Math.min(...timestamps) : null;
+      const maxTime = timestamps.length > 0 ? Math.max(...timestamps) : null;
+      const firstContact = minTime ? new Date(minTime).toLocaleString() : 'N/A';
+      const lastContact = maxTime ? new Date(maxTime).toLocaleString() : 'N/A';
+
+      // 2. Process Top Interacting Contacts (top 30)
+      const contactMap: Record<string, { number: string; count: number; calls: number; sms: number; duration: number }> = {};
+      records.forEach(r => {
+        const party = r.otherParty;
+        if (!party) return;
+        if (!contactMap[party]) {
+          contactMap[party] = { number: party, count: 0, calls: 0, sms: 0, duration: 0 };
+        }
+        const item = contactMap[party];
+        item.count++;
+        if (r.usageType?.includes('SMS')) {
+          item.sms++;
+        } else {
+          item.calls++;
+        }
+        item.duration += r.duration || 0;
+      });
+      const topContacts = Object.values(contactMap).sort((a, b) => b.count - a.count).slice(0, 30);
+
+      // 3. Process Top Locations Visited (top 30)
+      const locMap: Record<string, number> = {};
+      records.forEach(r => {
+        if (r.address) {
+          locMap[r.address] = (locMap[r.address] || 0) + 1;
+        }
+      });
+      const topLocations = Object.entries(locMap).sort((a, b) => b[1] - a[1]).slice(0, 30);
+
+      // 4. IMEI / IMSI swaps
+      const swaps: { imei: string; imsi: string; count: number }[] = [];
+      const swapMap: Record<string, Set<string>> = {};
+      records.forEach(r => {
+        if (r.imei && r.imsi) {
+          if (!swapMap[r.imei]) swapMap[r.imei] = new Set();
+          swapMap[r.imei].add(r.imsi);
+        }
+      });
+      Object.entries(swapMap).forEach(([imei, imsis]) => {
+        imsis.forEach(imsi => {
+          const cnt = records.filter(r => r.imei === imei && r.imsi === imsi).length;
+          swaps.push({ imei, imsi, count: cnt });
+        });
+      });
+      const topSwaps = swaps.sort((a, b) => b.count - a.count).slice(0, 15);
+
+      // 5. Time based calls
+      let dayCalls = 0;
+      let nightCalls = 0;
+      records.forEach(r => {
+        const hr = new Date(r.timestamp).getHours();
+        if (hr >= 6 && hr < 18) {
+          dayCalls++;
+        } else {
+          nightCalls++;
+        }
+      });
+
+      // 6. Missing Dates gaps
+      const dates = Array.from(new Set(records.map(r => new Date(r.timestamp).toDateString()))).map(d => new Date(d));
+      dates.sort((a, b) => a.getTime() - b.getTime());
+      const gaps: { start: string; end: string; days: number }[] = [];
+      for (let i = 0; i < dates.length - 1; i++) {
+        const diff = dates[i+1].getTime() - dates[i].getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24)) - 1;
+        if (days > 1) {
+          gaps.push({
+            start: dates[i].toLocaleDateString(),
+            end: dates[i+1].toLocaleDateString(),
+            days
+          });
+        }
+      }
+      const topGaps = gaps.sort((a, b) => b.days - a.days).slice(0, 15);
+
+      // PAGE 1: COVER PAGE (White background)
+      doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, 210, 297, 'F');
 
-      doc.setTextColor(56, 189, 248); // light blue
+      doc.setTextColor(15, 23, 42); // slate-900
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(24);
-      doc.text("FORENSIC INVESTIGATION REPORT", 20, 65);
+      doc.setFontSize(22);
+      doc.text("CDR FULL DOSSIER INTEGRATED REPORT", 20, 45);
 
-      doc.setDrawColor(56, 189, 248);
+      doc.setDrawColor(16, 185, 129); // brand green line
       doc.setLineWidth(1.5);
-      doc.line(20, 75, 190, 75);
+      doc.line(20, 52, 190, 52);
 
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(148, 163, 184); // slate 400
-      doc.text("AI-POWERED CDR ANALYZER | NEXT-GENERATION FORENSICS", 20, 83);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105); // slate-600
+      doc.text("LAWMOR FORENSICS WORKSPACE | CONSOLIDATED INVESTIGATION CASE SUMMARY", 20, 59);
 
-      // Metadata block
-      let yPos = 110;
-      doc.setFontSize(12);
-      doc.setTextColor(203, 213, 225); // slate 300
-      
-      const details = [
+      // Section: Case Metadata
+      doc.setFontSize(13);
+      doc.setTextColor(15, 23, 42);
+      doc.text("TARGET SUBSCRIBER DOSSIER", 20, 78);
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.setLineWidth(0.5);
+      doc.line(20, 81, 190, 81);
+
+      let yPos = 90;
+      doc.setFontSize(10);
+      const caseDetails = [
         ['Target Phone Number:', cdrFile.phoneNumber],
         ['Network Operator:', cdrFile.operator || 'N/A'],
         ['Suspect Category:', cdrFile.category || 'N/A'],
-        ['Total CDR Event Rows:', String(records.length)],
-        ['First Contact Recorded:', firstContactDate],
-        ['Last Contact Recorded:', lastContactDate],
-        ['Report Generated:', new Date().toISOString().replace('T', ' ').substring(0, 16)]
+        ['Total CDR Rows Analyzed:', String(records.length)],
+        ['First Activity Recorded:', firstContact],
+        ['Last Activity Recorded:', lastContact],
+        ['Day-time Activity Ratio:', `${Math.round((dayCalls / (records.length || 1)) * 100)}% (${dayCalls} hits)`],
+        ['Night-time Activity Ratio:', `${Math.round((nightCalls / (records.length || 1)) * 100)}% (${nightCalls} hits)`],
+        ['IMEI Swaps Detected:', String(topSwaps.length)],
+        ['Activity Gaps Detected:', String(topGaps.length) + " silent periods"],
+        ['Report Generated Date:', new Date().toLocaleString()]
       ];
 
-      details.forEach(([lbl, val]) => {
+      caseDetails.forEach(([lbl, val]) => {
         doc.setFont('helvetica', 'bold');
+        doc.setTextColor(71, 85, 105);
         doc.text(lbl, 20, yPos);
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(15, 23, 42);
         doc.text(val, 80, yPos);
-        yPos += 12;
-      });
-
-      // Page 2: Top contacts
-      doc.addPage();
-      doc.setFillColor(10, 17, 40);
-      doc.rect(0, 0, 210, 297, 'F');
-      
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text("TOP 10 COMMUNICATING PARTNERS", 20, 30);
-      doc.setDrawColor(56, 189, 248);
-      doc.line(20, 35, 190, 35);
-
-      yPos = 50;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(148, 163, 184);
-      doc.text("Contact Number", 20, yPos);
-      doc.text("Total Comms", 75, yPos);
-      doc.text("Calls In / Out", 110, yPos);
-      doc.text("Total Duration (min)", 155, yPos);
-
-      doc.setDrawColor(51, 65, 85); // slate 700
-      doc.setLineWidth(0.5);
-      doc.line(20, yPos + 3, 190, yPos + 3);
-      yPos += 12;
-
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(255, 255, 255);
-      topContacts.slice(0, 10).forEach(c => {
-        doc.text(String(c.number), 20, yPos);
-        doc.text(String(c.totalComm), 75, yPos);
-        doc.text(`${c.callCountIn} In / ${c.callCountOut} Out`, 110, yPos);
-        doc.text(String(Math.round(c.totalDuration / 60)), 155, yPos);
         yPos += 10;
       });
 
-      // Page 3: Top locations
+      // PAGE 2: Executive Dashboard & Statistics Breakdown
       doc.addPage();
-      doc.setFillColor(10, 17, 40);
-      doc.rect(0, 0, 210, 297, 'F');
-      
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text("TOP 10 CELL TOWER LOCATIONS VISITED", 20, 30);
-      doc.setDrawColor(56, 189, 248);
-      doc.line(20, 35, 190, 35);
+      doc.setFontSize(15);
+      doc.setTextColor(15, 23, 42);
+      doc.text("SECTION 1: DAILY ACTIVITY STATISTICS & METRICS", 20, 25);
+      doc.setDrawColor(16, 185, 129);
+      doc.line(20, 29, 190, 29);
 
-      yPos = 50;
+      yPos = 42;
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      doc.text("Activity Milestones and Chronological Indicators (First & Last Sequences):", 20, yPos);
+      yPos += 10;
+
       doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(148, 163, 184);
-      doc.text("Cell Address Description", 20, yPos);
-      doc.text("Hits Count", 140, yPos);
-      doc.text("Duration (min)", 165, yPos);
-
-      doc.line(20, yPos + 3, 190, yPos + 3);
-      yPos += 12;
+      doc.setTextColor(71, 85, 105);
+      doc.text("Date & Time", 20, yPos);
+      doc.text("Type", 65, yPos);
+      doc.text("Other Party", 90, yPos);
+      doc.text("Duration", 130, yPos);
+      doc.text("Tower Address Description", 150, yPos);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 9;
 
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(255, 255, 255);
-      topLocations.slice(0, 10).forEach(l => {
-        const addr = l.address.length > 55 ? l.address.substring(0, 52) + '...' : l.address;
-        doc.text(String(addr), 20, yPos);
-        doc.text(String(l.count), 140, yPos);
-        doc.text(String(Math.round(l.duration / 60)), 165, yPos);
-        yPos += 10;
+      doc.setTextColor(15, 23, 42);
+
+      const timelineSummary = [
+        ...records.slice(0, 5),
+        ...records.slice(-5)
+      ];
+
+      timelineSummary.forEach((r, idx) => {
+        if (idx === 5) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(71, 85, 105);
+          doc.text("... [Activity Gap / Middle logs omitted for brevity] ...", 20, yPos);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(15, 23, 42);
+          yPos += 8;
+        }
+
+        const dateStr = new Date(r.timestamp).toISOString().replace('T', ' ').substring(0, 16);
+        const addr = r.address ? (r.address.length > 30 ? r.address.substring(0, 27) + '...' : r.address) : 'N/A';
+        doc.text(dateStr, 20, yPos);
+        doc.text(r.usageType || 'N/A', 65, yPos);
+        doc.text(r.otherParty || 'N/A', 90, yPos);
+        doc.text(String(r.duration || 0) + 's', 130, yPos);
+        doc.text(addr, 150, yPos);
+        yPos += 7.5;
       });
 
-      doc.save(`CDR_Investigation_Forensic_Report_${cdrFile.phoneNumber}.pdf`);
+      // PAGE 3: Section 2 - Top 30 Communicating Partners
+      doc.addPage();
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(15, 23, 42);
+      doc.text("SECTION 2: TOP INTERACTING COMMUNICATIONS PARTNERS", 20, 25);
+      doc.setDrawColor(16, 185, 129);
+      doc.line(20, 29, 190, 29);
+
+      yPos = 40;
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Rank", 20, yPos);
+      doc.text("Contact Number", 35, yPos);
+      doc.text("Total Communications", 75, yPos);
+      doc.text("Calls (In/Out)", 115, yPos);
+      doc.text("SMS (In/Out)", 145, yPos);
+      doc.text("Duration (Min)", 175, yPos);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 9;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      topContacts.forEach((c, idx) => {
+        if (yPos > 275) {
+          doc.addPage();
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(13);
+          doc.setTextColor(15, 23, 42);
+          doc.text("TOP COMMUNICATIONS PARTNERS (CONTINUED)", 20, 25);
+          doc.line(20, 29, 190, 29);
+          yPos = 40;
+        }
+
+        doc.text(String(idx + 1), 20, yPos);
+        doc.text(c.number, 35, yPos);
+        doc.text(String(c.count) + " times", 75, yPos);
+        doc.text(String(c.calls), 115, yPos);
+        doc.text(String(c.sms), 145, yPos);
+        doc.text(String(Math.round(c.duration / 60)), 175, yPos);
+        yPos += 7.5;
+      });
+
+      // PAGE 4: Section 3 - Top 30 Cell Tower Locations
+      doc.addPage();
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(15, 23, 42);
+      doc.text("SECTION 3: TOP CELL TOWER LOCATIONS VISITED", 20, 25);
+      doc.setDrawColor(16, 185, 129);
+      doc.line(20, 29, 190, 29);
+
+      yPos = 40;
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Rank", 20, yPos);
+      doc.text("Cell Tower Address Description", 35, yPos);
+      doc.text("Hits Count", 165, yPos);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 9;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      topLocations.forEach(([address, count], idx) => {
+        if (yPos > 275) {
+          doc.addPage();
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(13);
+          doc.setTextColor(15, 23, 42);
+          doc.text("TOP CELL TOWER LOCATIONS VISITED (CONTINUED)", 20, 25);
+          doc.line(20, 29, 190, 29);
+          yPos = 40;
+        }
+
+        const cleanedAddr = address.length > 70 ? address.substring(0, 67) + '...' : address;
+        doc.text(String(idx + 1), 20, yPos);
+        doc.text(cleanedAddr, 35, yPos);
+        doc.text(String(count) + " hits", 165, yPos);
+        yPos += 7.5;
+      });
+
+      // PAGE 5: Section 4 - Swapping History & Silent Periods
+      doc.addPage();
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(15, 23, 42);
+      doc.text("SECTION 4: IMEI / IMSI SWAPPING HISTORY", 20, 25);
+      doc.setDrawColor(16, 185, 129);
+      doc.line(20, 29, 190, 29);
+
+      yPos = 40;
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("IMEI Number", 20, yPos);
+      doc.text("IMSI Number", 85, yPos);
+      doc.text("Combined Hits Count", 150, yPos);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 9;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      
+      if (topSwaps.length === 0) {
+        doc.text("No IMEI / IMSI swaps detected or available in the dataset.", 20, yPos);
+        yPos += 10;
+      } else {
+        topSwaps.forEach(sw => {
+          doc.text(sw.imei, 20, yPos);
+          doc.text(sw.imsi, 85, yPos);
+          doc.text(String(sw.count) + " records", 150, yPos);
+          yPos += 7.5;
+        });
+      }
+
+      // Section 5: Silent Periods
+      yPos += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.text("SECTION 5: DETECTED ACTIVITY GAPS (SILENT PERIODS)", 20, yPos);
+      doc.setDrawColor(16, 185, 129);
+      doc.line(20, yPos + 4, 190, yPos + 4);
+      yPos += 15;
+
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Gap Start Date", 20, yPos);
+      doc.text("Gap End Date", 70, yPos);
+      doc.text("Duration of Inactivity (Days)", 130, yPos);
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 9;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+
+      if (topGaps.length === 0) {
+        doc.text("No significant silent periods detected in the CDR logging duration.", 20, yPos);
+      } else {
+        topGaps.forEach(gp => {
+          doc.text(gp.start, 20, yPos);
+          doc.text(gp.end, 70, yPos);
+          doc.text(String(gp.days) + " days", 130, yPos);
+          yPos += 7.5;
+        });
+      }
+
+      doc.save(`Forensic_Merged_Investigation_Report_${cdrFile.phoneNumber}.pdf`);
     } catch (e) {
       console.error("Failed to generate PDF: ", e);
       setAlertConfig({

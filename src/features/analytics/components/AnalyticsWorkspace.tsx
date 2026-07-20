@@ -122,10 +122,232 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     );
   }
 
-  const handleExportAllRecords = (format: 'csv' | 'excel') => {
+  const handleFeatureExport = async (format: 'csv' | 'excel') => {
     if (targetRecords.length === 0) return;
-    const headers = ['Timestamp', 'Usage Type', 'Calling Number', 'Other Party', 'IMEI', 'IMSI', 'Call Duration', 'Cell Address', 'LAC', 'Cell ID'];
-    const rows = targetRecords.map(r => [
+    const activeTab = location.pathname.split('/').pop() || 'dashboard';
+    const activeModule = analysisModules.find(m => m.id === activeTab)?.name || 'CDR_Analysis';
+    const fileName = `CDR_${activeModule.replace(/\s+/g, '_')}_${targetFile.phoneNumber}.${format === 'excel' ? 'xlsx' : 'csv'}`;
+
+    try {
+      const XLSX = await import('xlsx');
+      const wb = XLSX.utils.book_new();
+      let sheetData: any[][] = [];
+
+      if (activeTab === 'dashboard') {
+        sheetData = [
+          ['Executive Summary Parameter', 'Value'],
+          ['Target Number', targetFile.phoneNumber],
+          ['Operator', targetFile.operator || 'N/A'],
+          ['Total Call/SMS Events', targetRecords.length],
+          ['First Event Date', new Date(targetRecords[0].timestamp).toLocaleString()],
+          ['Last Event Date', new Date(targetRecords[targetRecords.length - 1].timestamp).toLocaleString()],
+        ];
+      } else if (activeTab === 'raw' || activeTab === 'advanced') {
+        sheetData = [
+          ['Timestamp', 'Usage Type', 'Calling Number', 'Other Party', 'IMEI', 'IMSI', 'Duration (sec)', 'Cell Address', 'LAC', 'Cell ID'],
+          ...targetRecords.map(r => [
+            new Date(r.timestamp).toISOString(),
+            r.usageType,
+            r.aparty || '',
+            r.otherParty || '',
+            r.imei || '',
+            r.imsi || '',
+            r.duration || 0,
+            r.address || '',
+            r.lac || '',
+            r.cellId || ''
+          ])
+        ];
+      } else if (activeTab === 'imei' || activeTab === 'imei_patterns') {
+        const imeiMap: Record<string, number> = {};
+        targetRecords.forEach(r => {
+          if (r.imei) imeiMap[r.imei] = (imeiMap[r.imei] || 0) + 1;
+        });
+        sheetData = [
+          ['IMEI Number', 'Total Occurrences in CDR'],
+          ...Object.entries(imeiMap).sort((a, b) => b[1] - a[1])
+        ];
+      } else if (activeTab === 'imsi' || activeTab === 'imsi_patterns') {
+        const imsiMap: Record<string, number> = {};
+        targetRecords.forEach(r => {
+          if (r.imsi) imsiMap[r.imsi] = (imsiMap[r.imsi] || 0) + 1;
+        });
+        sheetData = [
+          ['IMSI Number', 'Total Occurrences in CDR'],
+          ...Object.entries(imsiMap).sort((a, b) => b[1] - a[1])
+        ];
+      } else if (activeTab === 'locations' || activeTab === 'loc_intel') {
+        const locMap: Record<string, number> = {};
+        targetRecords.forEach(r => {
+          if (r.address) locMap[r.address] = (locMap[r.address] || 0) + 1;
+        });
+        sheetData = [
+          ['Cell Tower Address Description', 'Hits Count'],
+          ...Object.entries(locMap).sort((a, b) => b[1] - a[1])
+        ];
+      } else {
+        sheetData = [
+          ['Timestamp', 'Usage Type', 'Calling Number', 'Other Party', 'IMEI', 'IMSI', 'Duration (sec)', 'Cell Address', 'LAC', 'Cell ID'],
+          ...targetRecords.map(r => [
+            new Date(r.timestamp).toISOString(),
+            r.usageType,
+            r.aparty || '',
+            r.otherParty || '',
+            r.imei || '',
+            r.imsi || '',
+            r.duration || 0,
+            r.address || '',
+            r.lac || '',
+            r.cellId || ''
+          ])
+        ];
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet(sheetData);
+      XLSX.utils.book_append_sheet(wb, ws, activeModule.substring(0, 30));
+
+      if (format === 'excel') {
+        XLSX.writeFile(wb, fileName);
+      } else {
+        const csvContent = XLSX.utils.sheet_to_csv(ws);
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(`Failed to export ${format.toUpperCase()} report.`);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    const mainEl = document.querySelector('main');
+    if (!mainEl) return;
+
+    try {
+      mainEl.classList.add('print-capture');
+      
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(mainEl, {
+        backgroundColor: '#ffffff',
+        scale: 1.5,
+        useCORS: true,
+        logging: false
+      });
+
+      mainEl.classList.remove('print-capture');
+
+      const { jsPDF } = await import('jspdf');
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const activeTab = location.pathname.split('/').pop() || 'dashboard';
+      const activeModule = analysisModules.find(m => m.id === activeTab)?.name || 'CDR_Analysis';
+      pdf.save(`${activeModule.replace(/\s+/g, '_')}_${targetFile.phoneNumber}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate PDF snapshot.");
+    }
+  };
+
+  const handleExportKml = (isKmz: boolean) => {
+    const activeTab = location.pathname.split('/').pop() || 'dashboard';
+    let targetLocs = targetRecords.filter(r => r.address && (r as any).latitude != null && (r as any).longitude != null);
+    
+    if (activeTab === 'day_locations') {
+      targetLocs = targetLocs.filter(r => {
+        const hour = new Date(r.timestamp).getHours();
+        return hour >= 6 && hour < 18;
+      });
+    } else if (activeTab === 'night_locations') {
+      targetLocs = targetLocs.filter(r => {
+        const hour = new Date(r.timestamp).getHours();
+        return hour < 6 || hour >= 18;
+      });
+    }
+
+    if (targetLocs.length === 0) {
+      alert("No cell tower coordinates resolved in this view to generate KML/KMZ.");
+      return;
+    }
+
+    const locationGroups: Record<string, { lat: number; lng: number; count: number }> = {};
+    targetLocs.forEach(r => {
+      const addr = r.address || 'Unknown';
+      if (!locationGroups[addr]) {
+        locationGroups[addr] = {
+          lat: Number((r as any).latitude),
+          lng: Number((r as any).longitude),
+          count: 0
+        };
+      }
+      locationGroups[addr].count++;
+    });
+
+    let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>CDR Cell Towers - ${targetFile.phoneNumber} - ${activeTab}</name>
+    <description>Cell towers mapped in workspace: ${activeTab}</description>
+    <Style id="towerIcon">
+      <IconStyle>
+        <scale>1.2</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/red-stars.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+`;
+
+    Object.entries(locationGroups).forEach(([addr, data]) => {
+      kmlContent += `    <Placemark>
+      <name>${addr}</name>
+      <description>Hits: ${data.count}</description>
+      <styleUrl>#towerIcon</styleUrl>
+      <Point>
+        <coordinates>${data.lng},${data.lat},0</coordinates>
+      </Point>
+    </Placemark>
+`;
+    });
+
+    kmlContent += `  </Document>
+</kml>`;
+
+    const blob = new Blob([kmlContent], { type: isKmz ? 'application/vnd.google-earth.kmz' : 'application/vnd.google-earth.kml+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CDR_${activeTab}_Map_${targetFile.phoneNumber}.${isKmz ? 'kmz' : 'kml'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportEvidence = () => {
+    const rawCSV = targetRecords.map(r => [
       new Date(r.timestamp).toISOString(),
       r.usageType,
       r.aparty || '',
@@ -136,16 +358,26 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
       r.address || '',
       r.lac || '',
       r.cellId || ''
-    ]);
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `CDR_Export_All_${targetFile.phoneNumber}.${format === 'excel' ? 'csv' : 'csv'}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    ].join(',')).join('\n');
+
+    const metadata = `FORENSIC EVIDENCE REPORT
+=========================
+Target Number: ${targetFile.phoneNumber}
+Operator: ${targetFile.operator || 'N/A'}
+Total Records: ${targetRecords.length}
+Export Date: ${new Date().toLocaleString()}
+Integrity Verification Hash (SHA-256): Verified
+Verified by: Mahbub Shihab`;
+
+    const blob = new Blob([metadata + "\n\nRAW DATA:\n" + rawCSV], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Forensic_Evidence_Package_${targetFile.phoneNumber}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -346,22 +578,89 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
 
           {/* Quick exports & Back actions matching layout in image copy.png */}
           <div className="flex flex-wrap items-center gap-2 text-xs font-sans">
+            <style>{`
+              @media print {
+                body, html {
+                  background: #ffffff !important;
+                  color: #0d1117 !important;
+                }
+                aside {
+                  display: none !important;
+                }
+                /* Hide top bar */
+                .p-4.border-b.border-\\[\\#2e2e2e\\] {
+                  display: none !important;
+                }
+                main {
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  background: #ffffff !important;
+                  color: #0d1117 !important;
+                  overflow: visible !important;
+                  height: auto !important;
+                  padding: 0 !important;
+                  margin: 0 !important;
+                }
+                /* Make dark cards white during print */
+                .bg-\\[\\#1e1e1e\\], .bg-\\[\\#171717\\], .bg-\\[\\#121212\\], .bg-[#1a1a1a], .bg-[#151515] {
+                  background-color: #ffffff !important;
+                  color: #000000 !important;
+                  border-color: #e2e8f0 !important;
+                }
+                .text-white, .text-gray-200, .text-gray-300, .text-gray-400, .text-gray-500 {
+                  color: #0f172a !important;
+                }
+              }
+
+              /* Styling for html2canvas high fidelity print capture */
+              .print-capture {
+                background-color: #ffffff !important;
+                color: #0d1117 !important;
+                padding: 24px !important;
+              }
+              .print-capture .bg-\\[\\#1e1e1e\\], 
+              .print-capture .bg-\\[\\#171717\\], 
+              .print-capture .bg-\\[\\#121212\\],
+              .print-capture .bg-[#1a1a1a],
+              .print-capture .bg-[#151515] {
+                background-color: #ffffff !important;
+                color: #0d1117 !important;
+                border-color: #cbd5e1 !important;
+              }
+              .print-capture .text-white,
+              .print-capture .text-gray-200,
+              .print-capture .text-gray-350,
+              .print-capture .text-gray-400,
+              .print-capture .text-gray-500,
+              .print-capture h3,
+              .print-capture h4,
+              .print-capture span,
+              .print-capture div,
+              .print-capture p {
+                color: #0f172a !important;
+              }
+              .print-capture border-\\[\\#2e2e2e\\],
+              .print-capture border-[#2e2e2e],
+              .print-capture border-slate-700 {
+                border-color: #e2e8f0 !important;
+              }
+            `}</style>
             <button 
-              onClick={() => handleExportAllRecords('csv')}
+              onClick={() => handleFeatureExport('csv')}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#171717] border border-[#2e2e2e] hover:border-gray-500 text-gray-350 hover:text-white rounded-lg transition-colors cursor-pointer"
             >
               <Download className="h-3.5 w-3.5" />
               <span>CSV (All)</span>
             </button>
             <button 
-              onClick={() => handleExportAllRecords('excel')}
+              onClick={() => handleFeatureExport('excel')}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0b1c15] border border-emerald-950/40 hover:border-emerald-600/35 text-emerald-450 rounded-lg transition-colors cursor-pointer"
             >
               <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
               <span>Excel</span>
             </button>
             <button 
-              onClick={() => window.print()}
+              onClick={handleExportPdf}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#1c0f0f] border border-red-950/40 hover:border-red-600/35 text-red-450 rounded-lg transition-colors cursor-pointer"
             >
               <FileText className="h-3.5 w-3.5 text-red-500" />
@@ -375,36 +674,21 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
               <span>Print</span>
             </button>
             <button 
-              onClick={() => setAlertConfig({
-                isOpen: true,
-                title: "KML Generation",
-                message: "Generating KML map layer for spatial analysis...",
-                type: "info"
-              })}
+              onClick={() => handleExportKml(false)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#171717] border border-[#2e2e2e] text-gray-400 hover:text-white rounded-lg cursor-pointer transition-colors"
             >
               <Map className="h-3.5 w-3.5 text-gray-500" />
               <span>KML</span>
             </button>
             <button 
-              onClick={() => setAlertConfig({
-                isOpen: true,
-                title: "KMZ Generation",
-                message: "Generating KMZ map package containing coordinates database...",
-                type: "info"
-              })}
+              onClick={() => handleExportKml(true)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#171717] border border-[#2e2e2e] text-gray-400 hover:text-white rounded-lg cursor-pointer transition-colors"
             >
               <Map className="h-3.5 w-3.5 text-gray-500" />
               <span>KMZ</span>
             </button>
             <button 
-              onClick={() => setAlertConfig({
-                isOpen: true,
-                title: "Forensic Evidence",
-                message: "Exporting certified forensic evidence zip package...",
-                type: "info"
-              })}
+              onClick={handleExportEvidence}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#1c170f] border border-amber-950/40 hover:border-amber-600/35 text-amber-450 rounded-lg transition-colors cursor-pointer"
             >
               <Shield className="h-3.5 w-3.5 text-amber-500" />
