@@ -268,37 +268,109 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
     };
   }, [towers, loading]);
 
+// Helper to clean names and common prefixes from Bangladesh addresses for better geocoding results
+const cleanBangladeshAddress = (address: string): string[] => {
+  const parts = address.split(',').map(p => p.trim());
+  const cleanParts: string[] = [];
+
+  parts.forEach(part => {
+    let lower = part.toLowerCase();
+    
+    // Ignore parts containing personal info indicators (S/O, C/O, name details)
+    if (
+      lower.includes('s/o') || 
+      lower.includes('c/o') || 
+      lower.includes('d/o') || 
+      lower.includes('w/o') ||
+      lower.includes('son of') ||
+      lower.includes('daughter of') ||
+      lower.includes('wife of') ||
+      lower.includes('care of') ||
+      lower.includes('principal') ||
+      lower.includes('late')
+    ) {
+      // If it has "vill:" or location info after name, try to extract it
+      const villIdx = lower.indexOf('vill:');
+      if (villIdx !== -1) {
+        part = part.substring(villIdx);
+        lower = part.toLowerCase();
+      } else {
+        return; // skip this part entirely
+      }
+    }
+
+    // Strip common labels
+    let cleaned = part
+      .replace(/vill(age)?:?/gi, '')
+      .replace(/p\.o\+p\.s:?/gi, '')
+      .replace(/p\.o:?/gi, '')
+      .replace(/p\.s:?/gi, '')
+      .replace(/dist(rict)?:?/gi, '')
+      .replace(/thana:?/gi, '')
+      .replace(/union:?/gi, '')
+      .replace(/post:?/gi, '')
+      .replace(/road:?/gi, '')
+      .replace(/house:?/gi, '')
+      .replace(/sector:?/gi, '')
+      .trim();
+
+    // Remove any remaining stray punctuation/prefixes at start
+    cleaned = cleaned.replace(/^[^a-zA-Z0-9]+/, '').trim();
+
+    if (cleaned.length > 2) {
+      cleanParts.push(cleaned);
+    }
+  });
+
+  return cleanParts;
+};
+
   // Geocoding logic with progressive fallbacks
   const searchGeocode = async (address: string): Promise<{ lat: number; lng: number } | null> => {
     try {
-      // 1. Full Query
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data && data.length > 0) {
-        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-      }
+      // 1. Try cleaning the address
+      const cleanParts = cleanBangladeshAddress(address);
       
-      // 2. Clean fallback: part 0 + last part
-      const parts = address.split(',').map(p => p.trim()).filter(Boolean);
-      if (parts.length > 1) {
-        const fallbackQuery = `${parts[0]}, ${parts[parts.length - 1]}`;
-        const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fallbackQuery)}&limit=1`;
+      if (cleanParts.length > 0) {
+        // Query 1: full cleaned path
+        const q1 = cleanParts.join(', ') + ', Bangladesh';
+        const url1 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q1)}&limit=1`;
+        const res1 = await fetch(url1);
+        const data1 = await res1.json();
+        if (data1 && data1.length > 0) {
+          return { lat: parseFloat(data1[0].lat), lng: parseFloat(data1[0].lon) };
+        }
+
+        // Query 2: first and last clean parts
+        if (cleanParts.length > 1) {
+          const q2 = `${cleanParts[0]}, ${cleanParts[cleanParts.length - 1]}, Bangladesh`;
+          const url2 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q2)}&limit=1`;
+          const res2 = await fetch(url2);
+          const data2 = await res2.json();
+          if (data2 && data2.length > 0) {
+            return { lat: parseFloat(data2[0].lat), lng: parseFloat(data2[0].lon) };
+          }
+        }
+
+        // Query 3: last clean part (e.g. City/District)
+        const q3 = `${cleanParts[cleanParts.length - 1]}, Bangladesh`;
+        const url3 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q3)}&limit=1`;
+        const res3 = await fetch(url3);
+        const data3 = await res3.json();
+        if (data3 && data3.length > 0) {
+          return { lat: parseFloat(data3[0].lat), lng: parseFloat(data3[0].lon) };
+        }
+      }
+
+      // 2. Fallback to raw query parts if cleaning yielded nothing
+      const rawParts = address.split(',').map(p => p.trim()).filter(Boolean);
+      if (rawParts.length > 0) {
+        const lastPart = rawParts[rawParts.length - 1].replace(/dist(rict)?:?/gi, '').trim();
+        const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(lastPart + ', Bangladesh')}&limit=1`;
         const resFb = await fetch(fallbackUrl);
         const dataFb = await resFb.json();
         if (dataFb && dataFb.length > 0) {
           return { lat: parseFloat(dataFb[0].lat), lng: parseFloat(dataFb[0].lon) };
-        }
-      }
-      
-      // 3. Last part (City/Region fallback)
-      if (parts.length > 0) {
-        const lastPart = parts[parts.length - 1];
-        const lastUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(lastPart)}&limit=1`;
-        const resLast = await fetch(lastUrl);
-        const dataLast = await resLast.json();
-        if (dataLast && dataLast.length > 0) {
-          return { lat: parseFloat(dataLast[0].lat), lng: parseFloat(dataLast[0].lon) };
         }
       }
     } catch (err) {
@@ -427,15 +499,7 @@ export const MfcCellTowerMapping: React.FC<MfcCellTowerMappingProps> = ({ active
             </div>
           )}
 
-          {selectedTower && !selectedCoords && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212]/95 z-[999] text-gray-400 font-mono text-sm border-2 border-dashed border-red-500/20 m-4 rounded-xl">
-              <MapIcon className="h-8 w-8 text-red-500 mb-3" />
-              <div className="mb-2 text-red-400 font-bold">⚠️ Could not resolve address coordinates</div>
-              <div className="text-xs text-gray-550 max-w-sm text-center">
-                Coordinates are not available in the database and geocoding search failed.
-              </div>
-            </div>
-          )}
+
           
           <MapContainer 
             center={mapCenter} 
