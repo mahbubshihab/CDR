@@ -413,6 +413,18 @@ const cleanBangladeshAddress = (address: string): string[] => {
 
   // Geocoding logic with progressive fallbacks
   const searchGeocode = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+    const safeFetchJson = async (url: string) => {
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (e) {
+        console.warn("Geocode query failed (CORS/Rate limit/Network):", e);
+      }
+      return null;
+    };
+
     try {
       // 1. Try cleaning the address
       const cleanParts = cleanBangladeshAddress(address);
@@ -421,8 +433,7 @@ const cleanBangladeshAddress = (address: string): string[] => {
         // Query 1: full cleaned path
         const q1 = cleanParts.join(', ') + ', Bangladesh';
         const url1 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q1)}&limit=1`;
-        const res1 = await fetch(url1);
-        const data1 = await res1.json();
+        const data1 = await safeFetchJson(url1);
         if (data1 && data1.length > 0) {
           return { lat: parseFloat(data1[0].lat), lng: parseFloat(data1[0].lon) };
         }
@@ -431,8 +442,7 @@ const cleanBangladeshAddress = (address: string): string[] => {
         if (cleanParts.length > 1) {
           const q2 = `${cleanParts[0]}, ${cleanParts[cleanParts.length - 1]}, Bangladesh`;
           const url2 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q2)}&limit=1`;
-          const res2 = await fetch(url2);
-          const data2 = await res2.json();
+          const data2 = await safeFetchJson(url2);
           if (data2 && data2.length > 0) {
             return { lat: parseFloat(data2[0].lat), lng: parseFloat(data2[0].lon) };
           }
@@ -441,8 +451,7 @@ const cleanBangladeshAddress = (address: string): string[] => {
         // Query 3: last clean part (e.g. City/District)
         const q3 = `${cleanParts[cleanParts.length - 1]}, Bangladesh`;
         const url3 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q3)}&limit=1`;
-        const res3 = await fetch(url3);
-        const data3 = await res3.json();
+        const data3 = await safeFetchJson(url3);
         if (data3 && data3.length > 0) {
           return { lat: parseFloat(data3[0].lat), lng: parseFloat(data3[0].lon) };
         }
@@ -453,20 +462,23 @@ const cleanBangladeshAddress = (address: string): string[] => {
       if (rawParts.length > 0) {
         const lastPart = rawParts[rawParts.length - 1].replace(/dist(rict)?:?/gi, '').trim();
         const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(lastPart + ', Bangladesh')}&limit=1`;
-        const resFb = await fetch(fallbackUrl);
-        const dataFb = await resFb.json();
+        const dataFb = await safeFetchJson(fallbackUrl);
         if (dataFb && dataFb.length > 0) {
           return { lat: parseFloat(dataFb[0].lat), lng: parseFloat(dataFb[0].lon) };
         }
       }
-      // 3. Last fallback: local dictionary check for Bangladesh districts
-      const fallbackLoc = getBangladeshDistrictFallback(address);
-      if (fallbackLoc) {
-        return fallbackLoc;
-      }
     } catch (err) {
       console.error("Geocoding lookup error:", err);
     }
+
+    // 3. Absolute offline backup: local dictionary check for Bangladesh districts
+    // (Runs if all HTTP requests fail, throw exceptions, or are blocked by rate limits/CORS)
+    const fallbackLoc = getBangladeshDistrictFallback(address);
+    if (fallbackLoc) {
+      console.log("Resolved via offline district fallback database:", address);
+      return fallbackLoc;
+    }
+
     return null;
   };
 
