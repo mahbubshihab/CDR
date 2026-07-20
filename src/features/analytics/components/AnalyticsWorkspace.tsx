@@ -241,8 +241,6 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
         logging: false
       });
 
-      mainEl.classList.remove('print-capture');
-
       const { jsPDF } = await import('jspdf');
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -268,6 +266,8 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     } catch (err) {
       console.error(err);
       alert("Failed to generate PDF snapshot.");
+    } finally {
+      mainEl.classList.remove('print-capture');
     }
   };
 
@@ -543,7 +543,7 @@ Verified by: Mahbub Shihab`;
       {/* 2. Main Content Frame */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] text-left">
         {/* Top Header toolbar */}
-        <div className="p-4 border-b border-[#2e2e2e] bg-[#171717] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shrink-0 font-mono">
+        <div className="p-4 border-b border-[#2e2e2e] bg-[#171717] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shrink-0 font-mono no-print">
           <div className="flex items-center gap-3">
             {isSidebarCollapsed && (
               <button
@@ -578,82 +578,6 @@ Verified by: Mahbub Shihab`;
 
           {/* Quick exports & Back actions matching layout in image copy.png */}
           <div className="flex flex-wrap items-center gap-2 text-xs font-sans">
-            <style>{`
-              @media print {
-                /* Reset layout boxes so print engines can break pages naturally */
-                html, body, #root, .flex, .flex-col, .h-full, .overflow-hidden, main, .flex-1, .grid {
-                  height: auto !important;
-                  min-height: 0 !important;
-                  overflow: visible !important;
-                  display: block !important;
-                  position: static !important;
-                  background: #ffffff !important;
-                  color: #000000 !important;
-                }
-                aside {
-                  display: none !important;
-                }
-                /* Hide top header bar during print */
-                .p-4.border-b.border-\\[\\#2e2e2e\\], 
-                div[class*="border-b border-[#2e2e2e]"] {
-                  display: none !important;
-                }
-                /* Force every single item to be black text on white background and preserve graphics */
-                * {
-                  background-color: #ffffff !important;
-                  background: #ffffff !important;
-                  color: #000000 !important;
-                  border-color: #cbd5e1 !important;
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                  box-shadow: none !important;
-                  text-shadow: none !important;
-                }
-                svg text {
-                  fill: #000000 !important;
-                }
-                /* Avoid card split cuts */
-                div[class*="bg-[#1e1e1e]"], 
-                div[class*="bg-[#171717]"], 
-                div[class*="bg-[#121212]"],
-                .bg-\\[\\#1e1e1e\\],
-                .bg-\\[\\#171717\\],
-                .bg-\\[\\#121212\\] {
-                  page-break-inside: avoid !important;
-                  break-inside: avoid !important;
-                  margin-bottom: 16px !important;
-                  padding: 16px !important;
-                  border: 1px solid #cbd5e1 !important;
-                  border-radius: 8px !important;
-                }
-              }
-
-              /* Styling for html2canvas high fidelity PDF capture */
-              .print-capture {
-                background-color: #ffffff !important;
-                color: #000000 !important;
-                padding: 24px !important;
-                height: auto !important;
-                overflow: visible !important;
-                display: block !important;
-              }
-              .print-capture * {
-                background-color: #ffffff !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                border-color: #e2e8f0 !important;
-                box-shadow: none !important;
-              }
-              .print-capture svg text {
-                fill: #000000 !important;
-              }
-              .print-capture div[class*="bg-[#1e1e1e]"], 
-              .print-capture div[class*="bg-[#171717]"], 
-              .print-capture div[class*="bg-[#121212]"] {
-                border: 1px solid #e2e8f0 !important;
-                margin-bottom: 16px !important;
-              }
-            `}</style>
             <button 
               onClick={() => handleFeatureExport('csv')}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#171717] border border-[#2e2e2e] hover:border-gray-500 text-gray-350 hover:text-white rounded-lg transition-colors cursor-pointer"

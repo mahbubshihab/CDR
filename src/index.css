@@ -92,59 +92,98 @@ body {
 
 /* @media print styles for perfect high-contrast PDF reports */
 @media print {
-  html, body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    font-family: monospace;
-    font-size: 11px;
-    padding: 0;
-    margin: 0;
-  }
-  aside {
+  /* Hide UI components completely during print */
+  aside, 
+  nav, 
+  button, 
+  .no-print, 
+  .no-print-actions {
     display: none !important;
-  }
-  button, .no-print-actions, nav {
-    display: none !important;
-  }
-  /* Disable table scrolling and max-height constraints during printing */
-  .max-h-36, .overflow-y-auto, .custom-scrollbar {
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  .grid {
-    display: block !important;
-  }
-  .grid > div {
-    page-break-inside: avoid !important;
-    margin-bottom: 20px !important;
-    width: 100% !important;
-    background-color: #ffffff !important;
-    border: 1px solid #cccccc !important;
-    color: #000000 !important;
-  }
-  
-  /* Force exact color adjustment to print backgrounds and gradients */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Override dark backgrounds only for layouts, keeping text black */
-  .bg-\[\#1e1e1e\], .bg-\[\#171717\], .bg-\[\#121212\] {
+  /* Reset layout constraints so pages break naturally */
+  html, body, #root, .flex, .flex-col, .h-full, .overflow-hidden, main, .flex-1, .grid {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    position: static !important;
     background-color: #ffffff !important;
-    background-image: none !important;
-  }
-  div, span, table, tr, th, td, h2, h3, strong, p {
+    background: #ffffff !important;
     color: #000000 !important;
-    border-color: #cccccc !important;
   }
-  .text-white, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400 {
+
+  /* Force exact graphics rendering */
+  * {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #000000 !important;
+    border-color: #cbd5e1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure SVG elements like charts are legible */
+  svg text {
+    fill: #000000 !important;
   }
   svg {
     filter: none !important;
   }
   svg polyline {
-    stroke: #059669 !important;
+    stroke: #3ecf8e !important;
   }
+
+  /* Disable max-height constraints */
+  .max-h-36, .overflow-y-auto, .custom-scrollbar {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Clean print block representations */
+  div[class*="bg-[#1e1e1e]"], 
+  div[class*="bg-[#171717]"], 
+  div[class*="bg-[#121212]"] {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 20px !important;
+    padding: 20px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+}
+
+/* High-fidelity PDF snapshot capture context (strictly active only during print generation) */
+.print-capture {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  padding: 24px !important;
+  height: auto !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+.print-capture * {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
+.print-capture svg text {
+  fill: #000000 !important;
+}
+
+.print-capture div[class*="bg-[#1e1e1e]"], 
+.print-capture div[class*="bg-[#171717]"], 
+.print-capture div[class*="bg-[#121212]"] {
+  border: 1px solid #cbd5e1 !important;
+  margin-bottom: 20px !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
