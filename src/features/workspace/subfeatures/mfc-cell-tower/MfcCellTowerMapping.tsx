@@ -79,9 +79,16 @@ const MapUpdater: React.FC<{
   const map = useMap();
 
   useEffect(() => {
+    map.invalidateSize();
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+
     if (selectedCoords) {
       map.setView(selectedCoords, 16, { animate: true, duration: 1.2 });
     }
+
+    return () => clearTimeout(timer);
   }, [selectedCoords, map]);
 
   return null;
