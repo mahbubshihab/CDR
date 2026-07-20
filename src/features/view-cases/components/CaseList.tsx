@@ -72,15 +72,6 @@ export const CaseList: React.FC<CaseListProps> = ({
       await db.cdrFiles.where('caseId').equals(pendingDeleteId).delete();
       await db.cdrFiles.where('caseId').equals(String(pendingDeleteId)).delete();
 
-      // Decrement counts in Firestore userStats
-      if (currentUser && role !== 'owner') {
-        const statsDocRef = doc(dbFirestore, 'userStats', currentUser.uid);
-        await setDoc(statsDocRef, {
-          createdCasesCount: increment(-1),
-          uploadedFilesCount: increment(-totalFilesDeleted)
-        }, { merge: true });
-      }
-
       onTriggerRefresh();
       fetchCases();
     } catch (err) {

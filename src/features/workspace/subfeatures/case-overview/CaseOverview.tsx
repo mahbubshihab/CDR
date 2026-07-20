@@ -84,14 +84,6 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
       // Clean up records
       await db.cdrRecords.where('fileId').equals(pendingDeleteFileId).delete();
 
-      // Decrement uploadedFilesCount in Firestore stats
-      if (currentUser && role !== 'owner') {
-        const statsDocRef = doc(dbFirestore, 'userStats', currentUser.uid);
-        await setDoc(statsDocRef, {
-          uploadedFilesCount: increment(-1)
-        }, { merge: true });
-      }
-
       fetchWorkspaceData();
     } catch (err) {
       console.error(err);
