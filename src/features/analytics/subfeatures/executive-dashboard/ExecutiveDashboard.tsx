@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { type CDRFile, type CDRRecord } from '../../../../utils/db';
 import { FiltersSidebar } from './components/FiltersSidebar';
+import { CustomAlert } from '../../../../components/ui/CustomModal';
 import { LocationTags } from './components/LocationTags';
 import { ActivityTrendline } from './components/ActivityTrendline';
 import { PieChartsGrid } from './components/PieChartsGrid';
@@ -65,6 +66,13 @@ function getBPartyType(otherParty: string, isPakistan: boolean): string {
 export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ 
   cdrFile, records, onNavigateToTab 
 }) => {
+  const [alertConfig, setAlertConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type?: 'error' | 'success' | 'info' | 'warning';
+  } | null>(null);
+  
   // Filter states
   const [searchInput, setSearchInput] = useState('');
   const [yearSel, setYearSel] = useState('All');
@@ -403,9 +411,24 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         onExportExcel={handleExportCSV}
         onExportPDF={() => window.print()}
         onPrint={() => window.print()}
-        onExportKml={() => alert('Generating KML map layer...')}
-        onExportKmz={() => alert('Generating KMZ map package...')}
-        onEvidence={() => alert('Exporting forensic evidence package...')}
+        onExportKml={() => setAlertConfig({
+          isOpen: true,
+          title: "KML Generation",
+          message: "Generating KML map layer for spatial analysis...",
+          type: "info"
+        })}
+        onExportKmz={() => setAlertConfig({
+          isOpen: true,
+          title: "KMZ Generation",
+          message: "Generating KMZ map package containing coordinates database...",
+          type: "info"
+        })}
+        onEvidence={() => setAlertConfig({
+          isOpen: true,
+          title: "Forensic Evidence",
+          message: "Exporting certified forensic evidence zip package...",
+          type: "info"
+        })}
         onBack={() => onNavigateToTab('advanced')}
       />
 
@@ -451,6 +474,13 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
       </section>
 
+      <CustomAlert 
+        isOpen={!!alertConfig?.isOpen}
+        title={alertConfig?.title || ''}
+        message={alertConfig?.message || ''}
+        type={alertConfig?.type}
+        onClose={() => setAlertConfig(null)}
+      />
     </div>
   );
 };

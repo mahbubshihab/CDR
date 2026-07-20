@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { db, type Case } from '../../../utils/db';
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface GlobalDashboardProps {
   onAddNewCase: () => void;
@@ -15,6 +16,7 @@ interface GlobalDashboardProps {
 export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({ 
   onAddNewCase, onViewCases, onOpenCase 
 }) => {
+  const { role, maxCases, maxFiles, createdCasesCount, uploadedFilesCount, validUntil } = useAuth();
   const [cases, setCases] = useState<Case[]>([]);
   const [totalFilesCount, setTotalFilesCount] = useState(0);
   const [analyzedNumbersCount, setAnalyzedNumbersCount] = useState(0);
@@ -133,7 +135,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
       {/* Title Header Section */}
       <div className="space-y-1">
         <span className="text-sm font-bold tracking-widest text-[#3ecf8e] uppercase">
-          CDR FORENSIC ANALYZER V5.2.0
+          CDR ANALYZER V5.2.0
         </span>
         <h2 className="text-xl md:text-2xl font-semibold text-gray-100 tracking-tight">
           Investigation Command Center
@@ -142,6 +144,50 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
           Professional forensic intelligence dashboard, real-time case & CDR analytics
         </p>
       </div>
+
+      {/* Account Resource Limits Banner */}
+      {role === 'user' && (
+        <div className="bg-[#1e1e21] border border-[#2b2b30] rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans text-xs">
+          <div className="space-y-1">
+            <h4 className="font-semibold text-gray-200">Account Resources & Limits</h4>
+            <p className="text-gray-500 font-mono text-[11px]">
+              Access Valid Until: <span className="text-gray-300 font-bold">{validUntil ? new Date(validUntil.seconds * 1000).toLocaleDateString() : 'N/A'}</span>
+            </p>
+          </div>
+          <div className="flex gap-6 items-center w-full sm:w-auto">
+            {/* Case limit */}
+            <div className="space-y-1 flex-1 sm:flex-none sm:w-40">
+              <div className="flex justify-between text-gray-400 font-mono text-[11px] mb-1">
+                <span>Cases Created</span>
+                <span className="font-bold text-gray-300">{createdCasesCount} / {maxCases}</span>
+              </div>
+              <div className="w-full bg-[#141416] rounded-full h-1.5 overflow-hidden border border-[#27272a]">
+                <div 
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    createdCasesCount >= maxCases ? 'bg-red-500' : 'bg-[#3ecf8e]'
+                  }`} 
+                  style={{ width: `${Math.min(100, (createdCasesCount / Math.max(1, maxCases)) * 100)}%` }} 
+                />
+              </div>
+            </div>
+            {/* File limit */}
+            <div className="space-y-1 flex-1 sm:flex-none sm:w-40">
+              <div className="flex justify-between text-gray-400 font-mono text-[11px] mb-1">
+                <span>Files Uploaded</span>
+                <span className="font-bold text-gray-300">{uploadedFilesCount} / {maxFiles}</span>
+              </div>
+              <div className="w-full bg-[#141416] rounded-full h-1.5 overflow-hidden border border-[#27272a]">
+                <div 
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    uploadedFilesCount >= maxFiles ? 'bg-red-500' : 'bg-[#3ecf8e]'
+                  }`} 
+                  style={{ width: `${Math.min(100, (uploadedFilesCount / Math.max(1, maxFiles)) * 100)}%` }} 
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 8 Metrics Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

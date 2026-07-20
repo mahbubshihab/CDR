@@ -1,7 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Upload, ChevronDown, ChevronRight, Check } from 'lucide-react';
 import { db, type CDRFile } from '../../../utils/db';
 import * as XLSX from 'xlsx';
+import { useAuth } from '../../../contexts/AuthContext';
+import { db as dbFirestore } from '../../../firebase';
+import { doc, setDoc, increment } from 'firebase/firestore';
+import { getBPartyOperator } from '../../../utils/operators';
 
 interface UploadCDRModalProps {
   isOpen: boolean;
@@ -10,9 +14,49 @@ interface UploadCDRModalProps {
   onUploadSuccess: () => void;
 }
 
+// Helper to retrieve value from case-insensitive, space-insensitive, and symbol-insensitive row keys
+function getValue(row: any, ...possibleKeys: string[]): any {
+  if (!row) return undefined;
+  const rowKeys = Object.keys(row);
+  const normalizedKeys = rowKeys.map(k => k.toLowerCase().replace(/[\s_\r\ufeff]/g, ''));
+  
+  for (const pk of possibleKeys) {
+    const normalizedPk = pk.toLowerCase().replace(/[\s_\r\ufeff]/g, '');
+    const index = normalizedKeys.indexOf(normalizedPk);
+    if (index !== -1) {
+      return row[rowKeys[index]];
+    }
+  }
+  return undefined;
+}
+
+// Helper to normalize different operator usageType values to standardized values
+function normalizeUsageType(rawType: string): string {
+  const norm = String(rawType || '').toUpperCase().trim();
+  
+  const isSms = norm.includes('SMS');
+  const isMo = norm.includes('MO') || norm.includes('MOC') || norm.includes('ORIGINATING');
+  const isMt = norm.includes('MT') || norm.includes('MTC') || norm.includes('TERMINATING');
+
+  if (isSms) {
+    if (isMo) return 'SMS_MOC';
+    if (isMt) return 'SMS_MTC';
+    return 'SMS_MOC'; // fallback SMS
+  }
+
+  if (isMo) return 'MOC';
+  if (isMt) return 'MTC';
+  
+  if (norm === 'CALL-MO' || norm === 'CALLMO' || norm === 'MOC') return 'MOC';
+  if (norm === 'CALL-MT' || norm === 'CALLMT' || norm === 'MTC') return 'MTC';
+
+  return 'MOC'; // default fallback
+}
+
 export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({ 
   isOpen, onClose, caseId, onUploadSuccess 
 }) => {
+  const { currentUser, role, maxFiles, uploadedFilesCount } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
@@ -34,6 +78,39 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhoneNumberChange = (val: string) => {
+    setPhoneNumber(val);
+    const autoOp = getBPartyOperator(val);
+    if (autoOp && autoOp !== 'Unknown') {
+      setOperator(autoOp);
+    }
+  };
+
+  // Reset form states to default
+  const resetForm = () => {
+    setPhoneNumber('');
+    setDescription('');
+    setNotes('');
+    setIsMetadataExpanded(false);
+    setReferenceNumber('');
+    setOperator('Grameenphone');
+    setCategory('Suspect');
+    setOwnerName('');
+    setMappingMode('auto');
+    setSelectedFile(null);
+    setRowCount(null);
+    setErrorMsg('');
+    setLoading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Automatically reset the form state whenever the modal visibility changes
+  useEffect(() => {
+    resetForm();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -76,6 +153,12 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
           guessedNum = guessedNum.substring(2);
         }
         setPhoneNumber(guessedNum);
+
+        // Guessed operator from phone number prefix takes priority
+        const autoOp = getBPartyOperator(guessedNum);
+        if (autoOp && autoOp !== 'Unknown') {
+          setOperator(autoOp);
+        }
       }
 
       // Read file to parse rows count
@@ -86,8 +169,49 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
           const workbook = XLSX.read(bstr, { type: 'binary' });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          const data = XLSX.utils.sheet_to_json(worksheet);
+          const data = XLSX.utils.sheet_to_json<any>(worksheet);
           setRowCount(data.length);
+
+          if (data && data.length > 0) {
+            const firstRow = data[0];
+
+            // 1. Try to find the A-Party (phone number) from the first row of the sheet
+            const rawAParty = getValue(firstRow, 'aparty', 'phone', 'number', 'msisdn');
+            if (rawAParty) {
+              let cleanNum = String(rawAParty).trim().replace(/\D/g, '');
+              if (cleanNum.length === 10 && cleanNum.startsWith('1')) {
+                cleanNum = '0' + cleanNum;
+              } else if (cleanNum.startsWith('880') && cleanNum.length === 13) {
+                cleanNum = cleanNum.substring(2);
+              }
+              if (cleanNum) {
+                setPhoneNumber(cleanNum);
+
+                // Guess operator from this detected phone number prefix
+                const autoOp = getBPartyOperator(cleanNum);
+                if (autoOp && autoOp !== 'Unknown') {
+                  setOperator(autoOp);
+                }
+              }
+            }
+
+            // 2. Try to find the provider name (operator) from the first row of the sheet
+            const rawProvider = getValue(firstRow, 'providername', 'provider name', 'provider', 'carrier', 'operator');
+            if (rawProvider) {
+              const nameLower = String(rawProvider).toLowerCase();
+              if (nameLower.includes('gp') || nameLower.includes('grameen') || nameLower.includes('grameenphone')) {
+                setOperator('Grameenphone');
+              } else if (nameLower.includes('robi')) {
+                setOperator('Robi');
+              } else if (nameLower.includes('teletalk') || nameLower.includes('tele talk')) {
+                setOperator('Teletalk');
+              } else if (nameLower.includes('banglalink') || nameLower.includes('bl')) {
+                setOperator('Banglalink');
+              } else if (nameLower.includes('airtel')) {
+                setOperator('Airtel');
+              }
+            }
+          }
         } catch (err) {
           console.error(err);
           setErrorMsg('Error reading rows count from file.');
@@ -111,6 +235,20 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile || rowCount === null) return;
+    setErrorMsg('');
+
+    // Validate connection and limits for non-owners
+    if (role !== 'owner') {
+      if (!navigator.onLine) {
+        setErrorMsg("Internet connection is required to verify account limits. Please connect to the internet and try again.");
+        return;
+      }
+      
+      if (uploadedFilesCount >= maxFiles) {
+        setErrorMsg(`File upload limit exceeded (${uploadedFilesCount}/${maxFiles} files uploaded). Please contact the system administrator to upgrade your limits.`);
+        return;
+      }
+    }
 
     setLoading(true);
     try {
@@ -128,10 +266,21 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
           if (rawRows.length > 0) {
             const firstRow = rawRows[0];
-            detectedPhone = String(firstRow.APARTY || firstRow.aparty || '');
-            const providerName = firstRow.PROVIDER_NAME || firstRow['PROVIDER NAME'] || firstRow.provider_name || firstRow.provider || '';
+            detectedPhone = String(getValue(firstRow, 'aparty') || '');
+            const providerName = getValue(firstRow, 'providername', 'provider name', 'provider') || '';
             if (providerName) {
-              detectedOperator = String(providerName);
+              const nameLower = String(providerName).toLowerCase();
+              if (nameLower.includes('gp') || nameLower.includes('grameen')) {
+                detectedOperator = 'Grameenphone';
+              } else if (nameLower.includes('robi')) {
+                detectedOperator = 'Robi';
+              } else if (nameLower.includes('teletalk')) {
+                detectedOperator = 'Teletalk';
+              } else if (nameLower.includes('banglalink')) {
+                detectedOperator = 'Banglalink';
+              } else {
+                detectedOperator = String(providerName);
+              }
             }
           }
 
@@ -154,20 +303,37 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
           // 2. Parse file and insert CDRRecords
           const recordsToInsert = rawRows.map((row: any) => {
-            // Find columns dynamically
-            const otherParty = row.BPARTY || row.bparty || row['Other Party'] || row.other_party || 'Unknown';
-            const duration = Number(row.CALL_DURATION || row['CALL DURATION'] || row.duration || 0);
-            const usageType = row.USAGE_TYPE || row['USAGE TYPE'] || row['Call Type'] || row.type || 'MOC';
-            const imei = row.IMEI || row.imei || '';
-            const imsi = row.IMSI || row.IMSIA || row.imsi || row.imsia || '';
-            const address = row.ADDRESS || row.address || row.Location || '';
-            const rawTime = row.START_DTTIME || row.START || row.time || row.Timestamp || Date.now();
+            // Find columns dynamically using case-insensitive mapping
+            const otherParty = getValue(row, 'bparty', 'otherparty', 'other party') || 'Unknown';
+            const duration = Number(getValue(row, 'callduration', 'duration', 'call duration') || 0);
+            const usageType = normalizeUsageType(getValue(row, 'usagetype', 'calltype', 'type', 'usage type') || 'MOC');
+            const imei = getValue(row, 'imei') || '';
+            const imsi = getValue(row, 'imsi', 'imsia') || '';
+            const address = getValue(row, 'address', 'location') || '';
+            const rawTime = getValue(row, 'startdttime', 'starttime', 'start', 'time', 'timestamp');
 
             let timestamp = Date.now();
             if (rawTime) {
               const timeStr = String(rawTime).trim();
-              if (/^\d{14}$/.test(timeStr)) {
-                // Parse custom YYYYMMDDHHMMSS format
+              
+              // Handle DD/MM/YYYY format first (e.g. Teletalk)
+              const ddmmyyyyRegex = /^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})/;
+              const match = timeStr.match(ddmmyyyyRegex);
+              
+              if (match) {
+                const day = parseInt(match[1], 10);
+                const month = parseInt(match[2], 10) - 1; // 0-indexed month
+                const year = parseInt(match[3], 10);
+                const hours = parseInt(match[4], 10);
+                const minutes = parseInt(match[5], 10);
+                const seconds = parseInt(match[6], 10);
+                
+                const d = new Date(year, month, day, hours, minutes, seconds);
+                if (!isNaN(d.getTime())) {
+                  timestamp = d.getTime();
+                }
+              } else if (/^\d{14}$/.test(timeStr)) {
+                // Parse custom YYYYMMDDHHMMSS format (GP, Robi, Banglalink)
                 const yr = parseInt(timeStr.substring(0, 4), 10);
                 const mo = parseInt(timeStr.substring(4, 6), 10) - 1; // 0-indexed month
                 const dy = parseInt(timeStr.substring(6, 8), 10);
@@ -194,17 +360,27 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               }
             }
 
-            const lac = row.LACSTARTA || row.lac ? Number(row.LACSTARTA || row.lac) : undefined;
-            const cellId = row.CISTARTA || row.cellId || row.cid ? Number(row.CISTARTA || row.cellId || row.cid) : undefined;
-            const networkType = row.NETWORK_TYPE || row['NETWORK TYPE'] || row.network_type || row.networkType || '';
-            const mcc = row.MCCSTARTA || row.mcc ? Number(row.MCCSTARTA || row.mcc) : undefined;
-            const mnc = row.MNCSTARTA || row.mnc ? Number(row.MNCSTARTA || row.mnc) : undefined;
-            const aparty = row.APARTY || row.aparty || '';
-            const uePort = row.UE_PORT || row.ue_port || row.uePort || '';
-            const ueLocalIp = row.UE_LOCAL_IP || row.ue_local_ip || row.ueLocalIp || '';
-            const providerName = row.PROVIDER_NAME || row['PROVIDER NAME'] || row.provider_name || row.provider || detectedOperator || 'Unknown';
-            const ueLocalPort = row.UE_LOCAL_PORT || row['UE Local Port'] || row.ue_local_port || '';
-            const countryCode = row.COUNTRY_CODE || row['Country Code'] || row.country_code || '';
+            const lacVal = getValue(row, 'lacstarta', 'lac');
+            const lac = lacVal ? Number(lacVal) : undefined;
+            
+            const cellIdVal = getValue(row, 'cistarta', 'cellid', 'cid', 'ci');
+            const cellId = cellIdVal ? Number(cellIdVal) : undefined;
+            
+            const networkType = getValue(row, 'networktype', 'network type') || '';
+            
+            const mccVal = getValue(row, 'mccstarta', 'mcc');
+            const mcc = mccVal ? Number(mccVal) : undefined;
+            
+            const mncVal = getValue(row, 'mncstarta', 'mnc');
+            const mnc = mncVal ? Number(mncVal) : undefined;
+            
+            const aparty = getValue(row, 'aparty') || '';
+            const uePort = getValue(row, 'ueport', 'ue port') || '';
+            const ueLocalIp = getValue(row, 'uelocalip', 'ue local ip') || '';
+            
+            const providerName = getValue(row, 'providername', 'provider name', 'provider') || detectedOperator || 'Unknown';
+            const ueLocalPort = getValue(row, 'uelocalport', 'ue local port') || '';
+            const countryCode = getValue(row, 'countrycode', 'country code') || '';
 
             return {
               caseId,
@@ -232,6 +408,14 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
           // Bulk insert in chunks to keep Dexie fast
           await db.cdrRecords.bulkAdd(recordsToInsert);
+
+          // Increment uploadedFilesCount in Firestore
+          if (currentUser && role !== 'owner') {
+            const statsDocRef = doc(dbFirestore, 'userStats', currentUser.uid);
+            await setDoc(statsDocRef, {
+              uploadedFilesCount: increment(1)
+            }, { merge: true });
+          }
 
           onUploadSuccess();
           onClose();
@@ -275,10 +459,41 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
               <input
                 type="text"
                 value={phoneNumber}
-                onChange={e => setPhoneNumber(e.target.value)}
+                onChange={e => handlePhoneNumberChange(e.target.value)}
                 placeholder="Auto-detected from CDR"
                 className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
               />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
+                Network operator
+              </label>
+              <select
+                value={operator}
+                onChange={e => setOperator(e.target.value)}
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#3ecf8e]"
+              >
+                {['Grameenphone', 'Robi', 'Banglalink', 'Teletalk', 'Airtel'].map(op => (
+                  <option key={op} value={op}>{op}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
+                Category (case link)
+              </label>
+              <select
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#3ecf8e]"
+              >
+                {['Suspect', 'Victim', 'Witness', '-'].map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1">
               <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
@@ -373,43 +588,13 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
 
                 <div className="space-y-1">
                   <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
-                    Network operator
-                  </label>
-                  <select
-                    value={operator}
-                    onChange={e => setOperator(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#3ecf8e]"
-                  >
-                    {['Grameenphone', 'Robi', 'Banglalink', 'Teletalk', 'Airtel'].map(op => (
-                      <option key={op} value={op}>{op}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
-                    Category (case link)
-                  </label>
-                  <select
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-[#3ecf8e]"
-                  >
-                    {['Suspect', 'Victim', 'Witness', '-'].map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
-                    SIM owner name
+                    Subscriber owner name
                   </label>
                   <input
                     type="text"
                     value={ownerName}
                     onChange={e => setOwnerName(e.target.value)}
-                    placeholder="Owner reference name"
+                    placeholder="e.g. Mahbub Shihab"
                     className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
                   />
                 </div>

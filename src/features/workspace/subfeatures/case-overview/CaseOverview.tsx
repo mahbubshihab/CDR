@@ -6,6 +6,10 @@ import {
 import { db, type Case, type CDRFile } from '../../../../utils/db';
 import { UploadCDRModal } from '../../components/UploadCDRModal';
 import { DateTimeInput } from '../../../../components/ui/DateTimeInput';
+import { CustomConfirm } from '../../../../components/ui/CustomModal';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { db as dbFirestore } from '../../../../firebase';
+import { doc, setDoc, increment } from 'firebase/firestore';
 
 
 interface CaseOverviewProps {
@@ -18,10 +22,12 @@ interface CaseOverviewProps {
 export const CaseOverview: React.FC<CaseOverviewProps> = ({ 
   activeCase, onTriggerRefresh, onOpenEditModal, onOpenTargetFileId
 }) => {
+  const { currentUser, role } = useAuth();
   const [cdrFiles, setCdrFiles] = useState<CDRFile[]>([]);
   const [totalRecordsCount, setTotalRecordsCount] = useState(0);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pendingDeleteFileId, setPendingDeleteFileId] = useState<number | null>(null);
 
   // Table selections
   const [selectedFileIds, setSelectedFileIds] = useState<number[]>([]);
@@ -67,15 +73,30 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
   };
 
   // Delete file handler
-  const handleDeleteFile = async (fileId: number) => {
-    if (!window.confirm('Are you sure you want to delete this CDR file and all its records?')) return;
+  const handleDeleteFile = (fileId: number) => {
+    setPendingDeleteFileId(fileId);
+  };
+
+  const confirmDeleteFile = async () => {
+    if (pendingDeleteFileId === null) return;
     try {
-      await db.cdrFiles.delete(fileId);
+      await db.cdrFiles.delete(pendingDeleteFileId);
       // Clean up records
-      await db.cdrRecords.where('fileId').equals(fileId).delete();
+      await db.cdrRecords.where('fileId').equals(pendingDeleteFileId).delete();
+
+      // Decrement uploadedFilesCount in Firestore stats
+      if (currentUser && role !== 'owner') {
+        const statsDocRef = doc(dbFirestore, 'userStats', currentUser.uid);
+        await setDoc(statsDocRef, {
+          uploadedFilesCount: increment(-1)
+        }, { merge: true });
+      }
+
       fetchWorkspaceData();
     } catch (err) {
       console.error(err);
+    } finally {
+      setPendingDeleteFileId(null);
     }
   };
 
@@ -414,6 +435,14 @@ export const CaseOverview: React.FC<CaseOverviewProps> = ({
         />
       )}
 
+      <CustomConfirm
+        isOpen={pendingDeleteFileId !== null}
+        title="Delete CDR File"
+        message="Are you sure you want to delete this CDR file and all its associated records? This action cannot be undone."
+        confirmText="Confirm Delete"
+        onConfirm={confirmDeleteFile}
+        onCancel={() => setPendingDeleteFileId(null)}
+      />
     </div>
   );
 };

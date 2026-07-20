@@ -4,6 +4,10 @@ import {
   Edit2, ExternalLink, Upload, Trash2, FolderOpen
 } from 'lucide-react';
 import { db, type Case } from '../../../utils/db';
+import { CustomConfirm } from '../../../components/ui/CustomModal';
+import { useAuth } from '../../../contexts/AuthContext';
+import { db as dbFirestore } from '../../../firebase';
+import { doc, setDoc, increment } from 'firebase/firestore';
 
 interface CaseListProps {
   onOpenCase: (c: Case) => void;
@@ -16,19 +20,27 @@ interface CaseListProps {
 export const CaseList: React.FC<CaseListProps> = ({ 
   onOpenCase, onEditCase, onUploadCDR, refreshKey, onTriggerRefresh 
 }) => {
-  const [cases, setCases] = useState<Case[]>([]);
+  const { currentUser, role } = useAuth();
+  const [cases, setCases] = useState<(Case & { cdrCount?: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Last Updated');
   const [layoutMode, setLayoutMode] = useState<'list' | 'grid'>('list');
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   // Load cases from IndexedDB
   const fetchCases = async () => {
     setLoading(true);
     try {
       const data = await db.cases.toArray();
-      setCases(data);
+      const casesWithCounts = await Promise.all(data.map(async (c) => {
+        if (!c.id) return { ...c, cdrCount: 0 };
+        const numCount = await db.cdrFiles.where('caseId').equals(c.id).count();
+        const strCount = await db.cdrFiles.where('caseId').equals(String(c.id)).count();
+        return { ...c, cdrCount: numCount + strCount };
+      }));
+      setCases(casesWithCounts);
     } catch (err) {
       console.error('Failed to load cases:', err);
     } finally {
@@ -41,17 +53,40 @@ export const CaseList: React.FC<CaseListProps> = ({
   }, [refreshKey]);
 
   // Handle case deletion
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this case? This action will permanently remove all associated records.')) return;
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (pendingDeleteId === null) return;
     try {
-      await db.cases.delete(id);
-      // Clean up records and files associated with this case
-      await db.cdrRecords.where('caseId').equals(id).delete();
-      await db.cdrFiles.where('caseId').equals(id).delete();
+      // Find out how many files are associated with this case before deleting them
+      const numCount = await db.cdrFiles.where('caseId').equals(pendingDeleteId).count();
+      const strCount = await db.cdrFiles.where('caseId').equals(String(pendingDeleteId)).count();
+      const totalFilesDeleted = numCount + strCount;
+
+      await db.cases.delete(pendingDeleteId);
+      // Clean up records and files associated with this case (both number and string matching)
+      await db.cdrRecords.where('caseId').equals(pendingDeleteId).delete();
+      await db.cdrRecords.where('caseId').equals(String(pendingDeleteId)).delete();
+      await db.cdrFiles.where('caseId').equals(pendingDeleteId).delete();
+      await db.cdrFiles.where('caseId').equals(String(pendingDeleteId)).delete();
+
+      // Decrement counts in Firestore userStats
+      if (currentUser && role !== 'owner') {
+        const statsDocRef = doc(dbFirestore, 'userStats', currentUser.uid);
+        await setDoc(statsDocRef, {
+          createdCasesCount: increment(-1),
+          uploadedFilesCount: increment(-totalFilesDeleted)
+        }, { merge: true });
+      }
+
       onTriggerRefresh();
       fetchCases();
     } catch (err) {
       console.error('Failed to delete case:', err);
+    } finally {
+      setPendingDeleteId(null);
     }
   };
 
@@ -235,7 +270,7 @@ export const CaseList: React.FC<CaseListProps> = ({
                       </span>
                     </td>
                     <td className="py-3 px-5 font-mono text-gray-300">
-                      0
+                      {c.cdrCount || 0}
                     </td>
                     <td className="py-3 px-5 text-gray-300">
                       {c.investigatorName || '-'}
@@ -357,6 +392,15 @@ export const CaseList: React.FC<CaseListProps> = ({
           )}
         </div>
       )}
+
+      <CustomConfirm
+        isOpen={pendingDeleteId !== null}
+        title="Delete Case Profile"
+        message="Are you sure you want to delete this case? This action will permanently remove all associated records and cell log files."
+        confirmText="Confirm Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 };

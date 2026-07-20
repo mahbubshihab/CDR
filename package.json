@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "dexie": "^4.4.4",
+    "dexie-export-import": "^4.4.0",
+    "firebase": "^12.16.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",

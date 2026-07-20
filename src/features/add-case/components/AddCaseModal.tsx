@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, AlertTriangle } from 'lucide-react';
 import { db, type Case } from '../../../utils/db';
+import { useAuth } from '../../../contexts/AuthContext';
+import { db as dbFirestore } from '../../../firebase';
+import { doc, setDoc, increment } from 'firebase/firestore';
 
 interface AddCaseModalProps {
   isOpen: boolean;
@@ -9,19 +12,35 @@ interface AddCaseModalProps {
 }
 
 export const AddCaseModal: React.FC<AddCaseModalProps> = ({ isOpen, onClose, onSave }) => {
+  const { currentUser, role, maxCases, createdCasesCount } = useAuth();
   const [caseIdString, setCaseIdString] = useState('CASE-2026-001');
   const [title, setTitle] = useState('');
   const [caseType, setCaseType] = useState('Murder');
   const [policeStation, setPoliceStation] = useState('');
-  const [investigatorName, setInvestigatorName] = useState('Sajawal Khan');
+  const [investigatorName, setInvestigatorName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'Pending' | 'Active' | 'Completed'>('Pending');
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!caseIdString.trim() || !title.trim()) return;
+    setError(null);
+
+    // Validate connection and limits for non-owners
+    if (role !== 'owner') {
+      if (!navigator.onLine) {
+        setError("Internet connection is required to verify account limits. Please connect to the internet and try again.");
+        return;
+      }
+      
+      if (createdCasesCount >= maxCases) {
+        setError(`Case limit exceeded (${createdCasesCount}/${maxCases} cases used). Please contact the system administrator to upgrade your limits.`);
+        return;
+      }
+    }
 
     try {
       await db.cases.add({
@@ -34,16 +53,28 @@ export const AddCaseModal: React.FC<AddCaseModalProps> = ({ isOpen, onClose, onS
         status,
         createdAt: Date.now()
       });
+
+      // Increment createdCasesCount in Firestore
+      if (currentUser && role !== 'owner') {
+        const statsDocRef = doc(dbFirestore, 'userStats', currentUser.uid);
+        await setDoc(statsDocRef, {
+          createdCasesCount: increment(1)
+        }, { merge: true });
+      }
+
       onSave();
       onClose();
       // Reset
       setCaseIdString(`CASE-2026-${Math.floor(100 + Math.random() * 900)}`);
       setTitle('');
       setPoliceStation('');
+      setInvestigatorName('');
       setDescription('');
       setStatus('Pending');
+      setError(null);
     } catch (err) {
       console.error('Failed to save case:', err);
+      setError("Failed to save the case to local database. Please try again.");
     }
   };
 
@@ -62,6 +93,14 @@ export const AddCaseModal: React.FC<AddCaseModalProps> = ({ isOpen, onClose, onS
             <X className="h-4.5 w-4.5" />
           </button>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="mx-5 mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2 text-red-400 text-xs font-mono">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-red-400" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4">

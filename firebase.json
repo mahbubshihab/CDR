@@ -1,5 +1,9 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
+    "site": "ai-ocr-667af",
     "public": "dist",
     "ignore": [
       "firebase.json",

@@ -13,7 +13,10 @@
 - [x] Create `QuickSummaryGrid.tsx` component
 - [x] Create `ExecutivePortalGrid.tsx` component
 - [x] Create `SecondaryPortalGrid.tsx` component
-- [x] Create `LeadGenerationGrid.tsx` component
-- [x] Refactor and coordinate layout inside `AdvancedCDRAnalysis.tsx`
-- [x] Verify compilation with `npm run build`
+- [x] Implement dynamic user-specific database isolation in db.ts via Proxy
+- [x] Connect auth state changes to database user switching in AuthContext.tsx
+- [x] Implement Firestore secure user resource limits (Cases, Files) and usage trackers
+- [x] Integrate limit checkers & connectivity checks in AddCaseModal and UploadCDRModal
+- [x] Add sleek 'Configure User Access' modal in UserManagement dashboard
+- [x] Verify clean compilation build with npm run build`
 - [x] Commit and push code to GitHub remote main branch

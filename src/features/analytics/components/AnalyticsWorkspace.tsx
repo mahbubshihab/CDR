@@ -5,7 +5,7 @@ import {
   ShieldAlert, BarChart3, Server, Compass, UserCheck, 
   Globe, Smartphone, Radio, MapPin, User, Printer, Shield, Map, FileSpreadsheet, FileText,
   Phone, Cpu, Wifi, ChevronLeft, ChevronRight, PhoneCall, Sun, Moon, Route as RouteIcon, ArrowRightLeft,
-  CalendarDays, Clock
+  CalendarDays, Clock, PanelLeft
 } from 'lucide-react';
 import { db, type CDRFile, type CDRRecord } from '../../../utils/db';
 import { ExecutiveDashboard } from '../subfeatures/executive-dashboard/ExecutiveDashboard';
@@ -13,7 +13,9 @@ import { AdvancedCDRAnalysis } from '../subfeatures/advanced-analysis/AdvancedCD
 import { GraphAnalytics } from '../subfeatures/graph-analytics/GraphAnalytics';
 import { RawCDRLogs } from '../subfeatures/raw-logs/RawCDRLogs';
 import { MfcAnalysis } from '../subfeatures/mfc-analysis/MfcAnalysis';
+import { Share2 } from 'lucide-react';
 import { NetworkAnalysis } from '../subfeatures/network-analysis/NetworkAnalysis';
+import { LinkAnalysis } from '../subfeatures/link-analysis/LinkAnalysis';
 import { OwnershipIntelligence } from '../subfeatures/ownership-intelligence/OwnershipIntelligence';
 import { InternationalIntelligence } from '../subfeatures/international-intelligence/InternationalIntelligence';
 import { ImeiSummary } from '../subfeatures/imei-summary/ImeiSummary';
@@ -31,6 +33,8 @@ import { CellIdChangesModule } from '../subfeatures/cell-id-changes/CellIdChange
 import { LocationChangesModule } from '../subfeatures/location-changes/LocationChangesModule';
 import { MissingDatesModule } from '../subfeatures/missing-dates/MissingDatesModule';
 import { InteractiveTimelineModule } from '../subfeatures/interactive-timeline/InteractiveTimelineModule';
+import { ReportsDownloads } from '../subfeatures/reports-downloads/ReportsDownloads';
+import { CustomAlert } from '../../../components/ui/CustomModal';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -43,6 +47,12 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
   const [targetFile, setTargetFile] = useState<CDRFile | null>(null);
   const [targetRecords, setTargetRecords] = useState<CDRRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [alertConfig, setAlertConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type?: 'error' | 'success' | 'info' | 'warning';
+  } | null>(null);
 
   // Sync route data from Dexie db
   useEffect(() => {
@@ -90,7 +100,9 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     { id: 'cell_id_changes', name: 'Cell ID Changes', icon: ArrowRightLeft },
     { id: 'location_changes', name: 'Location Changes', icon: MapPin },
     { id: 'missing_dates', name: 'Missing Dates', icon: CalendarDays },
-    { id: 'interactive_timeline', name: 'Interactive Timeline', icon: Clock }
+    { id: 'interactive_timeline', name: 'Interactive Timeline', icon: Clock },
+    { id: 'link_analysis', name: 'Link Analysis', icon: Share2 },
+    { id: 'reports_downloads', name: 'Reports & Downloads', icon: FileText }
   ];
 
   if (loading) {
@@ -139,7 +151,15 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
   return (
     <div className="flex h-full w-full overflow-hidden bg-transparent">
       {/* 1. Sidebar Navigation */}
-      <aside className={`transition-all duration-300 border-r border-[#2e2e2e] bg-[#171717] flex flex-col justify-between shrink-0 h-full ${isSidebarCollapsed ? 'w-16' : 'w-56'}`}>
+      {!isSidebarCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setIsSidebarCollapsed(true)}
+        />
+      )}
+      <aside className={`fixed md:relative inset-y-0 left-0 z-40 transition-all duration-300 border-r border-[#2e2e2e] bg-[#171717] flex flex-col justify-between shrink-0 h-full ${
+        isSidebarCollapsed ? '-translate-x-full md:translate-x-0 md:w-16' : 'translate-x-0 w-64'
+      }`}>
         <div className="flex flex-col h-full text-left overflow-hidden">
           {/* Back trigger */}
           <button 
@@ -150,23 +170,41 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
             {!isSidebarCollapsed && <span>Back to Case Workspace</span>}
           </button>
-
+ 
           {/* Active Target Header */}
-          <div className={`p-4 border-b border-[#2e2e2e] bg-[#141414]/30 ${isSidebarCollapsed ? 'flex justify-center items-center h-[76px]' : ''}`}>
+          <div className={`p-4 border-b border-[#2e2e2e] bg-[#141414]/30 ${isSidebarCollapsed ? 'flex flex-col gap-3 justify-center items-center h-[90px]' : 'flex items-center justify-between'}`}>
             {!isSidebarCollapsed ? (
               <>
-                <span className="font-mono text-[10px] text-gray-500 uppercase tracking-wider block">
-                  Target A-Party Number
-                </span>
-                <h3 className="font-semibold text-gray-200 text-sm mt-0.5 font-mono select-all">
-                  {targetFile.phoneNumber}
-                </h3>
-                <span className="text-[11px] text-gray-400 font-mono block mt-1 truncate max-w-full font-bold">
-                  {targetFile.operator} · {targetFile.category}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="font-mono text-[10px] text-gray-500 uppercase tracking-wider block">
+                    Target A-Party Number
+                  </span>
+                  <h3 className="font-semibold text-gray-200 text-sm mt-0.5 font-mono select-all truncate">
+                    {targetFile.phoneNumber}
+                  </h3>
+                  <span className="text-[11px] text-gray-400 font-mono block mt-1 truncate max-w-full font-bold">
+                    {targetFile.operator} · {targetFile.category}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  className="p-1 hover:bg-[#1e1e1e] text-gray-400 hover:text-gray-200 rounded-lg cursor-pointer transition-colors shrink-0 hidden md:block"
+                  title="Collapse sidebar"
+                >
+                  <PanelLeft className="h-4.5 w-4.5" />
+                </button>
               </>
             ) : (
-              <User className="h-5 w-5 text-gray-400" />
+              <>
+                <User className="h-5 w-5 text-gray-400" />
+                <button 
+                  onClick={() => setIsSidebarCollapsed(false)}
+                  className="p-1 hover:bg-[#1e1e1e] text-gray-400 hover:text-gray-200 rounded-lg cursor-pointer transition-colors shrink-0 hidden md:block"
+                  title="Expand sidebar"
+                >
+                  <PanelLeft className="h-4.5 w-4.5" />
+                </button>
+              </>
             )}
           </div>
 
@@ -196,15 +234,76 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             })}
           </nav>
 
-          {/* Toggle Button at the bottom */}
-          <div className="p-2 border-t border-[#2e2e2e]">
-            <button
-              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-end'} p-2 hover:bg-[#1e1e1e] text-gray-400 hover:text-gray-200 rounded-lg transition-colors cursor-pointer`}
-              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              {isSidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-            </button>
+          {/* Footer brand info */}
+          <div className="p-4 border-t border-[#2e2e2e] bg-[#121212]/30 flex flex-col items-center gap-3 shrink-0">
+            {isSidebarCollapsed ? (
+              <>
+                <a 
+                  href="https://mahbubshihab.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:opacity-85 transition-opacity cursor-pointer"
+                  title="Mahbub Shihab"
+                >
+                  <img 
+                    src="/developer.png" 
+                    alt="Mahbub Shihab" 
+                    className="h-6 w-6 rounded-full border border-gray-700 object-cover" 
+                  />
+                </a>
+                <a 
+                  href="https://wa.me/8801521798452" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-1 text-[#25D366] hover:text-[#1ebd5d] hover:bg-[#25D366]/10 rounded-md transition-all cursor-pointer"
+                  title="WhatsApp Support"
+                >
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="h-4.5 w-4.5 fill-current"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.59-4.846c1.6.95 3.182 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.638 1.971 14.161.947 11.517.947c-5.44 0-9.866 4.372-9.87 9.802 0 1.672.43 3.302 1.247 4.75L1.874 20.2l4.773-1.046zM18.006 14.75c-.328-.164-1.942-.958-2.242-1.068-.3-.11-.518-.164-.737.164-.219.328-.847 1.068-1.039 1.287-.192.219-.383.246-.711.082-.328-.164-1.385-.51-2.637-1.627-.975-.87-1.633-1.946-1.824-2.274-.192-.328-.02-.505.143-.668.146-.146.328-.383.492-.575.164-.192.219-.328.328-.548.11-.219.055-.411-.027-.575-.082-.164-.737-1.779-1.01-2.436-.266-.641-.532-.553-.73-.563-.189-.01-.406-.01-.622-.01-.216 0-.568.082-.865.411-.297.328-1.137 1.11-1.137 2.709 0 1.599 1.164 3.142 1.326 3.36.162.219 2.292 3.5 5.552 4.908.775.335 1.38.535 1.852.686.779.248 1.488.213 2.048.13.624-.092 1.942-.795 2.216-1.56.274-.767.274-1.423.192-1.56-.082-.137-.3-.219-.628-.383z"/>
+                  </svg>
+                </a>
+              </>
+            ) : (
+              <div className="w-full flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-550 uppercase font-bold tracking-wider">Created by</span>
+                  <a 
+                    href="https://mahbubshihab.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer group"
+                  >
+                    <img 
+                      src="/developer.png" 
+                      alt="Mahbub Shihab" 
+                      className="h-6 w-6 rounded-full border border-gray-700 group-hover:border-[#3ecf8e] transition-all object-cover" 
+                    />
+                    <span className="text-xs font-semibold text-gray-300 group-hover:text-[#3ecf8e] transition-colors">
+                      Mahbub Shihab
+                    </span>
+                  </a>
+                </div>
+                <a 
+                  href="https://wa.me/8801521798452" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-1 text-[#25D366] hover:text-[#1ebd5d] hover:bg-[#25D366]/10 rounded-md transition-all cursor-pointer"
+                  title="WhatsApp Support"
+                >
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="h-4.5 w-4.5 fill-current"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.59-4.846c1.6.95 3.182 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.638 1.971 14.161.947 11.517.947c-5.44 0-9.866 4.372-9.87 9.802 0 1.672.43 3.302 1.247 4.75L1.874 20.2l4.773-1.046zM18.006 14.75c-.328-.164-1.942-.958-2.242-1.068-.3-.11-.518-.164-.737.164-.219.328-.847 1.068-1.039 1.287-.192.219-.383.246-.711.082-.328-.164-1.385-.51-2.637-1.627-.975-.87-1.633-1.946-1.824-2.274-.192-.328-.02-.505.143-.668.146-.146.328-.383.492-.575.164-.192.219-.328.328-.548.11-.219.055-.411-.027-.575-.082-.164-.737-1.779-1.01-2.436-.266-.641-.532-.553-.73-.563-.189-.01-.406-.01-.622-.01-.216 0-.568.082-.865.411-.297.328-1.137 1.11-1.137 2.709 0 1.599 1.164 3.142 1.326 3.36.162.219 2.292 3.5 5.552 4.908.775.335 1.38.535 1.852.686.779.248 1.488.213 2.048.13.624-.092 1.942-.795 2.216-1.56.274-.767.274-1.423.192-1.56-.082-.137-.3-.219-.628-.383z"/>
+                  </svg>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </aside>
@@ -214,6 +313,14 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
         {/* Top Header toolbar */}
         <div className="p-4 border-b border-[#2e2e2e] bg-[#171717] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shrink-0 font-mono">
           <div className="flex items-center gap-3">
+            {isSidebarCollapsed && (
+              <button
+                onClick={() => setIsSidebarCollapsed(false)}
+                className="p-1.5 hover:bg-[#1e1e1e] text-gray-400 hover:text-gray-250 rounded-lg transition-colors cursor-pointer md:hidden shrink-0"
+              >
+                <Menu className="h-4.5 w-4.5" />
+              </button>
+            )}
             <div className="space-y-0.5 text-left">
               <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-bold">
                 INVESTIGATION WORKSPACE
@@ -268,21 +375,36 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
               <span>Print</span>
             </button>
             <button 
-              onClick={() => alert('Generating KML map layer...')}
+              onClick={() => setAlertConfig({
+                isOpen: true,
+                title: "KML Generation",
+                message: "Generating KML map layer for spatial analysis...",
+                type: "info"
+              })}
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#171717] border border-[#2e2e2e] text-gray-400 hover:text-white rounded-lg cursor-pointer transition-colors"
             >
               <Map className="h-3.5 w-3.5 text-gray-500" />
               <span>KML</span>
             </button>
             <button 
-              onClick={() => alert('Generating KMZ map package...')}
+              onClick={() => setAlertConfig({
+                isOpen: true,
+                title: "KMZ Generation",
+                message: "Generating KMZ map package containing coordinates database...",
+                type: "info"
+              })}
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#171717] border border-[#2e2e2e] text-gray-400 hover:text-white rounded-lg cursor-pointer transition-colors"
             >
               <Map className="h-3.5 w-3.5 text-gray-500" />
               <span>KMZ</span>
             </button>
             <button 
-              onClick={() => alert('Exporting forensic evidence package...')}
+              onClick={() => setAlertConfig({
+                isOpen: true,
+                title: "Forensic Evidence",
+                message: "Exporting certified forensic evidence zip package...",
+                type: "info"
+              })}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#1c170f] border border-amber-950/40 hover:border-amber-600/35 text-amber-450 rounded-lg transition-colors cursor-pointer"
             >
               <Shield className="h-3.5 w-3.5 text-amber-500" />
@@ -326,9 +448,19 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
             <Route path="location_changes" element={<LocationChangesModule cdrFile={targetFile} records={targetRecords} />} />
             <Route path="missing_dates" element={<MissingDatesModule cdrFile={targetFile} records={targetRecords} />} />
             <Route path="interactive_timeline" element={<InteractiveTimelineModule cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="link_analysis" element={<LinkAnalysis cdrFile={targetFile} records={targetRecords} />} />
+            <Route path="reports_downloads" element={<ReportsDownloads cdrFile={targetFile} records={targetRecords} />} />
           </Routes>
         </main>
       </div>
+
+      <CustomAlert 
+        isOpen={!!alertConfig?.isOpen}
+        title={alertConfig?.title || ''}
+        message={alertConfig?.message || ''}
+        type={alertConfig?.type}
+        onClose={() => setAlertConfig(null)}
+      />
     </div>
   );
 };
