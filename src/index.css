@@ -113,11 +113,17 @@ body {
     box-shadow: none !important;
     text-shadow: none !important;
     border-color: #cbd5e1 !important;
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
-  /* Make ONLY dark backgrounds transparent so the white body shows through */
-  /* This prevents opaque white boxes from accidentally hiding layered content */
-  [class*="bg-[#"],
+  /* Make ONLY dark layout backgrounds transparent so the white body shows through */
+  /* Using specific hex prefixes to avoid stripping progress bar colors like bg-[#3ecf8e] */
+  [class*="bg-[#1"],
+  [class*="bg-[#0"],
+  [class*="bg-[#2"],
   [class*="bg-gray-"],
   [class*="bg-zinc-"],
   [class*="bg-neutral-"],
@@ -128,27 +134,22 @@ body {
     background-image: none !important;
   }
 
-  /* Reset document root layout */
+  /* Force white background for the entire document */
   html, body, #root {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    width: 100% !important;
   }
 
-  /* Reset layout containers and scroll locks so content flows across page breaks */
-  .h-full, .h-screen, .w-screen, .overflow-hidden, .overflow-y-auto, main, section, .flex-1, #root > div {
+  /* Reset layout containers to standard block so content flows across page breaks perfectly */
+  /* Targeted specifically to the DOM structure to avoid breaking internal UI components like progress bars */
+  html, body, #root, #root > div, #root > div > div, main, main > div, section, article {
+    display: block !important;
     height: auto !important;
     max-height: none !important;
     min-height: 0 !important;
     overflow: visible !important;
-  }
-  
-  /* Ensure main app wrappers do not use flex in print to prevent height collapse */
-  #root, #root > div {
-    display: block !important;
+    width: auto !important;
+    position: static !important;
   }
 
   /* Prevent cards from splitting across page breaks */
