@@ -226,12 +226,7 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     }
   };
 
-  const handleExportPdf = () => {
-    // Note: JavaScript cannot silently download a native CSS paged PDF.
-    // The most accurate and high-fidelity way to export a PDF with exact print layout 
-    // is to use the browser's native print dialog and save as PDF.
-    window.print();
-  };
+
 
   const handleExportKml = (isKmz: boolean) => {
     const activeTab = location.pathname.split('/').pop() || 'dashboard';
@@ -555,18 +550,11 @@ Verified by: Mahbub Shihab`;
               <span>Excel</span>
             </button>
             <button 
-              onClick={handleExportPdf}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#1c0f0f] border border-red-950/40 hover:border-red-600/35 text-red-450 rounded-lg transition-colors cursor-pointer"
-            >
-              <FileText className="h-3.5 w-3.5 text-red-500" />
-              <span>PDF Report</span>
-            </button>
-            <button 
               onClick={() => window.print()}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0f151c] border border-blue-950/40 hover:border-blue-600/35 text-blue-450 rounded-lg transition-colors cursor-pointer"
             >
               <Printer className="h-3.5 w-3.5 text-blue-500" />
-              <span>Print</span>
+              <span>PDF / Print</span>
             </button>
             <button 
               onClick={() => handleExportKml(false)}
