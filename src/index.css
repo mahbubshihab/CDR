@@ -92,7 +92,7 @@ body {
 
 /* @media print styles for perfect high-contrast PDF & Print reports */
 @media print {
-  /* Hide UI navigation & sidebars during print */
+  /* Hide UI navigation, headers, and sidebars during print */
   aside,
   nav,
   button,
@@ -102,22 +102,23 @@ body {
     display: none !important;
   }
 
-  /* Reset document background & text color */
+  /* Force exact graphics rendering */
   html, body, #root, body * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
+  /* Reset document root to clean white & dark text */
   html, body, #root {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    color: #0f172a !important;
+    color: #000000 !important;
     height: auto !important;
     min-height: 0 !important;
     overflow: visible !important;
   }
 
-  /* Reset layout containers and scroll locks */
+  /* Reset layout containers and scroll locks so content flows naturally across page breaks */
   .h-full, .h-screen, .w-screen, .overflow-hidden, .overflow-y-auto, main, section, .flex-1 {
     height: auto !important;
     max-height: none !important;
@@ -125,33 +126,42 @@ body {
     overflow: visible !important;
   }
 
-  /* Convert all div/section dark card backgrounds to clean white cards with light slate borders */
-  div, section, main, article {
+  main {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    border-color: #cbd5e1 !important;
-    color: #0f172a !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
+    padding: 0 !important;
   }
 
-  /* Map all text elements to dark slate for high legibility on white paper */
-  h1, h2, h3, h4, h5, h6, p, span, a, td, th, li, label, strong, b, i,
-  .text-white,
-  .text-gray-100,
-  .text-gray-200,
-  .text-gray-255,
-  .text-gray-300,
-  .text-gray-400,
-  .text-gray-450,
-  .text-gray-500 {
-    color: #0f172a !important;
+  /* Target main cards: turn their background white, text dark, and borders light gray */
+  main div[class*="rounded-xl"],
+  main div[class*="rounded-lg"],
+  main div[class*="rounded-2xl"],
+  main section {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Map all text elements inside main to dark black for high legibility on white paper */
+  main h1, main h2, main h3, main h4, main h5, main h6, 
+  main p, main span, main a, main td, main th, main li, main label, main strong, main b, main i,
+  main .text-white,
+  main .text-gray-100,
+  main .text-gray-200,
+  main .text-gray-255,
+  main .text-gray-300,
+  main .text-gray-400,
+  main .text-gray-450,
+  main .text-gray-500 {
+    color: #000000 !important;
     background-color: transparent !important;
   }
 
-  /* Preserve SVG chart line colors and make chart labels dark */
+  /* Ensure SVG chart labels and texts are black */
   svg text {
-    fill: #0f172a !important;
+    fill: #000000 !important;
   }
   svg {
     filter: none !important;
@@ -168,20 +178,20 @@ body {
 /* High-fidelity PDF snapshot capture context */
 .print-capture {
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #000000 !important;
   padding: 24px !important;
   height: auto !important;
   overflow: visible !important;
   display: block !important;
 }
 
-.print-capture div,
-.print-capture section,
-.print-capture main {
+.print-capture main div[class*="rounded-xl"],
+.print-capture main div[class*="rounded-lg"],
+.print-capture main section {
   background-color: #ffffff !important;
   background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  color: #000000 !important;
 }
 
 .print-capture h1,
@@ -198,10 +208,10 @@ body {
 .print-capture .text-gray-300,
 .print-capture .text-gray-400,
 .print-capture .text-gray-500 {
-  color: #0f172a !important;
+  color: #000000 !important;
   background-color: transparent !important;
 }
 
 .print-capture svg text {
-  fill: #0f172a !important;
+  fill: #000000 !important;
 }
