@@ -126,25 +126,24 @@ body {
     overflow: visible !important;
   }
 
-  main {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    padding: 0 !important;
-  }
-
-  /* Force all main containers, card boxes, and inner wrappers to pure white background & light slate border */
-  main div, main section, main article, main header {
+  html body main,
+  html body main * {
     background-color: #ffffff !important;
     background: #ffffff !important;
     background-image: none !important;
-    border-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
     box-shadow: none !important;
+    text-shadow: none !important;
   }
 
   /* Force all text elements inside main to be crisp solid black with transparent background */
-  main h1, main h2, main h3, main h4, main h5, main h6, 
-  main p, main span, main a, main td, main th, main li, main label, main strong, main b, main i, main code,
-  main [class*="text-"] {
+  html body main h1, html body main h2, html body main h3, 
+  html body main h4, html body main h5, html body main h6, 
+  html body main p, html body main span, html body main a, 
+  html body main td, html body main th, html body main li, 
+  html body main label, html body main strong, html body main b, 
+  html body main i, html body main code,
+  html body main [class*="text-"] {
     color: #000000 !important;
     background-color: transparent !important;
   }
@@ -175,12 +174,12 @@ body {
   display: block !important;
 }
 
-.print-capture main div,
-.print-capture main section {
+.print-capture main,
+.print-capture main * {
   background-color: #ffffff !important;
   background: #ffffff !important;
   background-image: none !important;
-  border-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
   color: #000000 !important;
 }
 
