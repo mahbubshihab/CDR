@@ -90,111 +90,109 @@ body {
   background: #1e1e1e !important;
 }
 
-/* @media print styles for perfect high-contrast PDF reports */
+/* @media print styles for perfect high-contrast PDF & Print reports */
 @media print {
-  /* Hide UI components completely during print */
-  aside, 
-  nav, 
-  button, 
-  .no-print, 
-  .no-print-actions {
+  /* Hide UI navigation & sidebars during print */
+  aside,
+  nav,
+  button,
+  .no-print,
+  .no-print-actions,
+  div[class*="border-b border-[#2e2e2e]"] {
     display: none !important;
   }
 
-  /* Reset layout constraints so pages break naturally */
-  html, body, #root, .flex, .flex-col, .h-full, .h-screen, .w-screen, .overflow-hidden, main, .flex-1, .grid {
-    height: auto !important;
-    width: auto !important;
-    min-height: 0 !important;
-    min-width: 0 !important;
-    overflow: visible !important;
-    display: block !important;
-    position: static !important;
+  /* Reset document background & text color */
+  html, body, #root {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
   }
 
-  /* Force exact graphics rendering */
-  * {
+  /* Reset layout containers and scroll locks */
+  .h-full, .h-screen, .w-screen, .overflow-hidden, .overflow-y-auto, main, section, .flex-1 {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure color adjustments work in Chrome/Safari/Firefox */
+  body * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
   }
 
-  /* Force all text in any element to be black, and all backgrounds to be transparent by default */
-  * {
-    color: #000000 !important;
-    background-color: transparent !important;
-    background-image: none !important;
-  }
-
-  /* Specific card containers styling */
-  main,
-  section,
-  div[class*="bg-"],
-  div[class*="bg-brand-card"],
-  .bg-\[\#1e1e1e\],
+  /* Convert dark card backgrounds to clean white cards with subtle slate borders */
+  .bg-\[\#121212\],
   .bg-\[\#171717\],
-  .bg-\[\#121212\] {
+  .bg-\[\#1e1e1e\],
+  .bg-\[\#1a1a1a\],
+  .bg-\[\#151515\] {
     background-color: #ffffff !important;
     background: #ffffff !important;
     border-color: #cbd5e1 !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    margin-bottom: 20px !important;
-    padding: 20px !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+    color: #0f172a !important;
   }
 
-  /* Ensure SVG elements like charts are legible */
+  /* Map all text elements to dark slate for high legibility on white paper */
+  .text-white,
+  .text-gray-100,
+  .text-gray-200,
+  .text-gray-255,
+  .text-gray-300,
+  .text-gray-400,
+  .text-gray-450,
+  .text-gray-500 {
+    color: #0f172a !important;
+  }
+
+  /* Preserve SVG chart line colors and make chart labels dark */
   svg text {
-    fill: #000000 !important;
+    fill: #0f172a !important;
   }
   svg {
     filter: none !important;
   }
-  svg polyline {
-    stroke: #3ecf8e !important;
-  }
 
-  /* Disable max-height constraints */
-  .max-h-36, .overflow-y-auto, .custom-scrollbar {
-    max-height: none !important;
-    overflow: visible !important;
+  /* Prevent cards from breaking awkwardly in half across page breaks */
+  section > div,
+  .grid > div {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
 
-/* High-fidelity PDF snapshot capture context (strictly active only during print generation) */
+/* High-fidelity PDF snapshot capture context */
 .print-capture {
   background-color: #ffffff !important;
-  color: #000000 !important;
+  color: #0f172a !important;
   padding: 24px !important;
   height: auto !important;
   overflow: visible !important;
   display: block !important;
 }
 
-.print-capture * {
-  color: #000000 !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-.print-capture main,
-.print-capture section,
-.print-capture div[class*="bg-"] {
+.print-capture .bg-\[\#121212\],
+.print-capture .bg-\[\#171717\],
+.print-capture .bg-\[\#1e1e1e\] {
   background-color: #ffffff !important;
   background: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 8px !important;
-  margin-bottom: 20px !important;
-  padding: 20px !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.print-capture .text-white,
+.print-capture .text-gray-200,
+.print-capture .text-gray-300,
+.print-capture .text-gray-400,
+.print-capture .text-gray-500 {
+  color: #0f172a !important;
 }
 
 .print-capture svg text {
-  fill: #000000 !important;
+  fill: #0f172a !important;
 }
