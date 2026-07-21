@@ -107,16 +107,34 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* Set text color to black and remove shadows globally */
+  /* Remove shadows and animations globally */
   * {
-    color: #000000 !important;
     box-shadow: none !important;
     text-shadow: none !important;
-    border-color: #cbd5e1 !important;
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
     visibility: visible !important;
+  }
+
+  /* Convert light text to black, while preserving intentionally colorful text/icons */
+  body,
+  [class*="text-gray-"], 
+  [class*="text-white"],
+  [class*="text-slate-"],
+  [class*="text-zinc-"],
+  [class*="text-neutral-"] {
+    color: #000000 !important;
+  }
+
+  /* Lighten dark layout borders for clean print, while preserving colorful UI borders */
+  [class*="border-[#1"],
+  [class*="border-[#2"],
+  [class*="border-[#0"],
+  [class*="border-gray-"],
+  [class*="border-zinc-"],
+  [class*="border-neutral-"] {
+    border-color: #cbd5e1 !important;
   }
 
   /* Make ONLY dark layout backgrounds transparent so the white body shows through */
