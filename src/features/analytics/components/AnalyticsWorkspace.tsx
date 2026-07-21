@@ -226,49 +226,11 @@ export const AnalyticsWorkspace: React.FC<AnalyticsWorkspaceProps> = ({ targetFi
     }
   };
 
-  const handleExportPdf = async () => {
-    const mainEl = document.querySelector('main');
-    if (!mainEl) return;
-
-    try {
-      mainEl.classList.add('print-capture');
-      
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(mainEl, {
-        backgroundColor: '#ffffff',
-        scale: 1.5,
-        useCORS: true,
-        logging: false
-      });
-
-      const { jsPDF } = await import('jspdf');
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      const activeTab = location.pathname.split('/').pop() || 'dashboard';
-      const activeModule = analysisModules.find(m => m.id === activeTab)?.name || 'CDR_Analysis';
-      pdf.save(`${activeModule.replace(/\s+/g, '_')}_${targetFile.phoneNumber}.pdf`);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate PDF snapshot.");
-    } finally {
-      mainEl.classList.remove('print-capture');
-    }
+  const handleExportPdf = () => {
+    // Note: JavaScript cannot silently download a native CSS paged PDF.
+    // The most accurate and high-fidelity way to export a PDF with exact print layout 
+    // is to use the browser's native print dialog and save as PDF.
+    window.print();
   };
 
   const handleExportKml = (isKmz: boolean) => {
