@@ -107,22 +107,31 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* Force EVERY element on the page to have white background and dark text */
-  /* This is the only reliable way to override Tailwind v4 arbitrary bg- classes */
-  *,
-  *::before,
-  *::after {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    background-image: none !important;
+  /* Set text color to black and remove shadows globally */
+  * {
+    color: #000000 !important;
     box-shadow: none !important;
     text-shadow: none !important;
-    border-color: #e2e8f0 !important;
-    color: #000000 !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Make ONLY dark backgrounds transparent so the white body shows through */
+  /* This prevents opaque white boxes from accidentally hiding layered content */
+  [class*="bg-[#"],
+  [class*="bg-gray-"],
+  [class*="bg-zinc-"],
+  [class*="bg-neutral-"],
+  [class*="bg-slate-"],
+  [class*="bg-stone-"],
+  [class*="bg-black"] {
+    background-color: transparent !important;
+    background-image: none !important;
   }
 
   /* Reset document root layout */
   html, body, #root {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
     height: auto !important;
     min-height: 0 !important;
     overflow: visible !important;
@@ -130,27 +139,16 @@ body {
   }
 
   /* Reset layout containers and scroll locks so content flows across page breaks */
-  .h-full, .h-screen, .w-screen, .overflow-hidden, .overflow-y-auto, main, section, .flex-1 {
+  .h-full, .h-screen, .w-screen, .overflow-hidden, .overflow-y-auto, main, section, .flex-1, #root > div {
     height: auto !important;
     max-height: none !important;
     min-height: 0 !important;
     overflow: visible !important;
   }
-
-  /* SVG chart fills - preserve chart colors, make text labels black */
-  svg text, svg tspan {
-    fill: #000000 !important;
-    color: #000000 !important;
-  }
-  svg {
-    filter: none !important;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-  }
-  /* Keep chart line/path colors (do NOT override stroke on path/polyline) */
-  svg rect {
-    fill: #ffffff !important;
-    background-color: #ffffff !important;
+  
+  /* Ensure main app wrappers do not use flex in print to prevent height collapse */
+  #root, #root > div {
+    display: block !important;
   }
 
   /* Prevent cards from splitting across page breaks */
