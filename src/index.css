@@ -132,29 +132,19 @@ body {
     padding: 0 !important;
   }
 
-  /* Target main cards: turn their background white, text dark, and borders light gray */
-  main div[class*="rounded-xl"],
-  main div[class*="rounded-lg"],
-  main div[class*="rounded-2xl"],
-  main section {
+  /* Force all main containers, card boxes, and inner wrappers to pure white background & light slate border */
+  main div, main section, main article, main header {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    color: #000000 !important;
+    background-image: none !important;
     border-color: #e2e8f0 !important;
     box-shadow: none !important;
   }
 
-  /* Map all text elements inside main to dark black for high legibility on white paper */
+  /* Force all text elements inside main to be crisp solid black with transparent background */
   main h1, main h2, main h3, main h4, main h5, main h6, 
-  main p, main span, main a, main td, main th, main li, main label, main strong, main b, main i,
-  main .text-white,
-  main .text-gray-100,
-  main .text-gray-200,
-  main .text-gray-255,
-  main .text-gray-300,
-  main .text-gray-400,
-  main .text-gray-450,
-  main .text-gray-500 {
+  main p, main span, main a, main td, main th, main li, main label, main strong, main b, main i, main code,
+  main [class*="text-"] {
     color: #000000 !important;
     background-color: transparent !important;
   }
@@ -185,11 +175,11 @@ body {
   display: block !important;
 }
 
-.print-capture main div[class*="rounded-xl"],
-.print-capture main div[class*="rounded-lg"],
+.print-capture main div,
 .print-capture main section {
   background-color: #ffffff !important;
   background: #ffffff !important;
+  background-image: none !important;
   border-color: #e2e8f0 !important;
   color: #000000 !important;
 }
@@ -203,11 +193,7 @@ body {
 .print-capture td,
 .print-capture th,
 .print-capture label,
-.print-capture .text-white,
-.print-capture .text-gray-200,
-.print-capture .text-gray-300,
-.print-capture .text-gray-400,
-.print-capture .text-gray-500 {
+.print-capture [class*="text-"] {
   color: #000000 !important;
   background-color: transparent !important;
 }
