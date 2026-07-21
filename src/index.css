@@ -92,33 +92,44 @@ body {
 
 /* @media print styles for perfect high-contrast PDF & Print reports */
 @media print {
-  /* Hide UI navigation, headers, and sidebars during print */
+  /* Hide UI navigation, sidebars, and toolbars during print */
   aside,
   nav,
   button,
   .no-print,
-  .no-print-actions,
-  div[class*="border-b border-[#2e2e2e]"] {
+  .no-print-actions {
     display: none !important;
   }
 
-  /* Force exact graphics rendering */
-  html, body, #root, body * {
+  /* Force exact color rendering in all browsers */
+  * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Reset document root to clean white & dark text */
-  html, body, #root {
+  /* Force EVERY element on the page to have white background and dark text */
+  /* This is the only reliable way to override Tailwind v4 arbitrary bg- classes */
+  *,
+  *::before,
+  *::after {
     background-color: #ffffff !important;
     background: #ffffff !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #e2e8f0 !important;
     color: #000000 !important;
+  }
+
+  /* Reset document root layout */
+  html, body, #root {
     height: auto !important;
     min-height: 0 !important;
     overflow: visible !important;
+    width: 100% !important;
   }
 
-  /* Reset layout containers and scroll locks so content flows naturally across page breaks */
+  /* Reset layout containers and scroll locks so content flows across page breaks */
   .h-full, .h-screen, .w-screen, .overflow-hidden, .overflow-y-auto, main, section, .flex-1 {
     height: auto !important;
     max-height: none !important;
@@ -126,37 +137,23 @@ body {
     overflow: visible !important;
   }
 
-  html body main,
-  html body main * {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    background-image: none !important;
-    border-color: #cbd5e1 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-
-  /* Force all text elements inside main to be crisp solid black with transparent background */
-  html body main h1, html body main h2, html body main h3, 
-  html body main h4, html body main h5, html body main h6, 
-  html body main p, html body main span, html body main a, 
-  html body main td, html body main th, html body main li, 
-  html body main label, html body main strong, html body main b, 
-  html body main i, html body main code,
-  html body main [class*="text-"] {
-    color: #000000 !important;
-    background-color: transparent !important;
-  }
-
-  /* Ensure SVG chart labels and texts are black */
-  svg text {
+  /* SVG chart fills - preserve chart colors, make text labels black */
+  svg text, svg tspan {
     fill: #000000 !important;
+    color: #000000 !important;
   }
   svg {
     filter: none !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  /* Keep chart line/path colors (do NOT override stroke on path/polyline) */
+  svg rect {
+    fill: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
-  /* Prevent cards from breaking awkwardly in half across page breaks */
+  /* Prevent cards from splitting across page breaks */
   section > div,
   .grid > div {
     page-break-inside: avoid !important;
@@ -174,27 +171,14 @@ body {
   display: block !important;
 }
 
-.print-capture main,
-.print-capture main * {
+.print-capture,
+.print-capture * {
   background-color: #ffffff !important;
   background: #ffffff !important;
   background-image: none !important;
-  border-color: #cbd5e1 !important;
+  border-color: #e2e8f0 !important;
   color: #000000 !important;
-}
-
-.print-capture h1,
-.print-capture h2,
-.print-capture h3,
-.print-capture h4,
-.print-capture p,
-.print-capture span,
-.print-capture td,
-.print-capture th,
-.print-capture label,
-.print-capture [class*="text-"] {
-  color: #000000 !important;
-  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .print-capture svg text {
