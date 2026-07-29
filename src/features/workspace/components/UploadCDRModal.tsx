@@ -578,7 +578,7 @@ export const UploadCDRModal: React.FC<UploadCDRModalProps> = ({
                     type="text"
                     value={ownerName}
                     onChange={e => setOwnerName(e.target.value)}
-                    placeholder="e.g. Mahbub Shihab"
+                    placeholder="e.g. John Doe"
                     className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#3ecf8e]"
                   />
                 </div>
