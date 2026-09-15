@@ -10,6 +10,7 @@ import { UploadCDRModal } from './UploadCDRModal';
 import { SearchCDRLogs } from '../subfeatures/search-cdr-logs/SearchCDRLogs';
 import { MfcCellTowerMapping } from '../subfeatures/mfc-cell-tower/MfcCellTowerMapping';
 import { ImeiImsiSummary } from '../subfeatures/imei-imsi-summary/ImeiImsiSummary';
+import { HeaderExternalActions, SidebarPromoBox } from '../../../components/common/HeaderExternalActions';
 
 interface WorkspaceProps {
   activeCase: Case;
@@ -137,26 +138,30 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           </nav>
         </div>
 
+        <SidebarPromoBox collapsed={isSidebarCollapsed} />
       </aside>
 
       {/* 2. Main content area switcher */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] text-left">
         {/* Case Overview header bar to house the sidebar toggle */}
-        <div className="p-4 border-b border-[#2e2e2e] bg-[#171717] flex items-center gap-3 shrink-0">
-          {isSidebarCollapsed && (
-            <button
-              onClick={() => setIsSidebarCollapsed(false)}
-              className="p-1.5 hover:bg-[#1e1e1e] text-gray-400 hover:text-gray-250 rounded-lg cursor-pointer transition-colors shrink-0 md:hidden"
-              title="Show sidebar"
-            >
-              <Menu className="h-4.5 w-4.5" />
-            </button>
-          )}
-          <div>
-            <h2 className="text-sm font-semibold text-gray-200">
-              Case Workspace — {activeCase.title}
-            </h2>
+        <div className="p-4 border-b border-[#2e2e2e] bg-[#171717] flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-3">
+            {isSidebarCollapsed && (
+              <button
+                onClick={() => setIsSidebarCollapsed(false)}
+                className="p-1.5 hover:bg-[#1e1e1e] text-gray-400 hover:text-gray-250 rounded-lg cursor-pointer transition-colors shrink-0 md:hidden"
+                title="Show sidebar"
+              >
+                <Menu className="h-4.5 w-4.5" />
+              </button>
+            )}
+            <div>
+              <h2 className="text-sm font-semibold text-gray-200">
+                Case Workspace — {activeCase.title}
+              </h2>
+            </div>
           </div>
+          <HeaderExternalActions />
         </div>
 
         <main className="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar">

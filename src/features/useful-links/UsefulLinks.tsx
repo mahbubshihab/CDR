@@ -3,6 +3,24 @@ import { Link2, ExternalLink, Globe, MapPin, Radio, Activity } from 'lucide-reac
 
 const LINKS = [
   {
+    title: 'LAC Cell Analyzer',
+    description: 'Specialized cellular decoder and LAC / Cell ID geographic analyzer for investigating BTS location intelligence.',
+    url: 'https://www.laccelldecoder.com/',
+    icon: <Radio className="h-5 w-5" />,
+    color: 'text-[#3ecf8e]',
+    bg: 'bg-[#3ecf8e]/10',
+    border: 'border-[#3ecf8e]/30'
+  },
+  {
+    title: 'Direct WhatsApp Support',
+    description: 'Official investigator support, activation, and feature inquiries on WhatsApp (+8801752008041).',
+    url: 'https://wa.me/8801752008041',
+    icon: <Globe className="h-5 w-5" />,
+    color: 'text-[#25D366]',
+    bg: 'bg-[#25D366]/10',
+    border: 'border-[#25D366]/30'
+  },
+  {
     title: 'OpenCellID',
     description: 'The world\'s largest open database of cell towers. Useful for validating LAC/CID geographical locations.',
     url: 'https://opencellid.org/',

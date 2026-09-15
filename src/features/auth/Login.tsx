@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ShieldAlert, LogOut, Loader2, Database, Key } from 'lucide-react';
+import { HeaderExternalActions, FloatingWhatsAppWidget } from '../../components/common/HeaderExternalActions';
 
 export const Login: React.FC = () => {
   const { 
@@ -219,6 +220,10 @@ export const Login: React.FC = () => {
     return (
       <div className="min-h-screen w-screen flex items-center justify-center bg-[#070709] p-6 relative">
         <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
+        <div className="absolute top-6 right-6 z-20">
+          <HeaderExternalActions />
+        </div>
+        <FloatingWhatsAppWidget />
         
         <div className="max-w-md w-full bg-[#111113]/80 backdrop-blur-xl border border-yellow-500/30 rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-2xl shadow-yellow-500/5 animate-in fade-in duration-300 relative z-10">
           <div className="inline-flex p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl text-yellow-500">
@@ -265,6 +270,10 @@ export const Login: React.FC = () => {
     return (
       <div className="min-h-screen w-screen flex items-center justify-center bg-[#070709] p-6 relative">
         <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
+        <div className="absolute top-6 right-6 z-20">
+          <HeaderExternalActions />
+        </div>
+        <FloatingWhatsAppWidget />
 
         <div className="max-w-md w-full bg-[#111113]/80 backdrop-blur-xl border border-red-500/30 rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-2xl shadow-red-500/5 animate-in fade-in duration-300 relative z-10">
           <div className="inline-flex p-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500">
@@ -298,6 +307,10 @@ export const Login: React.FC = () => {
     return (
       <div className="min-h-screen w-screen flex items-center justify-center bg-[#070709] p-6 relative">
         <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
+        <div className="absolute top-6 right-6 z-20">
+          <HeaderExternalActions />
+        </div>
+        <FloatingWhatsAppWidget />
 
         <div className="max-w-md w-full bg-[#111113]/80 backdrop-blur-xl border border-red-500/30 rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-2xl shadow-red-500/5 animate-in fade-in duration-300 relative z-10">
           <div className="inline-flex p-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500">
@@ -327,6 +340,12 @@ export const Login: React.FC = () => {
     <div className="min-h-screen w-screen flex items-center justify-center bg-[#070709] relative overflow-hidden p-6 text-left">
       {/* Background Interactive canvas */}
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
+
+      {/* Top Header Quick Actions */}
+      <div className="absolute top-6 right-6 z-20">
+        <HeaderExternalActions />
+      </div>
+      <FloatingWhatsAppWidget />
 
       {/* Cyber Glow Overlays */}
       <div className="absolute top-[-25%] left-[-25%] w-[60%] h-[60%] rounded-full bg-[#3ecf8e]/3 blur-[140px] pointer-events-none" />

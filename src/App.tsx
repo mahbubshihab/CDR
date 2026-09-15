@@ -23,6 +23,7 @@ import { UserManagement } from './features/user-management/UserManagement';
 import { Login } from './features/auth/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { db, type Case } from './utils/db';
+import { HeaderExternalActions, SidebarPromoBox, FloatingWhatsAppWidget } from './components/common/HeaderExternalActions';
 
 const menuItems = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -274,6 +275,7 @@ function MainLayout({ timeString, setIsAddOpen, refreshKey, handleCaseSaved, set
           </nav>
         </div>
 
+        <SidebarPromoBox collapsed={!showName} />
       </aside>
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -294,12 +296,14 @@ function MainLayout({ timeString, setIsAddOpen, refreshKey, handleCaseSaved, set
               />
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-5">
-            <div className="hidden sm:flex items-center gap-2 text-gray-450 font-medium font-mono text-[11px]">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <HeaderExternalActions />
+            <div className="hidden sm:block h-6 w-px bg-[#2e2e2e]" />
+            <div className="hidden lg:flex items-center gap-2 text-gray-450 font-medium font-mono text-[11px]">
               <Sun className="h-4.5 w-4.5 text-gray-500" />
               <span>{timeString}</span>
             </div>
-            <div className="hidden sm:block h-7 w-px bg-[#2e2e2e]" />
+            <div className="hidden lg:block h-7 w-px bg-[#2e2e2e]" />
             
             {/* Notifications Dropdown */}
             <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -535,6 +539,8 @@ function AppContent() {
         onClose={() => setIsAddOpen(false)} 
         onSave={handleCaseSaved}
       />
+
+      <FloatingWhatsAppWidget />
     </>
   );
 }

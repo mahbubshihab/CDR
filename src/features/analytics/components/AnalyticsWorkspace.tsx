@@ -35,6 +35,7 @@ import { MissingDatesModule } from '../subfeatures/missing-dates/MissingDatesMod
 import { InteractiveTimelineModule } from '../subfeatures/interactive-timeline/InteractiveTimelineModule';
 import { ReportsDownloads } from '../subfeatures/reports-downloads/ReportsDownloads';
 import { CustomAlert } from '../../../components/ui/CustomModal';
+import { HeaderExternalActions, SidebarPromoBox } from '../../../components/common/HeaderExternalActions';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -422,9 +423,9 @@ Verified by: System`;
               );
             })}
           </nav>
-
-
         </div>
+
+        <SidebarPromoBox collapsed={isSidebarCollapsed} />
       </aside>
 
       {/* 2. Main Content Frame */}
@@ -465,6 +466,8 @@ Verified by: System`;
 
           {/* Quick exports & Back actions matching layout in image copy.png */}
           <div className="flex flex-wrap items-center gap-2 text-xs font-sans">
+            <HeaderExternalActions />
+            <div className="hidden sm:block h-6 w-px bg-[#2e2e2e]" />
             <button 
               onClick={() => handleFeatureExport('csv')}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-[#171717] border border-[#2e2e2e] hover:border-gray-500 text-gray-350 hover:text-white rounded-lg transition-colors cursor-pointer"
