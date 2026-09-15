@@ -35,7 +35,7 @@ import { MissingDatesModule } from '../subfeatures/missing-dates/MissingDatesMod
 import { InteractiveTimelineModule } from '../subfeatures/interactive-timeline/InteractiveTimelineModule';
 import { ReportsDownloads } from '../subfeatures/reports-downloads/ReportsDownloads';
 import { CustomAlert } from '../../../components/ui/CustomModal';
-import { HeaderExternalActions, SidebarPromoBox } from '../../../components/common/HeaderExternalActions';
+import { HeaderExternalActions } from '../../../components/common/HeaderExternalActions';
 interface AnalyticsWorkspaceProps {
   targetFileId: number;
   onBack: () => void;
@@ -425,7 +425,6 @@ Verified by: System`;
           </nav>
         </div>
 
-        <SidebarPromoBox collapsed={isSidebarCollapsed} />
       </aside>
 
       {/* 2. Main Content Frame */}

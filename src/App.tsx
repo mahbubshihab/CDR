@@ -23,7 +23,7 @@ import { UserManagement } from './features/user-management/UserManagement';
 import { Login } from './features/auth/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { db, type Case } from './utils/db';
-import { HeaderExternalActions, SidebarPromoBox, FloatingWhatsAppWidget } from './components/common/HeaderExternalActions';
+import { HeaderExternalActions } from './components/common/HeaderExternalActions';
 
 const menuItems = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -275,7 +275,6 @@ function MainLayout({ timeString, setIsAddOpen, refreshKey, handleCaseSaved, set
           </nav>
         </div>
 
-        <SidebarPromoBox collapsed={!showName} />
       </aside>
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -539,8 +538,6 @@ function AppContent() {
         onClose={() => setIsAddOpen(false)} 
         onSave={handleCaseSaved}
       />
-
-      <FloatingWhatsAppWidget />
     </>
   );
 }

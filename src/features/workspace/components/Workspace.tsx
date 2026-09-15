@@ -11,7 +11,7 @@ import { SearchCDRLogs } from '../subfeatures/search-cdr-logs/SearchCDRLogs';
 import { MfcCellTowerMapping } from '../subfeatures/mfc-cell-tower/MfcCellTowerMapping';
 import { CommonBPartyAnalysis } from '../subfeatures/common-bparty/CommonBPartyAnalysis';
 import { ImeiImsiSummary } from '../subfeatures/imei-imsi-summary/ImeiImsiSummary';
-import { HeaderExternalActions, SidebarPromoBox } from '../../../components/common/HeaderExternalActions';
+import { HeaderExternalActions } from '../../../components/common/HeaderExternalActions';
 
 interface WorkspaceProps {
   activeCase: Case;
@@ -140,7 +140,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           </nav>
         </div>
 
-        <SidebarPromoBox collapsed={isSidebarCollapsed} />
       </aside>
 
       {/* 2. Main content area switcher */}
