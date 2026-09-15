@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, Upload, Search, Smartphone, MapPin, 
-  LayoutDashboard, Menu, PanelLeft
+  LayoutDashboard, Menu, PanelLeft, Users
 } from 'lucide-react';
 import { type Case } from '../../../utils/db';
 import { CaseOverview } from '../subfeatures/case-overview/CaseOverview';
 import { UploadCDRModal } from './UploadCDRModal';
 import { SearchCDRLogs } from '../subfeatures/search-cdr-logs/SearchCDRLogs';
 import { MfcCellTowerMapping } from '../subfeatures/mfc-cell-tower/MfcCellTowerMapping';
+import { CommonBPartyAnalysis } from '../subfeatures/common-bparty/CommonBPartyAnalysis';
 import { ImeiImsiSummary } from '../subfeatures/imei-imsi-summary/ImeiImsiSummary';
 import { HeaderExternalActions, SidebarPromoBox } from '../../../components/common/HeaderExternalActions';
 
@@ -33,6 +34,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     { id: 'add-cdr', name: 'Add CDR Spreadsheet', icon: Upload, action: () => setIsUploadOpen(true) },
     { id: 'search', name: 'Search CDR Logs', icon: Search },
     { id: 'mfc', name: 'MFC Cell Tower Mapping', icon: MapPin },
+    { id: 'common-bparty', name: 'Common B-Party Analysis', icon: Users },
     { id: 'imei', name: 'IMEI / IMSI Summary', icon: Smartphone }
   ];
 
@@ -177,6 +179,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             } />
             <Route path="search" element={<SearchCDRLogs activeCase={activeCase} />} />
             <Route path="mfc" element={<MfcCellTowerMapping activeCase={activeCase} />} />
+            <Route path="common-bparty" element={<CommonBPartyAnalysis activeCase={activeCase} onOpenUpload={() => setIsUploadOpen(true)} />} />
             <Route path="imei" element={<ImeiImsiSummary activeCase={activeCase} />} />
           </Routes>
         </main>
